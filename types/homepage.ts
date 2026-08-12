@@ -307,6 +307,11 @@ export interface CategoriesSettings {
   title: string;
   subtitle: string;
   categoryIds: string[];
+  /**
+   * Grid column layout. 2 = compact two-up on mobile, 3 = three-up.
+   * Desktop always uses a readable multi-column editorial grid.
+   */
+  columns?: 2 | 3;
 }
 
 export interface BrandsSettings {

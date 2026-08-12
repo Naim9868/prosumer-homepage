@@ -24,12 +24,14 @@ export function SectionHeading({
   description,
   align = "left",
   className,
+  descriptionClassName,
 }: {
   eyebrow?: string;
   title: ReactNode;
   description?: string;
   align?: "left" | "center";
   className?: string;
+  descriptionClassName?: string;
 }) {
   return (
     <div className={cn("max-w-2xl", align === "center" && "mx-auto text-center", className)}>
@@ -38,7 +40,9 @@ export function SectionHeading({
         {title}
       </h2>
       {description && (
-        <p className="mt-4 text-[15px] leading-relaxed text-foreground-muted">{description}</p>
+        <p className={cn("mt-4 text-[15px] leading-relaxed text-foreground-muted", descriptionClassName)}>
+          {description}
+        </p>
       )}
     </div>
   );

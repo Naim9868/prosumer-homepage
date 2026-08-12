@@ -2,7 +2,7 @@
 
 import { Plus, Trash2 } from "lucide-react";
 import type { CategoriesSettings, BrandsSettings, GallerySettings } from "@/types/homepage";
-import { Field, FieldGrid, TextInput } from "@/components/homepage-builder/fields";
+import { Field, FieldGrid, TextInput, Select } from "@/components/homepage-builder/fields";
 import { CatalogPicker, type CatalogPickerItem } from "@/components/homepage-builder/catalog-picker";
 import { ImageUploader } from "@/components/homepage-builder/image-uploader";
 import { useCatalog } from "@/components/shared/catalog-context";
@@ -30,6 +30,9 @@ export function CategoriesEditor({ settings, onChange }: { settings: CategoriesS
           <TextInput value={settings.subtitle} onChange={(e) => set("subtitle", e.target.value)} />
         </Field>
       </FieldGrid>
+      <Field label="Per row on mobile" hint="2 = compact two-up cards, 3 = smaller three-up cards. Desktop stays editorial.">
+        <Select value={String(settings.columns ?? 2)} onChange={(v) => set("columns", Number(v) as 2 | 3)} options={[{ label: "2 per row", value: "2" }, { label: "3 per row", value: "3" }]} />
+      </Field>
       <Field label="Lens categories to show (leave empty to show all)">
         <CatalogPicker items={categoryItems} selected={settings.categoryIds} onChange={(ids) => set("categoryIds", ids)} searchPlaceholder="Search categories..." />
       </Field>

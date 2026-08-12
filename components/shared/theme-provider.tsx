@@ -5,6 +5,7 @@ import { createContext, useCallback, useContext, useEffect, useSyncExternalStore
 type Theme = "light" | "dark";
 
 const THEME_KEY = "plbd-theme";
+const DESKTOP_QUERY = "(min-width: 1024px)";
 
 interface ThemeContextValue {
   theme: Theme;
@@ -13,15 +14,36 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
-function subscribe(callback: () => void) {
-  window.addEventListener("storage", callback);
-  return () => window.removeEventListener("storage", callback);
+function getSystemTheme(): Theme {
+  return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
 }
 
+function isDesktop(): boolean {
+  return window.matchMedia(DESKTOP_QUERY).matches;
+}
+
+/**
+ * Mobile/tablet always tracks the device preference.
+ * Desktop follows the stored override when present, otherwise the device preference.
+ */
 function getSnapshot(): Theme {
+  if (!isDesktop()) return getSystemTheme();
   const stored = window.localStorage.getItem(THEME_KEY) as Theme | null;
   if (stored === "light" || stored === "dark") return stored;
-  return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  return getSystemTheme();
+}
+
+function subscribe(callback: () => void) {
+  const colorMq = window.matchMedia("(prefers-color-scheme: dark)");
+  const desktopMq = window.matchMedia(DESKTOP_QUERY);
+  colorMq.addEventListener("change", callback);
+  desktopMq.addEventListener("change", callback);
+  window.addEventListener("storage", callback);
+  return () => {
+    colorMq.removeEventListener("change", callback);
+    desktopMq.removeEventListener("change", callback);
+    window.removeEventListener("storage", callback);
+  };
 }
 
 function getServerSnapshot(): Theme {
@@ -33,7 +55,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
-    window.localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
 
   const toggleTheme = useCallback(() => {

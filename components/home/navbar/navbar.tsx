@@ -105,7 +105,7 @@ export function Navbar() {
             {searchOpen ? <X className="h-[18px] w-[18px]" /> : <Search className="h-[18px] w-[18px]" />}
           </IconButton>
 
-          <IconButton label="Toggle theme" onClick={toggleTheme} className="hidden sm:inline-flex">
+          <IconButton label="Toggle theme" onClick={toggleTheme} className="hidden lg:inline-flex">
             {theme === "dark" ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
           </IconButton>
 
