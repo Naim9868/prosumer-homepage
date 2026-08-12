@@ -1,0 +1,188 @@
+@import "tailwindcss";
+@import "@fontsource/manrope/500.css";
+@import "@fontsource/manrope/600.css";
+@import "@fontsource/manrope/700.css";
+@import "@fontsource/manrope/800.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+
+/* ------------------------------------------------------------
+   DESIGN TOKENS — Prosumer Lens BD
+   Signature: aperture-iris geometry (7-blade polygon) used as a
+   recurring cut / reveal / accent shape across the page.
+------------------------------------------------------------- */
+
+:root {
+  /* Light mode: coated glass on brushed titanium */
+  --background: #eef0f1;
+  --background-elevated: #ffffff;
+  --foreground: #14161a;
+  --foreground-muted: #565c64;
+
+  --primary: #8a6a2e;         /* brass, darkened for AA contrast on light */
+  --primary-foreground: #fdfaf3;
+  --secondary: #234a5c;       /* lens-coating teal, darkened for contrast */
+  --secondary-foreground: #f2f8fa;
+  --accent: #b08d46;          /* brass, full brightness for large surfaces */
+
+  --muted: #e2e4e6;
+  --card: #ffffff;
+  --border: #d8dbde;
+  --ring: #b08d46;
+
+  --success: #2f6b4d;
+  --warning: #935c1e;
+  --destructive: #a5352c;
+
+  --gradient-primary: linear-gradient(135deg, #b08d46 0%, #7c5f28 100%);
+  --gradient-secondary: linear-gradient(135deg, #234a5c 0%, #12262f 100%);
+  --gradient-hero: radial-gradient(120% 120% at 50% 0%, #f4f0e6 0%, #eef0f1 45%, #e4e7e9 100%);
+
+  --shadow-sm: 0 1px 2px rgba(20, 22, 26, 0.06);
+  --shadow-md: 0 8px 24px rgba(20, 22, 26, 0.08);
+  --shadow-lg: 0 24px 64px rgba(20, 22, 26, 0.14);
+  --shadow-glow: 0 0 60px rgba(176, 141, 70, 0.25);
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.5rem;
+  --radius-xl: 2.5rem;
+
+  --font-heading: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --ease-optical: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dark {
+  --background: #0e0f11;
+  --background-elevated: #16181c;
+  --foreground: #f2f1ed;
+  --foreground-muted: #9a9fa6;
+
+  --primary: #c9a44c;
+  --primary-foreground: #14100a;
+  --secondary: #4c7a92;
+  --secondary-foreground: #0a1418;
+  --accent: #c9a44c;
+
+  --muted: #1d2024;
+  --card: #16181c;
+  --border: #26292e;
+  --ring: #c9a44c;
+
+  --success: #4c8f6b;
+  --warning: #c1873b;
+  --destructive: #d6635a;
+
+  --gradient-primary: linear-gradient(135deg, #d9b768 0%, #a37c34 100%);
+  --gradient-secondary: linear-gradient(135deg, #4c7a92 0%, #1a323c 100%);
+  --gradient-hero: radial-gradient(120% 120% at 50% 0%, #1b1d21 0%, #0e0f11 55%, #08090a 100%);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.55);
+  --shadow-glow: 0 0 80px rgba(201, 164, 76, 0.18);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-elevated: var(--background-elevated);
+  --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-muted: var(--muted);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-destructive: var(--destructive);
+
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+::selection {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Aperture-iris clip path utility — the recurring signature cut */
+.aperture-clip {
+  clip-path: polygon(
+    50% 0%, 85% 8%, 100% 35%, 96% 68%,
+    72% 96%, 38% 100%, 10% 82%, 0% 50%,
+    8% 20%, 30% 2%
+  );
+}
+
+.glass {
+  background: color-mix(in srgb, var(--background-elevated) 72%, transparent);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Hero autoplay progress bar */
+@keyframes hero-progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.hero-progress-bar {
+  animation-name: hero-progress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
