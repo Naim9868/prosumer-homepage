@@ -3,9 +3,7 @@
 import { useState } from "react";
 import { ShoppingBag } from "lucide-react";
 import { useCartContext } from "@/app/context/CartContext";
-import { useGuestInfo } from "@/app/context/GuestInfoContext";
 import { useModal } from "@/app/context/OrderModalContext";
-import GuestInfoModal from "@/components/GuestInfoModal";
 import type { IProduct, IProductVariant } from "@/types/product";
 import { buildCartItem } from "@/lib/cart-item";
 import { cn } from "@/lib/utils";
@@ -38,10 +36,8 @@ export default function BuyNowButton({
   disabled = false,
 }: BuyNowButtonProps) {
   const { addToCart } = useCartContext();
-  const { hasGuestInfo } = useGuestInfo();
   const { openOrderModal } = useModal();
   const [isAdding, setIsAdding] = useState(false);
-  const [showGuestModal, setShowGuestModal] = useState(false);
 
   const getVariantStyles = () => {
     switch (buttonVariant) {
@@ -79,11 +75,6 @@ export default function BuyNowButton({
 
     if (onClick) {
       onClick(e);
-      return;
-    }
-
-    if (!hasGuestInfo) {
-      setShowGuestModal(true);
       return;
     }
 
@@ -133,21 +124,10 @@ export default function BuyNowButton({
         ) : (
           <>
             <ShoppingBag className="mr-2 h-4 w-4 flex-shrink-0" />
-            {children || "Buy Now"}
-          </>
-        )}
-      </button>
-
-      {showGuestModal && (
-        <GuestInfoModal
-          actionType="buyNow"
-          onClose={() => setShowGuestModal(false)}
-          onConfirm={async () => {
-            setShowGuestModal(false);
-            await handleBuyNow({} as React.MouseEvent<HTMLButtonElement>);
-          }}
-        />
+{children || "Buy Now"}
+        </>
       )}
+      </button>
     </>
   );
 }

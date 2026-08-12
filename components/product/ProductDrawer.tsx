@@ -184,14 +184,9 @@ export default function ProductDrawer() {
     (e?: React.MouseEvent) => {
       e?.stopPropagation();
       if (!isInStock) return;
-      if (!hasGuestInfo) {
-        setPendingAction("buyNow");
-        setShowGuestModal(true);
-        return;
-      }
       buyNow();
     },
-    [isInStock, hasGuestInfo, buyNow]
+    [isInStock, buyNow]
   );
 
   const handleGuestConfirm = useCallback(async () => {

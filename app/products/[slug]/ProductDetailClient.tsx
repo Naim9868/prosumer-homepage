@@ -141,11 +141,6 @@ export default function ProductDetailClient({ product }: Props) {
 
   const handleBuyNow = () => {
     if (!isInStock) return;
-    if (!hasGuestInfo) {
-      setPendingAction("buyNow");
-      setShowGuestModal(true);
-      return;
-    }
     buyNow();
   };
 
