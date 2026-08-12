@@ -15,6 +15,9 @@ export interface CatalogProduct {
   category: string;
   categorySlug: string;
   categoryId: string;
+  brand?: string;
+  brandSlug?: string;
+  brandId?: string;
   price: number;
   compareAtPrice?: number;
   rating: number;

@@ -11,8 +11,10 @@ export function catalogToIProduct(product: CatalogProduct): IProduct {
     slug: product.slug,
     description: "",
     shortDescription: "",
-    brandId: product.categoryId,
-    brand: null,
+    brandId: product.brandId || product.categoryId,
+    brand: product.brand
+      ? { _id: product.brandId || "", name: product.brand, slug: product.brandSlug || "" }
+      : null,
     categoryId: product.categoryId,
     category: { _id: product.categoryId, name: product.category, slug: product.categorySlug },
     variants: [

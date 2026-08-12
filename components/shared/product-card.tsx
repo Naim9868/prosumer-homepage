@@ -39,6 +39,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
     return catalogToIProduct(product as CatalogProduct);
   }, [product]);
 
+
   const productId = getProductId(product);
   const slug = getProductSlug(product);
   const name = getProductName(product);
@@ -293,7 +294,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
                   type="button"
                   onClick={handleAddToCart}
                   disabled={isAddingToCart || !stockStatus.isInStock}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-md)] bg-primary py-2.5 text-xs font-semibold text-primary-foreground shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed md:text-sm"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-md)] bg-primary py-2.5 text-xs font-semibold text-primary-foreground shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed md:text-xs"
                 >
                   {isAddingToCart ? (
                     <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -309,7 +310,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
                   product={richProduct}
                   variant={defaultVariant}
                   showModal
-                  className="flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-md)] bg-secondary py-2.5 text-xs font-semibold text-secondary-foreground shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed md:text-sm"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-md)] bg-secondary py-2.5 text-xs font-semibold text-secondary-foreground shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed md:text-xs"
                 >
                   Buy Now
                 </BuyNowButton>

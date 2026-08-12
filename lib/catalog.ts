@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import { connectDB } from "@/lib/dbConnect";
 import { ProductModel } from "@/models/Product";
 import { CategoryModel } from "@/models/Category";
+import { BrandModel } from "@/models/Brand";
 import { ReviewModel } from "@/models/Review";
 import type { CatalogCategory, CatalogData, CatalogProduct, CatalogReview, CatalogStock } from "@/types/catalog";
 
@@ -48,12 +49,22 @@ interface CategoryDoc {
   parentId?: unknown | null;
 }
 
+interface BrandDoc {
+  _id: unknown;
+  name: string;
+  slug?: string;
+  image?: string;
+  description?: string;
+  isActive?: boolean;
+}
+
 interface ProductDoc {
   _id: unknown;
   name: string;
   slug?: string;
   thumbnail?: string;
   images?: { url?: string }[];
+  brandId?: unknown;
   categoryId?: unknown;
   lowestPrice?: number;
   highestPrice?: number;
@@ -94,7 +105,11 @@ function toCatalogCategory(doc: CategoryDoc, index: number): CatalogCategory {
   };
 }
 
-function toCatalogProduct(doc: ProductDoc, categories: Map<string, CatalogCategory>): CatalogProduct {
+function toCatalogProduct(
+  doc: ProductDoc,
+  categories: Map<string, CatalogCategory>,
+  brands: Map<string, BrandDoc>
+): CatalogProduct {
   const variants = doc.variants ?? [];
   const prices = variants.map((v) => v.price).filter((p): p is number => typeof p === "number");
   const minVariantPrice = prices.length ? Math.min(...prices) : undefined;
@@ -113,6 +128,8 @@ function toCatalogProduct(doc: ProductDoc, categories: Map<string, CatalogCatego
 
   const categoryId = doc.categoryId ? String(doc.categoryId) : "";
   const category = categories.get(categoryId);
+  const brandId = doc.brandId ? String(doc.brandId) : "";
+  const brand = brands.get(brandId);
 
   const images = (doc.images ?? []).map((img) => img.url).filter((url): url is string => !!url);
 
@@ -120,9 +137,12 @@ function toCatalogProduct(doc: ProductDoc, categories: Map<string, CatalogCatego
     id: String(doc._id),
     name: doc.name,
     slug: doc.slug ?? "",
-    category: category?.name ?? "Accessories",
+    category: category?.name ?? "",
     categorySlug: category?.slug ?? "",
     categoryId,
+    brand: brand?.name ?? "",
+    brandSlug: brand?.slug ?? "",
+    brandId,
     price,
     compareAtPrice,
     rating: doc.ratingAverage ?? 0,
@@ -161,15 +181,21 @@ function toCatalogReview(doc: ReviewDoc, productNames: Map<string, string>): Cat
 export const getCatalogData = unstable_cache(
   async (): Promise<CatalogData> => {
     await connectDB();
-    const [cats, prods, revs] = await Promise.all([
+    const [cats, brandsRaw, prods, revs] = await Promise.all([
       CategoryModel.find({ status: "active" }).lean().exec(),
+      BrandModel.find({ isActive: true }).lean().exec(),
       ProductModel.find({ status: "active", deletedAt: null }).lean().exec(),
       ReviewModel.find({ status: "approved" }).lean().exec(),
     ]);
 
     const categories = (cats as unknown as CategoryDoc[]).map(toCatalogCategory);
     const categoryMap = new Map(categories.map((c) => [c.id, c]));
-    const products = (prods as unknown as ProductDoc[]).map((p) => toCatalogProduct(p, categoryMap));
+    const brandMap = new Map(
+      (brandsRaw as unknown as BrandDoc[]).map((b) => [String(b._id), b])
+    );
+    const products = (prods as unknown as ProductDoc[]).map((p) =>
+      toCatalogProduct(p, categoryMap, brandMap)
+    );
 
     const productNames = new Map(
       (prods as unknown as ProductDoc[]).map((p) => [String(p._id), p.name])
