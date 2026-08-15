@@ -46,7 +46,13 @@ export function MobileHeroPoster() {
           )}
         </div>
       ) : null}
-      <div className={cn("flex w-full flex-col px-5 pb-9 pt-5", itemsClass)}>
+      <div
+        className={cn("flex w-full flex-col pb-9 pt-5", itemsClass)}
+        style={{
+          paddingLeft: "clamp(12px, var(--page-padding, 20px), 6vw)",
+          paddingRight: "clamp(12px, var(--page-padding, 20px), 6vw)",
+        }}
+      >
         <HeroContent centered={align === "center"} />
       </div>
     </section>

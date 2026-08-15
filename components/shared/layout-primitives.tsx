@@ -1,9 +1,18 @@
 import { cn } from "@/lib/utils";
 import type { HTMLAttributes, ReactNode } from "react";
 
-export function Container({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
+export function Container({ className, children, style, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("mx-auto w-full max-w-[1280px] px-5 sm:px-8 lg:px-10", className)} {...props}>
+    <div
+      className={cn("mx-auto w-full", className)}
+      style={{
+        maxWidth: "var(--page-max-width, 1440px)",
+        paddingLeft: "clamp(12px, var(--page-padding, 24px), 5vw)",
+        paddingRight: "clamp(12px, var(--page-padding, 24px), 5vw)",
+        ...style,
+      }}
+      {...props}
+    >
       {children}
     </div>
   );

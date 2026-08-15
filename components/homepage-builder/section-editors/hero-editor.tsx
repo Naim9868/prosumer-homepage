@@ -135,15 +135,13 @@ export function HeroEditor({
         </div>
 
         <div className="min-w-0 space-y-4">
-          <div className="max-h-[45vh] overflow-y-auto">
-            <HeroLivePreview
-              settings={normalized}
-              breakpoint={breakpoint}
-              onBreakpointChange={setBreakpoint}
-              activeSlideId={selected.id}
-              forceTheme={selected.theme}
-            />
-          </div>
+          <HeroLivePreview
+            settings={normalized}
+            breakpoint={breakpoint}
+            onBreakpointChange={setBreakpoint}
+            activeSlideId={selected.id}
+            forceTheme={selected.theme}
+          />
 
           <div>
             <div className="rounded-[var(--radius-md)] border border-border bg-muted/40 p-4">

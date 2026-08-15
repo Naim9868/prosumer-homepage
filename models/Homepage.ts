@@ -51,6 +51,7 @@ const SectionSchema = new Schema(
 const HomepageSchema = new Schema(
   {
     sections: { type: [SectionSchema], default: [] },
+    page: { type: Schema.Types.Mixed, default: undefined }, // global page layout settings
     published: { type: Boolean, default: true },
   },
   { timestamps: { createdAt: false, updatedAt: "updatedAt" } }

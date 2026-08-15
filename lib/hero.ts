@@ -17,6 +17,8 @@ import type {
   HeroSettings,
   HeroSliderSettings,
   HeroSlide,
+  HeroTextPosition,
+  HeroTextPositions,
   HeroTheme,
   HeroThemeData,
   HeroTypography,
@@ -27,19 +29,13 @@ import type {
 // ---------------------------------------------------------------
 
 export const HERO_LAYOUTS: { value: HeroLayout; label: string; description: string }[] = [
-  { value: "premium-split", label: "Premium Split", description: "Text left, product visual right." },
   { value: "cinematic", label: "Cinematic", description: "Full-bleed background image with overlay." },
-  { value: "product-focus", label: "Product Focus", description: "Large product visual with focused copy." },
-  { value: "collection", label: "Collection", description: "Collection-focused hero." },
-  { value: "promotion", label: "Promotion", description: "Promotional / sale hero." },
+  { value: "apexel", label: "Apexel", description: "Full-bleed image with bottom-anchored copy and CTA." },
 ];
 
 export const HERO_LAYOUT_META: Record<HeroLayout, { label: string; description: string }> = {
-  "premium-split": { label: "Premium Split", description: "Text left, product visual right." },
   cinematic: { label: "Cinematic", description: "Full-bleed background image with overlay." },
-  "product-focus": { label: "Product Focus", description: "Large product visual with focused copy." },
-  collection: { label: "Collection", description: "Collection-focused hero." },
-  promotion: { label: "Promotion", description: "Promotional / sale hero." },
+  apexel: { label: "Apexel", description: "Full-bleed image with bottom-anchored copy and CTA." },
 };
 
 export const HERO_THEMES: Record<HeroTheme, HeroColors> = {
@@ -223,6 +219,13 @@ export function defaultHeroThemeVisuals(theme: HeroTheme): HeroThemeData {
       colors: { ...HERO_THEMES[theme] },
       typography: { ...DEFAULT_HERO_TYPOGRAPHY },
       overlayOpacity: 1,
+      textPositions: {
+        eyebrow: { x: 0, y: 0 },
+        heading: { x: 0, y: 0 },
+        description: { x: 0, y: 0 },
+        buttons: { x: 0, y: 0 },
+        badges: { x: 0, y: 0 },
+      },
       spacing: {
         containerMaxWidth: 1280,
         paddingTop: 132,
@@ -353,7 +356,7 @@ export function applyHeroPreset(slide: HeroSlide, preset: HeroPreset): HeroSlide
       return materializeHeroSlide(
         {
           ...slide,
-          layout: "premium-split",
+          layout: "cinematic",
           theme: "dark",
           themes: {
             ...slide.themes,
@@ -373,7 +376,7 @@ export function applyHeroPreset(slide: HeroSlide, preset: HeroPreset): HeroSlide
       return materializeHeroSlide(
         {
           ...slide,
-          layout: "premium-split",
+          layout: "cinematic",
           theme: "light",
           themes: {
             ...slide.themes,
@@ -431,7 +434,7 @@ export function applyHeroPreset(slide: HeroSlide, preset: HeroPreset): HeroSlide
       return materializeHeroSlide(
         {
           ...slide,
-          layout: "premium-split",
+          layout: "cinematic",
           theme: "light",
           themes: {
             ...slide.themes,
@@ -530,6 +533,13 @@ function mergeThemeVisuals(
       colors: { ...defaults.styling.colors, ...v.styling?.colors },
       typography: { ...defaults.styling.typography, ...v.styling?.typography },
       spacing: { ...defaults.styling.spacing, ...v.styling?.spacing },
+      textPositions: {
+        eyebrow: { x: 0, y: 0, ...v.styling?.textPositions?.eyebrow },
+        heading: { x: 0, y: 0, ...v.styling?.textPositions?.heading },
+        description: { x: 0, y: 0, ...v.styling?.textPositions?.description },
+        buttons: { x: 0, y: 0, ...v.styling?.textPositions?.buttons },
+        badges: { x: 0, y: 0, ...v.styling?.textPositions?.badges },
+      },
     },
     responsive: {
       desktop: mergeResponsiveSettings(defaults.responsive.desktop, v.responsive?.desktop),
@@ -694,6 +704,40 @@ export function spacingFor(slide: HeroSlide, breakpoint: HeroBreakpoint) {
   const visuals = heroVisualsFor(slide);
   const spacing = visuals.styling.spacing;
   return { ...spacing, contentGap: heroResponsiveFor(slide, breakpoint).contentGap };
+}
+
+/** Per-element pixel offsets for the hero text blocks (eyebrow, heading, description, buttons, badges). */
+export function heroTextPositionsFor(slide: HeroSlide): HeroTextPositions {
+  return heroVisualsFor(slide).styling.textPositions;
+}
+
+/** CSS transform for an element's pixel offset — undefined when no offset is set. */
+export function heroTextTransform(pos?: Partial<HeroTextPosition>): CSSProperties | undefined {
+  const x = pos?.x ?? 0;
+  const y = pos?.y ?? 0;
+  if (x === 0 && y === 0) return undefined;
+  return { transform: `translate(${x}px, ${y}px)` };
+}
+
+const DEFAULT_HERO_CONTAINER_MAX_WIDTH = 1280;
+const DEFAULT_HERO_PADDING_X = 40;
+
+/**
+ * Width of the hero content container. Follows the page-wide width
+ * (`--page-max-width`) unless the slide has a custom per-theme override.
+ */
+export function heroContainerWidthFor(slide: HeroSlide, breakpoint: HeroBreakpoint): string {
+  const custom = spacingFor(slide, breakpoint).containerMaxWidth;
+  return custom === DEFAULT_HERO_CONTAINER_MAX_WIDTH ? "var(--page-max-width, 1280px)" : `${custom}px`;
+}
+
+/**
+ * Horizontal padding of the hero content container. Follows the page-wide
+ * side gap (`--page-padding`) unless the slide has a custom per-theme override.
+ */
+export function heroPaddingXFor(slide: HeroSlide, breakpoint: HeroBreakpoint): string {
+  const custom = spacingFor(slide, breakpoint).paddingX;
+  return custom === DEFAULT_HERO_PADDING_X ? "clamp(12px, var(--page-padding, 40px), 5vw)" : `${custom}px`;
 }
 
 export function mediaImageFor(media: HeroMedia, breakpoint: HeroBreakpoint): string {

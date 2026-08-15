@@ -3,19 +3,21 @@ import { Footer } from "@/components/home/footer/footer";
 import { HomepageRenderer } from "@/components/shared/homepage-renderer";
 import { getHomepageData } from "@/services/homepage.service";
 import { getCatalogData } from "@/lib/catalog";
+import { pageCssVars } from "@/lib/page-settings";
 
 export const revalidate = 60;
 
 export default async function Home() {
-  const [{ sections }, catalog] = await Promise.all([getHomepageData(), getCatalogData()]);
+  const [config, catalog] = await Promise.all([getHomepageData(), getCatalogData()]);
+  const page = config.page;
 
   return (
-    <>
-      <Navbar />
+    <div style={pageCssVars(page)}>
+      <Navbar settings={page?.navbar} />
       <main>
-        <HomepageRenderer sections={sections} catalog={catalog} />
+        <HomepageRenderer sections={config.sections} catalog={catalog} />
       </main>
-      <Footer />
-    </>
+      <Footer settings={page?.footer} />
+    </div>
   );
 }

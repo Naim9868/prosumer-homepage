@@ -1,6 +1,6 @@
 "use client";
 
-import { heroCssVars, heroColorsFor, heroVisualsFor, spacingFor, heroMinHeightFor } from "@/lib/hero";
+import { heroCssVars, heroColorsFor, heroVisualsFor, spacingFor, heroMinHeightFor, heroContainerWidthFor, heroPaddingXFor } from "@/lib/hero";
 import { useHero } from "../hero-context";
 import { HeroBackground, HeroContainer } from "../hero-background";
 import { HeroContent } from "../hero-content";
@@ -25,16 +25,13 @@ export function CinematicHero() {
 
   if (isMobile) return <MobileHeroPoster />;
 
-  const previewAspect = preview && !isMobile ? { aspectRatio: "16 / 7" } : undefined;
-
   return (
     <section
-      className={cn("relative flex flex-col justify-center overflow-hidden")}
+      className={cn("relative flex flex-col justify-center overflow-hidden @container")}
       style={{
         ...heroCssVars(slide),
         background: colors.background,
         minHeight,
-        ...previewAspect,
       }}
     >
       <HeroBackground
@@ -48,19 +45,19 @@ export function CinematicHero() {
       <HeroContainer
         className="relative mx-auto"
         style={{
-          maxWidth: spacing.containerMaxWidth,
+          maxWidth: heroContainerWidthFor(slide, breakpoint),
           paddingTop: spacing.paddingTop,
           paddingBottom: spacing.paddingBottom,
-          paddingLeft: spacing.paddingX,
-          paddingRight: spacing.paddingX,
+          paddingLeft: heroPaddingXFor(slide, breakpoint),
+          paddingRight: heroPaddingXFor(slide, breakpoint),
         }}
       >
         <div
-          className="grid grid-cols-1 items-center lg:grid-cols-[1.05fr_0.95fr]"
+          className="grid grid-cols-1 items-center @5xl:grid-cols-[1.05fr_0.95fr]"
           style={{ gap: spacing.contentGap }}
         >
           <HeroContent />
-          <div aria-hidden className="hidden lg:block" />
+          <div aria-hidden className="hidden @5xl:block" />
         </div>
       </HeroContainer>
     </section>

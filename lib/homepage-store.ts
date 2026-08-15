@@ -2,6 +2,7 @@ import "server-only";
 import type { HomepageConfig, Section } from "@/types/homepage";
 import { buildSeedHomepage } from "@/lib/homepage-seed";
 import { normalizeHeroSettings } from "@/lib/hero";
+import { normalizePageSettings } from "@/lib/page-settings";
 import { connectDB } from "@/lib/dbConnect";
 import { HomepageModel } from "@/models/Homepage";
 
@@ -31,18 +32,19 @@ async function readFromDb(): Promise<HomepageConfig> {
     return writeToDb(buildSeedHomepage());
   }
   const sections = (doc.sections as Section[]).map(normalizeSection);
+  const page = normalizePageSettings(doc.page);
   const updatedAt = (doc.updatedAt instanceof Date ? doc.updatedAt : new Date()).toISOString();
-  return { sections, updatedAt, published: doc.published !== false };
+  return { sections, page, updatedAt, published: doc.published !== false };
 }
 
 async function writeToDb(config: HomepageConfig): Promise<HomepageConfig> {
   await connectDB();
   await HomepageModel.findOneAndUpdate(
     {},
-    { sections: config.sections, published: config.published },
+    { sections: config.sections, page: normalizePageSettings(config.page), published: config.published },
     { upsert: true }
   );
-  return { ...config, updatedAt: new Date().toISOString() };
+  return { ...config, page: normalizePageSettings(config.page), updatedAt: new Date().toISOString() };
 }
 
 export async function readHomepageConfig(): Promise<HomepageConfig> {

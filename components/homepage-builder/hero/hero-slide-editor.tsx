@@ -1,6 +1,6 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
 import type {
   HeroEditMode,
   HeroEntrance,
@@ -9,6 +9,8 @@ import type {
   HeroPreset,
   HeroResponsive,
   HeroSlide,
+  HeroTextPosition,
+  HeroTextPositions,
   HeroThemeData,
 } from "@/types/homepage";
 import { HERO_LAYOUTS, applyHeroPreset, applyHeroTheme, createDefaultHeroSlide, materializeHeroSlide } from "@/lib/hero";
@@ -35,10 +37,64 @@ const ENTRANCE_OPTIONS: { label: string; value: HeroEntrance }[] = [
   { label: "None", value: "none" },
 ];
 
+const POSITION_STEP = 4;
+
+function PositionControl({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: HeroTextPosition;
+  onChange: (value: HeroTextPosition) => void;
+}) {
+  const nudge = (axis: "x" | "y", delta: number) => onChange({ ...value, [axis]: value[axis] + delta });
+  const buttonClass =
+    "flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--radius-sm)] border border-border text-foreground-muted transition-colors hover:bg-muted hover:text-foreground";
+
+  return (
+    <div className="rounded-[var(--radius-sm)] border border-border p-3">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">{label}</p>
+      <div className="mt-2 space-y-2">
+        <div className="flex items-center gap-1.5">
+          <button type="button" aria-label={`${label} left`} onClick={() => nudge("x", -POSITION_STEP)} className={buttonClass}>
+            <ChevronLeft className="h-3.5 w-3.5" />
+          </button>
+          <TextInput
+            type="number"
+            step={1}
+            value={value.x}
+            onChange={(e) => onChange({ ...value, x: Number(e.target.value) })}
+            aria-label={`${label} horizontal offset`}
+          />
+          <button type="button" aria-label={`${label} right`} onClick={() => nudge("x", POSITION_STEP)} className={buttonClass}>
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+          <span className="w-4 text-center text-[11px] font-bold text-foreground-muted">X</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <button type="button" aria-label={`${label} up`} onClick={() => nudge("y", -POSITION_STEP)} className={buttonClass}>
+            <ChevronUp className="h-3.5 w-3.5" />
+          </button>
+          <TextInput
+            type="number"
+            step={1}
+            value={value.y}
+            onChange={(e) => onChange({ ...value, y: Number(e.target.value) })}
+            aria-label={`${label} vertical offset`}
+          />
+          <button type="button" aria-label={`${label} down`} onClick={() => nudge("y", POSITION_STEP)} className={buttonClass}>
+            <ChevronDown className="h-3.5 w-3.5" />
+          </button>
+          <span className="w-4 text-center text-[11px] font-bold text-foreground-muted">Y</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** Heuristic: which preset a slide currently matches, if any. */
 function presetFor(slide: HeroSlide): HeroPreset | null {
-  if (slide.layout === "premium-split" && slide.theme === "dark") return "premium-dark";
-  if (slide.layout === "premium-split" && slide.theme === "light") return "premium-light";
   if (slide.layout === "cinematic" && slide.theme === "dark") return "cinematic-dark";
   return null;
 }
@@ -72,6 +128,8 @@ export function HeroSlideEditor({
     setThemeData({ styling: { ...data.styling, spacing: { ...data.styling.spacing, ...patch } } });
   const setOverlayOpacity = (overlayOpacity: number) =>
     setThemeData({ styling: { ...data.styling, overlayOpacity } });
+  const setTextPositions = (patch: Partial<HeroTextPositions>) =>
+    setThemeData({ styling: { ...data.styling, textPositions: { ...data.styling.textPositions, ...patch } } });
   const setResponsive = (responsive: HeroResponsive) => setThemeData({ responsive });
   const setAnimation = (patch: Partial<HeroSlide["animation"]>) => onChange({ ...slide, animation: { ...slide.animation, ...patch } });
   const setLayout = (layout: HeroLayout) => onChange({ ...slide, layout });
@@ -134,6 +192,43 @@ export function HeroSlideEditor({
         <Field label="Description">
           <TextArea value={data.content.description} onChange={(e) => setContent({ description: e.target.value })} rows={3} />
         </Field>
+        <p className="text-[11px] text-foreground-muted/70">
+          Leave a field empty to hide it — only filled-in text is shown.
+        </p>
+      </EditorSection>
+
+      {/* Text position */}
+      <EditorSection title="Text Position" defaultOpen>
+        <div className="space-y-3">
+          <PositionControl
+            label="Eyebrow"
+            value={data.styling.textPositions.eyebrow}
+            onChange={(v) => setTextPositions({ eyebrow: v })}
+          />
+          <PositionControl
+            label="Heading"
+            value={data.styling.textPositions.heading}
+            onChange={(v) => setTextPositions({ heading: v })}
+          />
+          <PositionControl
+            label="Description"
+            value={data.styling.textPositions.description}
+            onChange={(v) => setTextPositions({ description: v })}
+          />
+          <PositionControl
+            label="Buttons"
+            value={data.styling.textPositions.buttons}
+            onChange={(v) => setTextPositions({ buttons: v })}
+          />
+          <PositionControl
+            label="Badges"
+            value={data.styling.textPositions.badges}
+            onChange={(v) => setTextPositions({ badges: v })}
+          />
+        </div>
+        <p className="text-[11px] text-foreground-muted/70">
+          Move each text element freely with the arrow buttons or type exact pixel offsets. Use a fixed banner height for predictable results.
+        </p>
       </EditorSection>
 
       {/* Buttons */}

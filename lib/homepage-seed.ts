@@ -1,5 +1,6 @@
 import { createDefaultSection, createCustomSection, createDefaultBlock } from "@/lib/homepage-defaults";
 import type { HomepageConfig, Section } from "@/types/homepage";
+import { DEFAULT_PAGE_SETTINGS } from "@/types/homepage";
 import { faqs, brandPartners } from "@/lib/data";
 
 /**
@@ -73,6 +74,7 @@ export function buildSeedHomepage(): HomepageConfig {
 
   return {
     sections,
+    page: { ...DEFAULT_PAGE_SETTINGS, navbar: { ...DEFAULT_PAGE_SETTINGS.navbar }, footer: { ...DEFAULT_PAGE_SETTINGS.footer } },
     updatedAt: new Date().toISOString(),
     published: true,
   };

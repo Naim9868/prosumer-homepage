@@ -35,6 +35,39 @@ export const DEFAULT_SECTION_STYLE: SectionStyle = {
 };
 
 // ---------------------------------------------------------------
+// Global page settings (page width, navbar, footer)
+// ---------------------------------------------------------------
+
+export interface PageNavbarSettings {
+  enabled: boolean;
+  fixed: boolean;
+  transparent: boolean;
+  height: number; // px
+}
+
+export interface PageFooterSettings {
+  enabled: boolean;
+  backgroundColor: string; // CSS color; empty = theme background
+  paddingTop: number; // px
+}
+
+export interface PageSettings {
+  /** Max width of the page container in px. */
+  containerWidth: number;
+  /** Left/right page gap in px (desktop). */
+  sidePadding: number;
+  navbar: PageNavbarSettings;
+  footer: PageFooterSettings;
+}
+
+export const DEFAULT_PAGE_SETTINGS: PageSettings = {
+  containerWidth: 1440,
+  sidePadding: 24,
+  navbar: { enabled: true, fixed: true, transparent: true, height: 72 },
+  footer: { enabled: true, backgroundColor: "", paddingTop: 64 },
+};
+
+// ---------------------------------------------------------------
 // Predefined section types
 // ---------------------------------------------------------------
 
@@ -67,7 +100,7 @@ export type SectionType = PredefinedSectionType | "custom";
 // Hero (multi-slide) — settings shape
 // ---------------------------------------------------------------
 
-export type HeroLayout = "premium-split" | "cinematic" | "product-focus" | "collection" | "promotion";
+export type HeroLayout = "cinematic" | "apexel";
 export type HeroTheme = "dark" | "light";
 export type HeroTransition = "fade" | "slide" | "crossfade";
 export type HeroButtonStyle = "filled" | "outline" | "ghost";
@@ -190,6 +223,21 @@ export interface HeroAnimation {
 export type HeroHeightMode = "auto" | "full-screen" | "custom";
 export type HeroTextAlign = "left" | "center" | "right";
 
+/** Pixel offset applied to a single hero text element. */
+export interface HeroTextPosition {
+  x: number; // px, positive = right
+  y: number; // px, positive = down
+}
+
+/** Per-element pixel offsets for each text block in the hero. */
+export interface HeroTextPositions {
+  eyebrow: HeroTextPosition;
+  heading: HeroTextPosition;
+  description: HeroTextPosition;
+  buttons: HeroTextPosition;
+  badges: HeroTextPosition;
+}
+
 /** Per-breakpoint layout controls. */
 export interface HeroResponsiveSettings {
   headingSize: number; // px
@@ -218,6 +266,8 @@ export interface HeroSlideStyling {
   spacing: HeroSpacing;
   /** 0..1 — dark scrim strength over the background image (0 = fully visible). */
   overlayOpacity: number;
+  /** Free-form per-element pixel offsets (eyebrow, heading, description, buttons, badges). */
+  textPositions: HeroTextPositions;
 }
 
 /**
@@ -518,6 +568,8 @@ export interface HomepageConfig {
   sections: Section[];
   updatedAt: string;
   published: boolean;
+  /** Global page layout settings (width, gaps, navbar, footer). Optional for legacy configs. */
+  page?: PageSettings;
 }
 
 // ---------------------------------------------------------------

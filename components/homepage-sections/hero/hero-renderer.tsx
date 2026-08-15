@@ -159,7 +159,7 @@ export function HeroRenderer({
     >
       <div className="grid w-full" style={{ gridTemplateColumns: "1fr", gridTemplateRows: "1fr" }}>
         {slides.map((slide, i) => {
-          const Layout = HERO_LAYOUT_COMPONENTS[slide.layout] ?? HERO_LAYOUT_COMPONENTS["premium-split"];
+          const Layout = HERO_LAYOUT_COMPONENTS[slide.layout] ?? HERO_LAYOUT_COMPONENTS.cinematic;
           const isActive = i === active;
           return (
             <div

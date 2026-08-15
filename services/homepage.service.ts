@@ -2,6 +2,7 @@ import "server-only";
 import { unstable_cache, revalidateTag } from "next/cache";
 import { readHomepageConfig, writeHomepageConfig } from "@/lib/homepage-store";
 import { homepageConfigSchema } from "@/lib/homepage-validation";
+import { normalizePageSettings } from "@/lib/page-settings";
 import type { HomepageConfig } from "@/types/homepage";
 
 const HOMEPAGE_TAG = "homepage";
@@ -41,6 +42,7 @@ export async function saveHomepageConfiguration(input: unknown): Promise<
 
   const normalized: HomepageConfig = {
     ...parsed.data,
+    page: normalizePageSettings(parsed.data.page),
     sections: parsed.data.sections.map((s, i) => ({ ...s, order: i })) as unknown as HomepageConfig["sections"],
   };
 

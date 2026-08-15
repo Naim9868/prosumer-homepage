@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Heart, ShoppingBag, Menu, X, Sun, Moon, ChevronRight, Phone } from "lucide-react";
 import { Container, ApertureMark } from "@/components/shared/layout-primitives";
+import type { PageNavbarSettings } from "@/types/homepage";
+import { DEFAULT_PAGE_SETTINGS } from "@/types/homepage";
 import { useTheme } from "@/components/shared/theme-provider";
 import { useCartContext } from "@/app/context/CartContext";
 import { useWishlistContext } from "@/app/context/WishlistContext";
@@ -20,12 +22,14 @@ const links = [
   { label: "FAQ", href: "#faq" },
 ];
 
-export function Navbar() {
+export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
+  const s: PageNavbarSettings = { ...DEFAULT_PAGE_SETTINGS.navbar, ...settings };
+
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [isNavVisible, setIsNavVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const lastScrollY = useRef(0);
 
   const { theme, toggleTheme } = useTheme();
   const { openCartModal } = useCartModalContext();
@@ -37,16 +41,17 @@ export function Navbar() {
     const onScroll = () => {
       const currentScrollY = window.scrollY;
       setScrolled(currentScrollY > 24);
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
         setIsNavVisible(false);
       } else {
         setIsNavVisible(true);
       }
-      setLastScrollY(currentScrollY);
+      lastScrollY.current = currentScrollY;
     };
     window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
     return () => window.removeEventListener("scroll", onScroll);
-  }, [lastScrollY]);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -58,17 +63,23 @@ export function Navbar() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  if (!s.enabled) return null;
+
   return (
     <header
       className={cn(
-        "fixed inset-x-0 top-0 z-50 transition-all duration-500",
-        isNavVisible ? "translate-y-0" : "-translate-y-full",
-        scrolled
+        "fixed inset-x-0 top-0 z-50",
+        !s.fixed && !isNavVisible && "-translate-y-full",
+        "transition-all duration-500",
+        scrolled || !s.transparent
           ? "glass border-b border-border shadow-sm"
           : "bg-gradient-to-b from-background/90 via-background/55 to-transparent"
       )}
     >
-      <Container className="relative flex h-[72px] items-center justify-between overflow-visible">
+      <Container
+        className="relative flex items-center justify-between overflow-visible"
+        style={{ height: s.height }}
+      >
         <a href="#top" className="z-20 flex items-center gap-2.5" aria-label="Prosumer Lens BD home">
           <ApertureMark className="h-7 w-7 text-primary" />
           <span className="font-heading text-[15px] font-bold uppercase tracking-[0.14em] text-foreground">

@@ -2,6 +2,8 @@
 
 import { Share2, Camera, PlaySquare, ArrowRight } from "lucide-react";
 import { Container, ApertureMark } from "@/components/shared/layout-primitives";
+import type { PageFooterSettings } from "@/types/homepage";
+import { DEFAULT_PAGE_SETTINGS } from "@/types/homepage";
 
 const linkGroups = [
   {
@@ -20,9 +22,18 @@ const linkGroups = [
 
 const paymentMethods = ["bKash", "Nagad", "Rocket", "Visa", "Mastercard", "COD"];
 
-export function Footer() {
+export function Footer({ settings }: { settings?: PageFooterSettings }) {
+  const s: PageFooterSettings = { ...DEFAULT_PAGE_SETTINGS.footer, ...settings };
+  if (!s.enabled) return null;
+
   return (
-    <footer className="border-t border-border bg-background pt-16">
+    <footer
+      className="border-t border-border pt-16"
+      style={{
+        backgroundColor: s.backgroundColor || "var(--background)",
+        paddingTop: s.paddingTop,
+      }}
+    >
       <Container>
         <div className="grid grid-cols-1 gap-12 pb-14 lg:grid-cols-[1.3fr_2fr]">
           <div>

@@ -13,6 +13,22 @@ const sectionStyleSchema = z.object({
   hideOnMobile: z.boolean().optional(),
 });
 
+const pageSettingsSchema = z.object({
+  containerWidth: z.number().min(960).max(2560),
+  sidePadding: z.number().min(0).max(200),
+  navbar: z.object({
+    enabled: z.boolean(),
+    fixed: z.boolean(),
+    transparent: z.boolean(),
+    height: z.number().min(40).max(140),
+  }),
+  footer: z.object({
+    enabled: z.boolean(),
+    backgroundColor: z.string(),
+    paddingTop: z.number().min(0).max(200),
+  }),
+});
+
 const blockSchema = z.object({
   id: z.string().min(1),
   type: z.enum(BLOCK_TYPES),
@@ -35,6 +51,7 @@ const sectionSchema = z.object({
 export const homepageConfigSchema = z
   .object({
     sections: z.array(sectionSchema),
+    page: pageSettingsSchema.optional(),
     updatedAt: z.string(),
     published: z.boolean(),
   })
@@ -70,14 +87,6 @@ export const homepageConfigSchema = z
     for (const [i, slide] of slides.entries()) {
       if (!slide || typeof slide !== "object") continue;
       const s = slide as Record<string, unknown>;
-      const content = (s.content ?? {}) as Record<string, unknown>;
-      if (!content.heading || String(content.heading).trim() === "") {
-        ctx.addIssue({
-          code: "custom",
-          path: ["sections", "hero", "slides", i, "content", "heading"],
-          message: `Hero slide ${i + 1}: heading is required.`,
-        });
-      }
       const buttons = (s.buttons ?? {}) as Record<string, Record<string, unknown>>;
       const primary = (buttons.primary ?? {}) as Record<string, unknown>;
       if (!primary.text || String(primary.text).trim() === "") {
@@ -92,14 +101,6 @@ export const homepageConfigSchema = z
       const themes = (s.themes ?? {}) as Record<string, Record<string, unknown>>;
       for (const theme of ["dark", "light"]) {
         const themeData = (themes[theme] ?? {}) as Record<string, unknown>;
-        const themeContent = (themeData.content ?? {}) as Record<string, unknown>;
-        if (!themeContent.heading || String(themeContent.heading).trim() === "") {
-          ctx.addIssue({
-            code: "custom",
-            path: ["sections", "hero", "slides", i, "themes", theme, "content", "heading"],
-            message: `Hero slide ${i + 1} (${theme} theme): heading is required.`,
-          });
-        }
         const themeButtons = (themeData.buttons ?? {}) as Record<string, Record<string, unknown>>;
         const themePrimary = (themeButtons.primary ?? {}) as Record<string, unknown>;
         if (!themePrimary.text || String(themePrimary.text).trim() === "") {

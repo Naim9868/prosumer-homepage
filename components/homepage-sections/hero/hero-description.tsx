@@ -2,27 +2,30 @@
 
 import { useHero } from "./hero-context";
 import { Entrance } from "./hero-entrance";
-import { typographyFor } from "@/lib/hero";
+import { typographyFor, heroTextPositionsFor, heroTextTransform } from "@/lib/hero";
 
 export function HeroDescription() {
   const { slide, breakpoint, content } = useHero();
   const text = slide.content.description;
   if (!text) return null;
   const t = typographyFor(slide, breakpoint);
+  const transform = heroTextTransform(heroTextPositionsFor(slide).description);
 
   return (
-    <Entrance variants={content}>
-      <p
-        style={{
-          fontSize: t.descriptionSize,
-          fontWeight: t.descriptionWeight,
-          lineHeight: 1.65,
-          color: "var(--hero-muted)",
-          margin: 0,
-        }}
-      >
-        {text}
-      </p>
-    </Entrance>
+    <div style={transform}>
+      <Entrance variants={content}>
+        <p
+          style={{
+            fontSize: t.descriptionSize,
+            fontWeight: t.descriptionWeight,
+            lineHeight: 1.65,
+            color: "var(--hero-muted)",
+            margin: 0,
+          }}
+        >
+          {text}
+        </p>
+      </Entrance>
+    </div>
   );
 }

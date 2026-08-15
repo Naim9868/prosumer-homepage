@@ -3,7 +3,7 @@
 import { Fragment } from "react";
 import { useHero } from "./hero-context";
 import { Entrance } from "./hero-entrance";
-import { typographyFor } from "@/lib/hero";
+import { typographyFor, heroTextPositionsFor, heroTextTransform } from "@/lib/hero";
 
 /**
  * Renders the heading, supporting two light markup tokens typed in the admin:
@@ -38,22 +38,27 @@ function renderHeading(text: string) {
 export function HeroHeading() {
   const { slide, breakpoint, content } = useHero();
   const t = typographyFor(slide, breakpoint);
+  const heading = slide.content.heading;
+  if (!heading || !heading.trim()) return null;
+  const transform = heroTextTransform(heroTextPositionsFor(slide).heading);
 
   return (
-    <Entrance variants={content}>
-      <h1
-        className="font-heading text-balance"
-        style={{
-          fontSize: t.headingSize,
-          fontWeight: t.headingWeight,
-          lineHeight: t.headingLineHeight,
-          letterSpacing: t.headingLetterSpacing,
-          color: "var(--hero-foreground)",
-          margin: 0,
-        }}
-      >
-        {renderHeading(slide.content.heading)}
-      </h1>
-    </Entrance>
+    <div style={transform}>
+      <Entrance variants={content}>
+        <h1
+          className="font-heading text-balance"
+          style={{
+            fontSize: t.headingSize,
+            fontWeight: t.headingWeight,
+            lineHeight: t.headingLineHeight,
+            letterSpacing: t.headingLetterSpacing,
+            color: "var(--hero-foreground)",
+            margin: 0,
+          }}
+        >
+          {renderHeading(heading)}
+        </h1>
+      </Entrance>
+    </div>
   );
 }
