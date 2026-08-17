@@ -3,7 +3,7 @@
 import { Fragment } from "react";
 import { useHero } from "./hero-context";
 import { Entrance } from "./hero-entrance";
-import { typographyFor, heroTextPositionsFor, heroTextTransform } from "@/lib/hero";
+import { typographyFor, heroBreakpointFor, heroTextPositionsFor, heroTextTransform } from "@/lib/hero";
 
 /**
  * Renders the heading, supporting two light markup tokens typed in the admin:
@@ -37,13 +37,15 @@ function renderHeading(text: string) {
 
 export function HeroHeading() {
   const { slide, breakpoint, content } = useHero();
+  const bp = heroBreakpointFor(slide, breakpoint);
   const t = typographyFor(slide, breakpoint);
-  const heading = slide.content.heading;
+  const heading = bp.content.heading;
   if (!heading || !heading.trim()) return null;
-  const transform = heroTextTransform(heroTextPositionsFor(slide).heading);
+  const transform = heroTextTransform(heroTextPositionsFor(slide, breakpoint).heading);
+  const blockWidth = bp.styling.blockWidths.heading;
 
   return (
-    <div style={transform}>
+    <div style={{ ...transform, ...(blockWidth > 0 ? { maxWidth: blockWidth } : {}) }}>
       <Entrance variants={content}>
         <h1
           className="font-heading text-balance"

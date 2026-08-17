@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from "re
 import type { HeroBreakpoint, HeroSliderSettings, HeroSlide, HeroTheme, HeroTransition } from "@/types/homepage";
 import type { CatalogProduct } from "@/types/catalog";
 import { heroColorsFor, materializeHeroSlide } from "@/lib/hero";
+import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/shared/theme-provider";
 import { HERO_LAYOUT_COMPONENTS } from "./layouts";
 import { HeroProvider } from "./hero-context";
@@ -157,7 +158,7 @@ export function HeroRenderer({
         }
       }}
     >
-      <div className="grid w-full" style={{ gridTemplateColumns: "1fr", gridTemplateRows: "1fr" }}>
+      <div className={cn("grid w-full", preview ? "overflow-visible" : "overflow-hidden")} style={{ gridTemplateColumns: "1fr", gridTemplateRows: "1fr" }}>
         {slides.map((slide, i) => {
           const Layout = HERO_LAYOUT_COMPONENTS[slide.layout] ?? HERO_LAYOUT_COMPONENTS.cinematic;
           const isActive = i === active;

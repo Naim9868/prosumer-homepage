@@ -3,16 +3,18 @@
 import { useHero } from "./hero-context";
 import { Entrance } from "./hero-entrance";
 import { getHeroBadgeIcon } from "./hero-badge-icons";
-import { heroTextPositionsFor, heroTextTransform } from "@/lib/hero";
+import { heroBreakpointFor, heroTextPositionsFor, heroTextTransform } from "@/lib/hero";
 
 export function HeroTrustBadges() {
-  const { slide, badge } = useHero();
-  const badges = slide.badges;
+  const { slide, breakpoint, badge } = useHero();
+  const bp = heroBreakpointFor(slide, breakpoint);
+  const badges = bp.badges;
   if (!badges || badges.length === 0) return null;
-  const transform = heroTextTransform(heroTextPositionsFor(slide).badges);
+  const transform = heroTextTransform(heroTextPositionsFor(slide, breakpoint).badges);
+  const blockWidth = bp.styling.blockWidths.badges;
 
   return (
-    <div style={transform}>
+    <div style={{ ...transform, ...(blockWidth > 0 ? { maxWidth: blockWidth } : {}) }}>
       <Entrance variants={badge} className="flex flex-wrap gap-x-8 gap-y-3">
         {badges.map((b) => {
           const Icon = getHeroBadgeIcon(b.icon);

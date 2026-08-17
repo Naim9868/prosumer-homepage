@@ -1,20 +1,37 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
-import { buttonStyleCss, heroColorsFor, typographyFor, heroTextPositionsFor, heroTextTransform } from "@/lib/hero";
+import type { CSSProperties } from "react";
+import type { HeroButtonSize, HeroTypography } from "@/types/homepage";
+import { buttonStyleCss, heroColorsFor, typographyFor, heroBreakpointFor, heroTextPositionsFor, heroTextTransform } from "@/lib/hero";
 import { useHero } from "./hero-context";
 import { Entrance } from "./hero-entrance";
 
+function buttonBox(size: HeroButtonSize, t: HeroTypography): CSSProperties {
+  const fixed = size.width > 0 || size.height > 0;
+  return {
+    fontSize: size.fontSize > 0 ? size.fontSize : t.buttonFontSize,
+    fontWeight: size.fontWeight > 0 ? size.fontWeight : t.buttonWeight,
+    padding: `${size.paddingY}px ${size.paddingX}px`,
+    borderRadius: size.borderRadius,
+    ...(size.width > 0 ? { width: size.width } : {}),
+    ...(size.height > 0 ? { height: size.height } : {}),
+    ...(fixed ? { justifyContent: "center" } : {}),
+  };
+}
+
 export function HeroCTAGroup({ hideSecondary = false }: { hideSecondary?: boolean }) {
   const { slide, breakpoint, cta } = useHero();
+  const bp = heroBreakpointFor(slide, breakpoint);
   const colors = heroColorsFor(slide);
   const t = typographyFor(slide, breakpoint);
-  const primary = slide.buttons.primary;
-  const secondary = slide.buttons.secondary;
-  const transform = heroTextTransform(heroTextPositionsFor(slide).buttons);
+  const primary = bp.buttons.primary;
+  const secondary = bp.buttons.secondary;
+  const transform = heroTextTransform(heroTextPositionsFor(slide, breakpoint).buttons);
+  const blockWidth = bp.styling.blockWidths.buttons;
 
   return (
-    <div style={transform}>
+    <div style={{ ...transform, ...(blockWidth > 0 ? { maxWidth: blockWidth } : {}) }}>
       <Entrance variants={cta} className="flex flex-wrap items-center gap-4">
         {primary.text && (
           <a
@@ -22,10 +39,7 @@ export function HeroCTAGroup({ hideSecondary = false }: { hideSecondary?: boolea
             className="group inline-flex items-center gap-2 transition-transform hover:scale-[1.03] active:scale-[0.98]"
             style={{
               ...buttonStyleCss(primary.style, colors),
-              fontSize: t.buttonFontSize,
-              fontWeight: t.buttonWeight,
-              padding: "15px 30px",
-              borderRadius: 9999,
+              ...buttonBox(primary.size, t),
             }}
           >
             {primary.text}
@@ -38,10 +52,7 @@ export function HeroCTAGroup({ hideSecondary = false }: { hideSecondary?: boolea
             className="inline-flex items-center gap-2 transition-colors"
             style={{
               ...buttonStyleCss(secondary.style, colors),
-              fontSize: t.buttonFontSize,
-              fontWeight: t.buttonWeight,
-              padding: "15px 26px",
-              borderRadius: 9999,
+              ...buttonBox(secondary.size, t),
             }}
           >
             {secondary.text}

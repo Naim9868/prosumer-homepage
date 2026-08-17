@@ -99,8 +99,10 @@ export function MediaEditor({ media, onChange, advanced }: { media: HeroMedia; o
             />
           </FieldGrid>
           <BackgroundSizeControls
-            size={media.backgroundSize ?? { width: 100, height: 100 }}
-            onChange={(backgroundSize) => onChange({ ...media, backgroundSize })}
+            size={media.backgroundSize ?? { width: 1920, height: 1080 }}
+            position={media.backgroundPosition ?? { x: 0, y: 0 }}
+            onSizeChange={(backgroundSize) => onChange({ ...media, backgroundSize })}
+            onPositionChange={(backgroundPosition) => onChange({ ...media, backgroundPosition })}
           />
         </>
       )}

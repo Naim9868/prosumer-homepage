@@ -1,60 +1,59 @@
 "use client";
 
-import { heroCssVars, heroColorsFor, heroResponsiveFor, heroVisualsFor, mediaImageFor, heroMinHeightFor } from "@/lib/hero";
+import { heroCssVars, heroColorsFor, heroBreakpointFor, mediaImageFor, heroMinHeightFor, heroContainerWidthFor, heroPaddingXFor } from "@/lib/hero";
 import { useHero } from "../hero-context";
+import { HeroBackground, HeroContainer } from "../hero-background";
 import { HeroContent } from "../hero-content";
 import { cn } from "@/lib/utils";
 
 /**
- * Mobile-only hero layout. The slide image is shown full-width at its natural
- * aspect ratio, then the hero text sits below it on the section background so
- * it is always readable and never clipped or overlapped by a thin image strip.
- * Height is content-driven; only a numeric customHeight is honored as a
- * minimum so the section grows gracefully with longer copy.
+ * Mobile hero layout. Like desktop/tablet, the image is rendered as a proper
+ * background layer with its own absolute px size and px offset (fully
+ * independent of the section), then the hero text is overlaid on top. The
+ * overflow is visible in the builder preview and clipped on the live site.
  */
 export function MobileHeroPoster() {
-  const { slide } = useHero();
-  const visuals = heroVisualsFor(slide);
+  const { slide, preview } = useHero();
+  const bp = heroBreakpointFor(slide, "mobile");
   const colors = heroColorsFor(slide);
-  const responsive = heroResponsiveFor(slide, "mobile");
-  const media = visuals.media;
+  const media = bp.media;
   const img = media.productImage || mediaImageFor(media, "mobile") || media.backgroundImage || media.desktopImage || "";
-  const align = responsive.textAlign;
-  const overlayOpacity = visuals.styling.overlayOpacity ?? 0;
+  const align = bp.styling.textAlign;
+  const overlayOpacity = bp.styling.overlayOpacity ?? 0;
   const itemsClass = align === "center" ? "items-center text-center" : align === "right" ? "items-end text-right" : "items-start text-left";
 
   const minHeight = heroMinHeightFor(slide, "mobile");
-  const minH = typeof minHeight === "number" ? minHeight : undefined;
+  const bgSizes = preview ? "375px" : "100vw";
 
   return (
     <section
-      className="relative w-full overflow-hidden"
-      style={{ ...heroCssVars(slide), background: colors.background, minHeight: minH }}
+      className={cn("relative flex w-full flex-col justify-center @container", preview ? "overflow-visible" : "overflow-hidden")}
+      style={{ ...heroCssVars(slide), background: colors.background, minHeight }}
     >
       {img ? (
-        <div className="relative w-full">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={img}
-            alt={slide.content.heading || ""}
-            loading="eager"
-            decoding="async"
-            className="block h-auto w-full object-cover"
-          />
-          {overlayOpacity > 0 && (
-            <div className="pointer-events-none absolute inset-0" style={{ background: colors.overlay, opacity: overlayOpacity }} />
-          )}
-        </div>
+        <HeroBackground
+          overlay={colors.overlay}
+          overlayOpacity={overlayOpacity}
+          image={img}
+          dark={slide.theme === "dark"}
+          sizes={bgSizes}
+          backgroundSize={media.backgroundSize}
+          backgroundPosition={media.backgroundPosition}
+          clip={!preview}
+        />
       ) : null}
-      <div
-        className={cn("flex w-full flex-col pb-9 pt-5", itemsClass)}
+      <HeroContainer
+        className="relative mx-auto flex w-full"
         style={{
-          paddingLeft: "clamp(12px, var(--page-padding, 20px), 6vw)",
-          paddingRight: "clamp(12px, var(--page-padding, 20px), 6vw)",
+          maxWidth: heroContainerWidthFor(slide, "mobile"),
+          paddingLeft: heroPaddingXFor(slide, "mobile"),
+          paddingRight: heroPaddingXFor(slide, "mobile"),
         }}
       >
-        <HeroContent centered={align === "center"} />
-      </div>
+        <div className={cn("flex w-full flex-col py-9", itemsClass)}>
+          <HeroContent centered={align === "center"} />
+        </div>
+      </HeroContainer>
     </section>
   );
 }

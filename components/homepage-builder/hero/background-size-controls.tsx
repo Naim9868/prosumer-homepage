@@ -1,13 +1,19 @@
 "use client";
 
-import type { HeroBackgroundSize } from "@/types/homepage";
+import type { HeroBackgroundPosition, HeroBackgroundSize } from "@/types/homepage";
 
-function Slider({ label, value, min, max, step, onChange }: { label: string; value: number; min: number; max: number; step: number; onChange: (v: number) => void }) {
+const DEFAULT_SIZE: HeroBackgroundSize = { width: 1920, height: 1080 };
+const DEFAULT_POSITION: HeroBackgroundPosition = { x: 0, y: 0 };
+
+function Slider({ label, value, min, max, step, suffix, onChange }: { label: string; value: number; min: number; max: number; step: number; suffix: string; onChange: (v: number) => void }) {
   return (
     <div>
       <div className="flex items-center justify-between">
         <span className="text-[11.5px] font-medium text-foreground-muted">{label}</span>
-        <span className="text-[11.5px] font-semibold text-foreground">{value}%</span>
+        <span className="text-[11.5px] font-semibold text-foreground">
+          {value}
+          {suffix}
+        </span>
       </div>
       <input
         type="range"
@@ -24,30 +30,37 @@ function Slider({ label, value, min, max, step, onChange }: { label: string; val
 
 export function BackgroundSizeControls({
   size,
-  onChange,
+  position,
+  onSizeChange,
+  onPositionChange,
 }: {
   size: HeroBackgroundSize;
-  onChange: (next: HeroBackgroundSize) => void;
+  position: HeroBackgroundPosition;
+  onSizeChange: (next: HeroBackgroundSize) => void;
+  onPositionChange: (next: HeroBackgroundPosition) => void;
 }) {
-  const set = <K extends keyof HeroBackgroundSize>(key: K, value: HeroBackgroundSize[K]) => onChange({ ...size, [key]: value });
-
   return (
     <div className="space-y-3 rounded-[var(--radius-md)] border border-border p-3">
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Background Image Size</p>
         <button
           type="button"
-          onClick={() => onChange({ width: 100, height: 100 })}
+          onClick={() => {
+            onSizeChange(DEFAULT_SIZE);
+            onPositionChange(DEFAULT_POSITION);
+          }}
           className="text-[11px] font-semibold text-[var(--primary)] hover:underline"
         >
           Reset
         </button>
       </div>
-      <Slider label="Width (%)" value={size.width} min={10} max={200} step={1} onChange={(v) => set("width", v)} />
-      <Slider label="Height (%)" value={size.height} min={10} max={200} step={1} onChange={(v) => set("height", v)} />
+      <Slider label="Width (px)" value={size.width} min={320} max={3840} step={10} suffix="px" onChange={(v) => onSizeChange({ ...size, width: v })} />
+      <Slider label="Height (px)" value={size.height} min={240} max={2160} step={10} suffix="px" onChange={(v) => onSizeChange({ ...size, height: v })} />
+      <Slider label="X offset (px)" value={position.x} min={-1000} max={1000} step={10} suffix="px" onChange={(v) => onPositionChange({ ...position, x: v })} />
+      <Slider label="Y offset (px)" value={position.y} min={-1000} max={1000} step={10} suffix="px" onChange={(v) => onPositionChange({ ...position, y: v })} />
       <p className="text-[11px] leading-relaxed text-foreground-muted">
-        Sizes the background image relative to the section. 100% = full bleed; below 100% shrinks it toward the
-        center, above 100% zooms in.
+        Size and position are absolute (px) and independent of the section&apos;s height and width — the image may overflow
+        the section. The overflow is visible here in the editor; on the live site it is clipped to the section.
       </p>
     </div>
   );

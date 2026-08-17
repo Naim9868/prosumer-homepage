@@ -148,7 +148,13 @@ export function HeroEditor({
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">
                 Selected Slide — {selected.name || "Untitled slide"}
               </p>
-              <HeroSlideEditor slide={selected} onChange={updateSlide} mode={mode} />
+              <HeroSlideEditor
+                slide={selected}
+                onChange={updateSlide}
+                mode={mode}
+                breakpoint={breakpoint}
+                onBreakpointChange={setBreakpoint}
+              />
             </div>
             {footer && <div className="mt-4">{footer}</div>}
           </div>

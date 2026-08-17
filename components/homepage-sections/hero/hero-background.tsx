@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { HeroImage } from "./hero-image";
-import type { HeroBackgroundSize } from "@/types/homepage";
+import type { HeroBackgroundPosition, HeroBackgroundSize } from "@/types/homepage";
 
 export function HeroBackground({
   image,
@@ -9,8 +9,10 @@ export function HeroBackground({
   overlay,
   sizes = "100vw",
   dark = false,
-  backgroundSize = { width: 100, height: 100 },
+  backgroundSize = { width: 1920, height: 1080 },
+  backgroundPosition = { x: 0, y: 0 },
   overlayOpacity = 1,
+  clip = true,
 }: {
   image?: string;
   imageDark?: string;
@@ -18,35 +20,36 @@ export function HeroBackground({
   sizes?: string;
   dark?: boolean;
   backgroundSize?: Partial<HeroBackgroundSize>;
+  backgroundPosition?: Partial<HeroBackgroundPosition>;
   overlayOpacity?: number;
+  clip?: boolean;
 }) {
   const hasDarkImage = Boolean(imageDark);
   const showDark = dark && hasDarkImage;
 
-  const width = backgroundSize.width ?? 100;
-  const height = backgroundSize.height ?? 100;
-  const fullBleed = width >= 100 && height >= 100;
-  const boxStyle: CSSProperties | undefined = fullBleed
-    ? undefined
-    : {
-        left: "50%",
-        top: "50%",
-        transform: "translate(-50%, -50%)",
-        width: `${width}%`,
-        height: `${height}%`,
-      };
+  // The image box has its own absolute px size and its own px offset from the
+  // section center — both independent of the section dimensions. When it is
+  // larger than the section it overflows; `clip` controls whether that
+  // overflow is hidden (public) or visible (builder preview).
+  const boxStyle: CSSProperties = {
+    left: "50%",
+    top: "50%",
+    width: `${backgroundSize.width ?? 1920}px`,
+    height: `${backgroundSize.height ?? 1080}px`,
+    transform: `translate(calc(-50% + ${backgroundPosition.x ?? 0}px), calc(-50% + ${backgroundPosition.y ?? 0}px))`,
+  };
 
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div aria-hidden className={cn("pointer-events-none absolute inset-0", clip && "overflow-hidden")}>
       <div className="absolute inset-0" style={{ background: "var(--hero-background)" }} />
 
       {image && (
-        <div className={cn("absolute", fullBleed && "inset-0")} style={{ display: showDark ? "none" : "block", ...boxStyle }}>
+        <div className="absolute" style={{ display: showDark ? "none" : "block", ...boxStyle }}>
           <HeroImage src={image} alt="" sizes={sizes} priority className="object-cover" />
         </div>
       )}
       {imageDark && (
-        <div className={cn("absolute", fullBleed && "inset-0")} style={{ display: showDark ? "block" : "none", ...boxStyle }}>
+        <div className="absolute" style={{ display: showDark ? "block" : "none", ...boxStyle }}>
           <HeroImage src={imageDark} alt="" sizes={sizes} priority className="object-cover" />
         </div>
       )}

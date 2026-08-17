@@ -173,8 +173,14 @@ export interface HeroFloatingBadge {
 }
 
 export interface HeroBackgroundSize {
-  width: number; // % of the section (default 100)
-  height: number; // % of the section (default 100)
+  width: number; // px — absolute size, independent of the section dimensions
+  height: number; // px
+}
+
+/** Pixel offset of the background image box from the section center. */
+export interface HeroBackgroundPosition {
+  x: number; // px
+  y: number; // px
 }
 
 export interface HeroMedia {
@@ -188,13 +194,26 @@ export interface HeroMedia {
   productId: string;
   position: HeroImagePosition;
   backgroundSize: HeroBackgroundSize;
+  backgroundPosition: HeroBackgroundPosition;
   floatingBadge: HeroFloatingBadge;
+}
+
+/** Button sizing overrides (px); 0/0 means "auto" for the given dimension. */
+export interface HeroButtonSize {
+  width: number; // px, 0 = auto
+  height: number; // px, 0 = auto
+  borderRadius: number; // px
+  paddingX: number; // px
+  paddingY: number; // px
+  fontSize: number; // px, 0 = inherit from theme typography
+  fontWeight: number; // 0 = inherit from theme typography
 }
 
 export interface HeroButton {
   text: string;
   url: string;
   style: HeroButtonStyle;
+  size: HeroButtonSize;
 }
 
 export interface HeroBadge {
@@ -222,6 +241,7 @@ export interface HeroAnimation {
 
 export type HeroHeightMode = "auto" | "full-screen" | "custom";
 export type HeroTextAlign = "left" | "center" | "right";
+export type HeroContentOrder = "content-first" | "media-first";
 
 /** Pixel offset applied to a single hero text element. */
 export interface HeroTextPosition {
@@ -238,13 +258,31 @@ export interface HeroTextPositions {
   badges: HeroTextPosition;
 }
 
-/** Per-breakpoint layout controls. */
-export interface HeroResponsiveSettings {
-  headingSize: number; // px
-  descriptionSize: number; // px
-  eyebrowSize: number; // px
+/** Manual max-width per text block (px); 0 = auto. */
+export interface HeroBlockWidths {
+  eyebrow: number;
+  heading: number;
+  description: number;
+  buttons: number;
+  badges: number;
+}
+
+/**
+ * The full styling set for one device inside a theme — typography, spacing,
+ * per-element offsets and widths, plus the per-device layout controls
+ * (height, alignment, content order, visibility flags).
+ */
+export interface HeroBreakpointStyling {
+  typography: HeroTypography;
+  spacing: HeroSpacing;
+  /** 0..1 — dark scrim strength over the background image (0 = fully visible). */
+  overlayOpacity: number;
+  /** Free-form per-element pixel offsets (eyebrow, heading, description, buttons, badges). */
+  textPositions: HeroTextPositions;
+  /** Manual max-width per text block (px); 0 = auto. */
+  blockWidths: HeroBlockWidths;
   textAlign: HeroTextAlign;
-  contentOrder: "content-first" | "media-first";
+  contentOrder: HeroContentOrder;
   /** Auto → fits content, full-screen → viewport height, custom → customHeight px. */
   heightMode: HeroHeightMode;
   customHeight: number; // px, used when heightMode === "custom"
@@ -254,34 +292,27 @@ export interface HeroResponsiveSettings {
   showBadges: boolean;
 }
 
-export interface HeroResponsive {
-  desktop: HeroResponsiveSettings;
-  tablet: HeroResponsiveSettings;
-  mobile: HeroResponsiveSettings;
-}
-
-export interface HeroSlideStyling {
-  colors: HeroColors;
-  typography: HeroTypography;
-  spacing: HeroSpacing;
-  /** 0..1 — dark scrim strength over the background image (0 = fully visible). */
-  overlayOpacity: number;
-  /** Free-form per-element pixel offsets (eyebrow, heading, description, buttons, badges). */
-  textPositions: HeroTextPositions;
-}
-
 /**
- * The complete dataset for one theme (dark or light). Each theme stores its
- * own text content, buttons, badges, background media, styling, and
- * responsive settings — so light and dark variants are fully independent.
+ * The complete dataset for one device (desktop, tablet, or mobile) inside a
+ * theme — fully independent from the other devices. Text content, buttons,
+ * badges, media, and styling are all stored per device.
  */
-export interface HeroThemeData {
+export interface HeroBreakpointData {
   content: HeroContent;
   buttons: { primary: HeroButton; secondary: HeroButton };
   badges: HeroBadge[];
   media: HeroMedia;
-  styling: HeroSlideStyling;
-  responsive: HeroResponsive;
+  styling: HeroBreakpointStyling;
+}
+
+/**
+ * The complete dataset for one theme (dark or light). Colors are shared across
+ * every device; all other settings are stored separately per device via
+ * `breakpoints` — so light/dark × desktop/tablet/mobile are fully independent.
+ */
+export interface HeroThemeData {
+  colors: HeroColors;
+  breakpoints: Record<HeroBreakpoint, HeroBreakpointData>;
 }
 
 export interface HeroSlide {

@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import type { CatalogProduct } from "@/types/catalog";
-import { heroColorsFor, heroVisualsFor, mediaImageFor, heroResponsiveFor } from "@/lib/hero";
+import { heroColorsFor, heroBreakpointFor, mediaImageFor } from "@/lib/hero";
 import { cn } from "@/lib/utils";
 import { useHero } from "./hero-context";
 import { Entrance } from "./hero-entrance";
@@ -11,11 +11,11 @@ import { HeroImage } from "./hero-image";
 
 export function HeroMedia({ className }: { className?: string }) {
   const { slide, breakpoint, active, container, media: mediaVariants, products } = useHero();
-  const visuals = heroVisualsFor(slide);
-  const media = visuals.media;
+  const bp = heroBreakpointFor(slide, breakpoint);
+  const media = bp.media;
   const colors = heroColorsFor(slide);
   const isMobile = breakpoint === "mobile";
-  const pos = isMobile ? heroResponsiveFor(slide, "mobile").imagePosition : media.position;
+  const pos = isMobile ? bp.styling.imagePosition : media.position;
   const bpImg = mediaImageFor(media, breakpoint);
   const img = media.productImage || bpImg;
   const product = media.productId ? products[media.productId] : undefined;
@@ -41,7 +41,7 @@ export function HeroMedia({ className }: { className?: string }) {
             >
               <HeroImage
                 src={img}
-                alt={slide.content.heading}
+                alt={bp.content.heading}
                 sizes="(max-width: 768px) 90vw, 44vw"
                 className="object-cover"
               />

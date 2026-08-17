@@ -98,17 +98,24 @@ export const homepageConfigSchema = z
       }
 
       // Each theme (light/dark) stores its own full dataset — validate them too.
+      // New shape: per-device datasets under `breakpoints.*`. Legacy shape: flat theme dataset.
       const themes = (s.themes ?? {}) as Record<string, Record<string, unknown>>;
       for (const theme of ["dark", "light"]) {
         const themeData = (themes[theme] ?? {}) as Record<string, unknown>;
-        const themeButtons = (themeData.buttons ?? {}) as Record<string, Record<string, unknown>>;
-        const themePrimary = (themeButtons.primary ?? {}) as Record<string, unknown>;
-        if (!themePrimary.text || String(themePrimary.text).trim() === "") {
-          ctx.addIssue({
-            code: "custom",
-            path: ["sections", "hero", "slides", i, "themes", theme, "buttons", "primary"],
-            message: `Hero slide ${i + 1} (${theme} theme): primary CTA text is required.`,
-          });
+        const breakpoints = (themeData.breakpoints ?? null) as Record<string, Record<string, unknown>> | null;
+        const datasets: [string, Record<string, unknown>][] =
+          breakpoints && Object.keys(breakpoints).length > 0 ? Object.entries(breakpoints) : [["default", themeData]];
+        for (const [bp, bpData] of datasets) {
+          const themeButtons = (bpData.buttons ?? {}) as Record<string, Record<string, unknown>>;
+          const themePrimary = (themeButtons.primary ?? {}) as Record<string, unknown>;
+          if (!themePrimary.text || String(themePrimary.text).trim() === "") {
+            const scope = breakpoints ? ` (${theme} / ${bp})` : ` (${theme} theme)`;
+            ctx.addIssue({
+              code: "custom",
+              path: ["sections", "hero", "slides", i, "themes", theme, "buttons", "primary"],
+              message: `Hero slide ${i + 1}${scope}: primary CTA text is required.`,
+            });
+          }
         }
       }
     }

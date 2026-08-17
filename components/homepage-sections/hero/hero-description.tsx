@@ -2,17 +2,19 @@
 
 import { useHero } from "./hero-context";
 import { Entrance } from "./hero-entrance";
-import { typographyFor, heroTextPositionsFor, heroTextTransform } from "@/lib/hero";
+import { typographyFor, heroBreakpointFor, heroTextPositionsFor, heroTextTransform } from "@/lib/hero";
 
 export function HeroDescription() {
   const { slide, breakpoint, content } = useHero();
-  const text = slide.content.description;
+  const bp = heroBreakpointFor(slide, breakpoint);
+  const text = bp.content.description;
   if (!text) return null;
   const t = typographyFor(slide, breakpoint);
-  const transform = heroTextTransform(heroTextPositionsFor(slide).description);
+  const transform = heroTextTransform(heroTextPositionsFor(slide, breakpoint).description);
+  const blockWidth = bp.styling.blockWidths.description;
 
   return (
-    <div style={transform}>
+    <div style={{ ...transform, ...(blockWidth > 0 ? { maxWidth: blockWidth } : {}) }}>
       <Entrance variants={content}>
         <p
           style={{

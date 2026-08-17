@@ -1,6 +1,6 @@
 "use client";
 
-import { heroCssVars, heroColorsFor, heroVisualsFor, spacingFor, heroMinHeightFor, heroContainerWidthFor, heroPaddingXFor } from "@/lib/hero";
+import { heroCssVars, heroColorsFor, heroBreakpointFor, spacingFor, heroMinHeightFor, heroContainerWidthFor, heroPaddingXFor } from "@/lib/hero";
 import { useHero } from "../hero-context";
 import { HeroBackground, HeroContainer } from "../hero-background";
 import { HeroContent } from "../hero-content";
@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 export function CinematicHero() {
   const { slide, breakpoint, preview } = useHero();
-  const visuals = heroVisualsFor(slide);
+  const bp = heroBreakpointFor(slide, breakpoint);
   const colors = heroColorsFor(slide);
   const spacing = spacingFor(slide, breakpoint);
   const isMobile = breakpoint === "mobile";
@@ -27,7 +27,7 @@ export function CinematicHero() {
 
   return (
     <section
-      className={cn("relative flex flex-col justify-center overflow-hidden @container")}
+      className={cn("relative flex flex-col justify-center @container", preview ? "overflow-visible" : "overflow-hidden")}
       style={{
         ...heroCssVars(slide),
         background: colors.background,
@@ -36,11 +36,14 @@ export function CinematicHero() {
     >
       <HeroBackground
         overlay={colors.overlay}
-        overlayOpacity={visuals.styling.overlayOpacity}
-        image={visuals.media.backgroundImage}
+        overlayOpacity={bp.styling.overlayOpacity}
+        image={bp.media.backgroundImage}
+        imageDark={bp.media.backgroundImageDark}
         dark={slide.theme === "dark"}
         sizes={bgSizes}
-        backgroundSize={visuals.media.backgroundSize}
+        backgroundSize={bp.media.backgroundSize}
+        backgroundPosition={bp.media.backgroundPosition}
+        clip={!preview}
       />
       <HeroContainer
         className="relative mx-auto"

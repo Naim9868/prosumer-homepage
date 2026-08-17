@@ -1,13 +1,17 @@
 "use client";
 
-import { Moon, Sun, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
+import { Moon, Sun, Monitor, Smartphone, Tablet, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
 import type {
+  HeroBlockWidths,
+  HeroBreakpoint,
+  HeroBreakpointData,
+  HeroBreakpointStyling,
+  HeroColors,
   HeroEditMode,
   HeroEntrance,
   HeroLayout,
   HeroMedia,
   HeroPreset,
-  HeroResponsive,
   HeroSlide,
   HeroTextPosition,
   HeroTextPositions,
@@ -21,6 +25,8 @@ import { PresetPicker } from "@/components/homepage-builder/hero/preset-picker";
 import { BadgeListEditor } from "@/components/homepage-builder/hero/badge-list-editor";
 import { MediaEditor } from "@/components/homepage-builder/hero/media-editor";
 import { HeroResponsiveEditor } from "@/components/homepage-builder/hero/hero-responsive-editor";
+import { ButtonSizeEditor } from "@/components/homepage-builder/hero/button-size-editor";
+import { BlockWidthsEditor } from "@/components/homepage-builder/hero/block-widths-editor";
 import { cn } from "@/lib/utils";
 
 const BUTTON_STYLE_OPTIONS = [
@@ -35,6 +41,12 @@ const ENTRANCE_OPTIONS: { label: string; value: HeroEntrance }[] = [
   { label: "Fade Down", value: "fade-down" },
   { label: "Scale", value: "scale" },
   { label: "None", value: "none" },
+];
+
+const DEVICE_TABS: { id: HeroBreakpoint; label: string; icon: typeof Monitor }[] = [
+  { id: "desktop", label: "Desktop", icon: Monitor },
+  { id: "tablet", label: "Tablet", icon: Tablet },
+  { id: "mobile", label: "Mobile", icon: Smartphone },
 ];
 
 const POSITION_STEP = 4;
@@ -103,39 +115,87 @@ export function HeroSlideEditor({
   slide,
   onChange,
   mode,
+  breakpoint,
+  onBreakpointChange,
 }: {
   slide: HeroSlide;
   onChange: (next: HeroSlide) => void;
   mode: HeroEditMode;
+  breakpoint: HeroBreakpoint;
+  onBreakpointChange: (bp: HeroBreakpoint) => void;
 }) {
   const advanced = mode === "advanced";
   const theme = slide.theme;
   const data = slide.themes[theme];
+  const bpData = data.breakpoints[breakpoint];
+  const device = DEVICE_TABS.find((d) => d.id === breakpoint) ?? DEVICE_TABS[0];
 
-  /** Update the active theme's dataset, then re-materialize the top-level mirror. */
-  const setThemeData = (patch: Partial<HeroThemeData>) =>
+  /** Patch the active theme (colors or any breakpoint). */
+  const setTheme = (patch: Partial<HeroThemeData>) =>
     onChange(materializeHeroSlide({ ...slide, themes: { ...slide.themes, [theme]: { ...data, ...patch } } }, theme));
 
-  const setContent = (patch: Partial<HeroSlide["content"]>) => setThemeData({ content: { ...data.content, ...patch } });
+  /** Patch the active device's full dataset. */
+  const setBreakpointData = (patch: Partial<HeroBreakpointData>) =>
+    setTheme({ breakpoints: { ...data.breakpoints, [breakpoint]: { ...bpData, ...patch } } });
+
+  /** Patch the active device's styling. */
+  const setBreakpointStyling = (patch: Partial<HeroBreakpointStyling>) =>
+    setBreakpointData({ styling: { ...bpData.styling, ...patch } });
+
+  const setColors = (patch: Partial<HeroColors>) => setTheme({ colors: { ...data.colors, ...patch } });
+  const setContent = (patch: Partial<HeroSlide["content"]>) => setBreakpointData({ content: { ...bpData.content, ...patch } });
   const setButton = (which: "primary" | "secondary", patch: Partial<HeroSlide["buttons"]["primary"]>) =>
-    setThemeData({ buttons: { ...data.buttons, [which]: { ...data.buttons[which], ...patch } } });
-  const setMedia = (patch: Partial<HeroMedia>) => setThemeData({ media: { ...data.media, ...patch } });
-  const setColors = (patch: Partial<HeroThemeData["styling"]["colors"]>) =>
-    setThemeData({ styling: { ...data.styling, colors: { ...data.styling.colors, ...patch } } });
-  const setTypography = (patch: Partial<HeroThemeData["styling"]["typography"]>) =>
-    setThemeData({ styling: { ...data.styling, typography: { ...data.styling.typography, ...patch } } });
-  const setSpacing = (patch: Partial<HeroThemeData["styling"]["spacing"]>) =>
-    setThemeData({ styling: { ...data.styling, spacing: { ...data.styling.spacing, ...patch } } });
-  const setOverlayOpacity = (overlayOpacity: number) =>
-    setThemeData({ styling: { ...data.styling, overlayOpacity } });
+    setBreakpointData({
+      buttons: {
+        ...bpData.buttons,
+        [which]: {
+          ...bpData.buttons[which],
+          ...patch,
+          size: { ...bpData.buttons[which].size, ...patch.size },
+        },
+      },
+    });
+  const setMedia = (patch: Partial<HeroMedia>) => setBreakpointData({ media: { ...bpData.media, ...patch } });
+  const setTypography = (patch: Partial<HeroThemeData["breakpoints"]["desktop"]["styling"]["typography"]>) =>
+    setBreakpointStyling({ typography: { ...bpData.styling.typography, ...patch } });
+  const setSpacing = (patch: Partial<HeroThemeData["breakpoints"]["desktop"]["styling"]["spacing"]>) =>
+    setBreakpointStyling({ spacing: { ...bpData.styling.spacing, ...patch } });
+  const setOverlayOpacity = (overlayOpacity: number) => setBreakpointStyling({ overlayOpacity });
   const setTextPositions = (patch: Partial<HeroTextPositions>) =>
-    setThemeData({ styling: { ...data.styling, textPositions: { ...data.styling.textPositions, ...patch } } });
-  const setResponsive = (responsive: HeroResponsive) => setThemeData({ responsive });
+    setBreakpointStyling({ textPositions: { ...bpData.styling.textPositions, ...patch } });
+  const setBlockWidths = (blockWidths: HeroBlockWidths) => setBreakpointStyling({ blockWidths });
   const setAnimation = (patch: Partial<HeroSlide["animation"]>) => onChange({ ...slide, animation: { ...slide.animation, ...patch } });
   const setLayout = (layout: HeroLayout) => onChange({ ...slide, layout });
 
   return (
     <div className="space-y-3">
+      {/* Device tabs — choose which device's independent setup to edit */}
+      <div className="rounded-[var(--radius-md)] border border-border bg-card p-3">
+        <div className="flex gap-1 rounded-full bg-muted p-1">
+          {DEVICE_TABS.map((d) => (
+            <button
+              key={d.id}
+              type="button"
+              onClick={() => onBreakpointChange(d.id)}
+              className={cn(
+                "flex flex-1 items-center justify-center gap-1.5 rounded-full px-2 py-1.5 text-[12px] font-semibold transition-colors",
+                breakpoint === d.id
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-foreground-muted hover:text-foreground"
+              )}
+            >
+              <d.icon className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{d.label}</span>
+            </button>
+          ))}
+        </div>
+        <p className="mt-2 text-[11px] text-foreground-muted/70">
+          Editing <span className="font-semibold text-foreground">{device.label}</span> for the{" "}
+          <span className="font-semibold text-foreground">{theme === "dark" ? "Dark" : "Light"}</span> theme. Every
+          device stores its own text, buttons, badges, images, and layout independently.
+        </p>
+      </div>
+
       {/* Layout, theme, preset */}
       <EditorSection title="Layout & Theme" defaultOpen>
         <FieldGrid>
@@ -172,7 +232,8 @@ export function HeroSlideEditor({
           </Field>
         </FieldGrid>
         <p className="text-[11px] text-foreground-muted/70">
-          Each theme stores its own text, buttons, badges, image, colors, and responsive settings. Switching shows that theme&apos;s copy.
+          Each theme stores its own copy of every device&apos;s text, buttons, badges, images, colors, and layout. Switching
+          shows that theme&apos;s setup.
         </p>
         <PresetPicker
           current={presetFor(slide)}
@@ -184,16 +245,17 @@ export function HeroSlideEditor({
       {/* Text content */}
       <EditorSection title="Text Content" defaultOpen>
         <Field label="Eyebrow">
-          <TextInput value={data.content.eyebrow} onChange={(e) => setContent({ eyebrow: e.target.value })} placeholder="OPTICAL-GRADE MOBILE LENSES" />
+          <TextInput value={bpData.content.eyebrow} onChange={(e) => setContent({ eyebrow: e.target.value })} placeholder="OPTICAL-GRADE MOBILE LENSES" />
         </Field>
         <Field label="Heading" hint="Wrap a word with {accent}…{/accent} to highlight it in the accent color.">
-          <TextInput value={data.content.heading} onChange={(e) => setContent({ heading: e.target.value })} placeholder="See what your phone can't." />
+          <TextInput value={bpData.content.heading} onChange={(e) => setContent({ heading: e.target.value })} placeholder="See what your phone can't." />
         </Field>
         <Field label="Description">
-          <TextArea value={data.content.description} onChange={(e) => setContent({ description: e.target.value })} rows={3} />
+          <TextArea value={bpData.content.description} onChange={(e) => setContent({ description: e.target.value })} rows={3} />
         </Field>
         <p className="text-[11px] text-foreground-muted/70">
-          Leave a field empty to hide it — only filled-in text is shown.
+          Leave a field empty to hide it — only filled-in text is shown. This text is stored only for the{" "}
+          {device.label.toLowerCase()} device you&apos;re editing.
         </p>
       </EditorSection>
 
@@ -202,32 +264,41 @@ export function HeroSlideEditor({
         <div className="space-y-3">
           <PositionControl
             label="Eyebrow"
-            value={data.styling.textPositions.eyebrow}
+            value={bpData.styling.textPositions.eyebrow}
             onChange={(v) => setTextPositions({ eyebrow: v })}
           />
           <PositionControl
             label="Heading"
-            value={data.styling.textPositions.heading}
+            value={bpData.styling.textPositions.heading}
             onChange={(v) => setTextPositions({ heading: v })}
           />
           <PositionControl
             label="Description"
-            value={data.styling.textPositions.description}
+            value={bpData.styling.textPositions.description}
             onChange={(v) => setTextPositions({ description: v })}
           />
           <PositionControl
             label="Buttons"
-            value={data.styling.textPositions.buttons}
+            value={bpData.styling.textPositions.buttons}
             onChange={(v) => setTextPositions({ buttons: v })}
           />
           <PositionControl
             label="Badges"
-            value={data.styling.textPositions.badges}
+            value={bpData.styling.textPositions.badges}
             onChange={(v) => setTextPositions({ badges: v })}
           />
         </div>
         <p className="text-[11px] text-foreground-muted/70">
-          Move each text element freely with the arrow buttons or type exact pixel offsets. Use a fixed banner height for predictable results.
+          Move each text element freely with the arrow buttons or type exact pixel offsets. Use a fixed banner height for
+          predictable results. Offsets are stored per device.
+        </p>
+      </EditorSection>
+
+      {/* Text block widths */}
+      <EditorSection title="Text Block Widths">
+        <BlockWidthsEditor widths={bpData.styling.blockWidths} onChange={setBlockWidths} />
+        <p className="text-[11px] text-foreground-muted/70">
+          Set a max width (px) for each text block on this device. 0 = auto (fills the column).
         </p>
       </EditorSection>
 
@@ -240,67 +311,73 @@ export function HeroSlideEditor({
             </p>
             <FieldGrid>
               <Field label="Label">
-                <TextInput value={data.buttons[which].text} onChange={(e) => setButton(which, { text: e.target.value })} />
+                <TextInput value={bpData.buttons[which].text} onChange={(e) => setButton(which, { text: e.target.value })} />
               </Field>
               <Field label="URL">
-                <TextInput value={data.buttons[which].url} onChange={(e) => setButton(which, { url: e.target.value })} placeholder="#shop-by-lens" />
+                <TextInput value={bpData.buttons[which].url} onChange={(e) => setButton(which, { url: e.target.value })} placeholder="#shop-by-lens" />
               </Field>
               <Field label="Style">
-                <Select value={data.buttons[which].style} onChange={(v) => setButton(which, { style: v as HeroSlide["buttons"]["primary"]["style"] })} options={BUTTON_STYLE_OPTIONS} />
+                <Select value={bpData.buttons[which].style} onChange={(v) => setButton(which, { style: v as HeroSlide["buttons"]["primary"]["style"] })} options={BUTTON_STYLE_OPTIONS} />
               </Field>
             </FieldGrid>
+            <ButtonSizeEditor size={bpData.buttons[which].size} onChange={(size) => setButton(which, { size })} />
           </div>
         ))}
+        <p className="text-[11px] text-foreground-muted/70">
+          Button size settings are stored per device — the {device.label.toLowerCase()} button setup is independent from
+          other devices.
+        </p>
       </EditorSection>
 
       {/* Trust badges */}
       <EditorSection title="Trust Badges">
-        <BadgeListEditor badges={data.badges} onChange={(badges) => setThemeData({ badges })} />
+        <BadgeListEditor badges={bpData.badges} onChange={(badges) => setBreakpointData({ badges })} />
       </EditorSection>
 
       {/* Media */}
       <EditorSection title="Images & Product">
-        <MediaEditor media={data.media} onChange={setMedia} advanced={advanced} />
+        <MediaEditor media={bpData.media} onChange={setMedia} advanced={advanced} />
       </EditorSection>
 
       {/* Colors */}
       <EditorSection title="Colors" defaultOpen={!advanced}>
         <FieldGrid>
-          <ColorField label="Background" value={data.styling.colors.background} onChange={(v) => setColors({ background: v })} />
-          <ColorField label="Heading / Foreground" value={data.styling.colors.foreground} onChange={(v) => setColors({ foreground: v })} />
-          <ColorField label="Body / Muted Text" value={data.styling.colors.muted} onChange={(v) => setColors({ muted: v })} />
-          <ColorField label="Accent" value={data.styling.colors.accent} onChange={(v) => setColors({ accent: v })} />
+          <ColorField label="Background" value={data.colors.background} onChange={(v) => setColors({ background: v })} />
+          <ColorField label="Heading / Foreground" value={data.colors.foreground} onChange={(v) => setColors({ foreground: v })} />
+          <ColorField label="Body / Muted Text" value={data.colors.muted} onChange={(v) => setColors({ muted: v })} />
+          <ColorField label="Accent" value={data.colors.accent} onChange={(v) => setColors({ accent: v })} />
         </FieldGrid>
         <div>
           <div className="flex items-center justify-between">
-            <span className="text-[11.5px] font-medium text-foreground-muted">Image Overlay</span>
-            <span className="text-[11.5px] font-semibold text-foreground">{Math.round((data.styling.overlayOpacity ?? 0) * 100)}%</span>
+            <span className="text-[11.5px] font-medium text-foreground-muted">Image Overlay ({device.label})</span>
+            <span className="text-[11.5px] font-semibold text-foreground">{Math.round((bpData.styling.overlayOpacity ?? 0) * 100)}%</span>
           </div>
           <input
             type="range"
             min={0}
             max={100}
             step={5}
-            value={Math.round((data.styling.overlayOpacity ?? 0) * 100)}
+            value={Math.round((bpData.styling.overlayOpacity ?? 0) * 100)}
             onChange={(e) => setOverlayOpacity(Number(e.target.value) / 100)}
             className="mt-1 w-full accent-[var(--primary)]"
           />
           <p className="mt-1 text-[11px] text-foreground-muted">
-            Darkens the background image so text stays readable. 0% keeps the image fully visible.
+            Darkens the background image so text stays readable. 0% keeps the image fully visible. Colors are shared
+            across devices; the overlay is per device.
           </p>
         </div>
         {advanced && (
           <FieldGrid>
-            <ColorField label="Border" value={data.styling.colors.border} onChange={(v) => setColors({ border: v })} />
-            <ColorField label="Card" value={data.styling.colors.card} onChange={(v) => setColors({ card: v })} />
-            <ColorField label="Overlay" value={data.styling.colors.overlay} onChange={(v) => setColors({ overlay: v })} />
+            <ColorField label="Border" value={data.colors.border} onChange={(v) => setColors({ border: v })} />
+            <ColorField label="Card" value={data.colors.card} onChange={(v) => setColors({ card: v })} />
+            <ColorField label="Overlay" value={data.colors.overlay} onChange={(v) => setColors({ overlay: v })} />
           </FieldGrid>
         )}
       </EditorSection>
 
-      {/* Responsive / mobile overrides */}
-      <EditorSection title="Responsive" defaultOpen={!advanced}>
-        <HeroResponsiveEditor responsive={data.responsive} onChange={setResponsive} />
+      {/* Per-device layout */}
+      <EditorSection title="Device Layout" defaultOpen={!advanced}>
+        <HeroResponsiveEditor styling={bpData.styling} onChange={setBreakpointStyling} />
       </EditorSection>
 
       {/* Typography */}
@@ -309,26 +386,27 @@ export function HeroSlideEditor({
           <>
             <FieldGrid>
               <Field label="Heading Weight">
-                <TextInput type="number" min={400} max={900} step={100} value={data.styling.typography.headingWeight} onChange={(e) => setTypography({ headingWeight: Number(e.target.value) })} />
+                <TextInput type="number" min={400} max={900} step={100} value={bpData.styling.typography.headingWeight} onChange={(e) => setTypography({ headingWeight: Number(e.target.value) })} />
               </Field>
               <Field label="Heading Line Height">
-                <TextInput type="number" min={0.9} max={1.6} step={0.02} value={data.styling.typography.headingLineHeight} onChange={(e) => setTypography({ headingLineHeight: Number(e.target.value) })} />
+                <TextInput type="number" min={0.9} max={1.6} step={0.02} value={bpData.styling.typography.headingLineHeight} onChange={(e) => setTypography({ headingLineHeight: Number(e.target.value) })} />
               </Field>
               <Field label="Heading Letter Spacing (px)">
-                <TextInput type="number" min={-3} max={5} step={0.1} value={data.styling.typography.headingLetterSpacing} onChange={(e) => setTypography({ headingLetterSpacing: Number(e.target.value) })} />
+                <TextInput type="number" min={-3} max={5} step={0.1} value={bpData.styling.typography.headingLetterSpacing} onChange={(e) => setTypography({ headingLetterSpacing: Number(e.target.value) })} />
               </Field>
               <Field label="Eyebrow Letter Spacing (px)">
-                <TextInput type="number" min={0} max={6} step={0.1} value={data.styling.typography.eyebrowLetterSpacing} onChange={(e) => setTypography({ eyebrowLetterSpacing: Number(e.target.value) })} />
+                <TextInput type="number" min={0} max={6} step={0.1} value={bpData.styling.typography.eyebrowLetterSpacing} onChange={(e) => setTypography({ eyebrowLetterSpacing: Number(e.target.value) })} />
               </Field>
               <Field label="Button Font Size (px)">
-                <TextInput type="number" min={11} max={20} value={data.styling.typography.buttonFontSize} onChange={(e) => setTypography({ buttonFontSize: Number(e.target.value) })} />
+                <TextInput type="number" min={11} max={20} value={bpData.styling.typography.buttonFontSize} onChange={(e) => setTypography({ buttonFontSize: Number(e.target.value) })} />
               </Field>
               <Field label="Button Weight">
-                <TextInput type="number" min={400} max={900} step={100} value={data.styling.typography.buttonWeight} onChange={(e) => setTypography({ buttonWeight: Number(e.target.value) })} />
+                <TextInput type="number" min={400} max={900} step={100} value={bpData.styling.typography.buttonWeight} onChange={(e) => setTypography({ buttonWeight: Number(e.target.value) })} />
               </Field>
             </FieldGrid>
             <p className="text-[11px] text-foreground-muted/70">
-              Heading, description and eyebrow sizes are set per device in the Responsive section.
+              Heading, description and eyebrow sizes are set per device in the Device Layout / typography defaults for
+              each breakpoint.
             </p>
           </>
         )}
@@ -339,25 +417,25 @@ export function HeroSlideEditor({
         <EditorSection title="Spacing" advanced>
           <FieldGrid>
             <Field label="Container Max Width (px)">
-              <TextInput type="number" min={600} max={1920} value={data.styling.spacing.containerMaxWidth} onChange={(e) => setSpacing({ containerMaxWidth: Number(e.target.value) })} />
+              <TextInput type="number" min={600} max={1920} value={bpData.styling.spacing.containerMaxWidth} onChange={(e) => setSpacing({ containerMaxWidth: Number(e.target.value) })} />
             </Field>
             <Field label="Padding Top (px)">
-              <TextInput type="number" min={0} max={240} value={data.styling.spacing.paddingTop} onChange={(e) => setSpacing({ paddingTop: Number(e.target.value) })} />
+              <TextInput type="number" min={0} max={240} value={bpData.styling.spacing.paddingTop} onChange={(e) => setSpacing({ paddingTop: Number(e.target.value) })} />
             </Field>
             <Field label="Padding Bottom (px)">
-              <TextInput type="number" min={0} max={240} value={data.styling.spacing.paddingBottom} onChange={(e) => setSpacing({ paddingBottom: Number(e.target.value) })} />
+              <TextInput type="number" min={0} max={240} value={bpData.styling.spacing.paddingBottom} onChange={(e) => setSpacing({ paddingBottom: Number(e.target.value) })} />
             </Field>
             <Field label="Side Spacing (px)">
-              <TextInput type="number" min={0} max={160} value={data.styling.spacing.paddingX} onChange={(e) => setSpacing({ paddingX: Number(e.target.value) })} />
+              <TextInput type="number" min={0} max={160} value={bpData.styling.spacing.paddingX} onChange={(e) => setSpacing({ paddingX: Number(e.target.value) })} />
             </Field>
             <Field label="Element Gap (px)">
-              <TextInput type="number" min={0} max={80} value={data.styling.spacing.elementGap} onChange={(e) => setSpacing({ elementGap: Number(e.target.value) })} />
+              <TextInput type="number" min={0} max={80} value={bpData.styling.spacing.elementGap} onChange={(e) => setSpacing({ elementGap: Number(e.target.value) })} />
             </Field>
             <Field label="Media Offset (px)">
-              <TextInput type="number" min={-200} max={200} value={data.styling.spacing.mediaOffset} onChange={(e) => setSpacing({ mediaOffset: Number(e.target.value) })} />
+              <TextInput type="number" min={-200} max={200} value={bpData.styling.spacing.mediaOffset} onChange={(e) => setSpacing({ mediaOffset: Number(e.target.value) })} />
             </Field>
             <Field label="Product Image Offset (px)">
-              <TextInput type="number" min={-200} max={200} value={data.styling.spacing.productImageOffset} onChange={(e) => setSpacing({ productImageOffset: Number(e.target.value) })} />
+              <TextInput type="number" min={-200} max={200} value={bpData.styling.spacing.productImageOffset} onChange={(e) => setSpacing({ productImageOffset: Number(e.target.value) })} />
             </Field>
           </FieldGrid>
         </EditorSection>

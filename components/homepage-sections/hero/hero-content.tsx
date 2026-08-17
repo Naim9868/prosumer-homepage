@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { spacingFor, heroResponsiveFor } from "@/lib/hero";
+import { spacingFor, heroBreakpointFor } from "@/lib/hero";
 import { useHero } from "./hero-context";
 import { HeroEyebrow } from "./hero-eyebrow";
 import { HeroHeading } from "./hero-heading";
@@ -14,10 +14,10 @@ export function HeroContent({ centered = false, className }: { centered?: boolea
   const { slide, breakpoint, active, container } = useHero();
   const spacing = spacingFor(slide, breakpoint);
   const isMobile = breakpoint === "mobile";
-  const responsive = heroResponsiveFor(slide, breakpoint);
-  const align = centered ? "center" : responsive.textAlign;
-  const hideBadges = isMobile && !responsive.showBadges;
-  const hideSecondary = isMobile && !responsive.showSecondaryCta;
+  const styling = heroBreakpointFor(slide, breakpoint).styling;
+  const align = centered ? "center" : styling.textAlign;
+  const hideBadges = isMobile && !styling.showBadges;
+  const hideSecondary = isMobile && !styling.showSecondaryCta;
   const itemsClass = align === "center" ? "items-center" : align === "right" ? "items-end" : "items-start";
 
   return (

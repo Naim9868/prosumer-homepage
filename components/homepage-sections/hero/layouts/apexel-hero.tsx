@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { heroCssVars, heroColorsFor, heroResponsiveFor, heroVisualsFor, spacingFor, heroMinHeightFor, heroContainerWidthFor, heroPaddingXFor } from "@/lib/hero";
+import { heroCssVars, heroColorsFor, heroBreakpointFor, spacingFor, heroMinHeightFor, heroContainerWidthFor, heroPaddingXFor } from "@/lib/hero";
 import { useHero } from "../hero-context";
 import { HeroBackground, HeroContainer } from "../hero-background";
 import { HeroEyebrow } from "../hero-eyebrow";
@@ -20,10 +20,9 @@ import { cn } from "@/lib/utils";
  */
 export function ApexelHero() {
   const { slide, breakpoint, preview, active } = useHero();
-  const visuals = heroVisualsFor(slide);
+  const bp = heroBreakpointFor(slide, breakpoint);
   const colors = heroColorsFor(slide);
   const spacing = spacingFor(slide, breakpoint);
-  const responsive = heroResponsiveFor(slide, breakpoint);
   const isMobile = breakpoint === "mobile";
   const minHeight = heroMinHeightFor(slide, breakpoint);
 
@@ -39,7 +38,7 @@ export function ApexelHero() {
 
   return (
     <section
-      className={cn("relative flex flex-col justify-end overflow-hidden @container")}
+      className={cn("relative flex flex-col justify-end @container", preview ? "overflow-visible" : "overflow-hidden")}
       style={{
         ...heroCssVars(slide),
         background: colors.background,
@@ -48,18 +47,21 @@ export function ApexelHero() {
     >
       <motion.div
         aria-hidden
-        className="absolute inset-0"
+        className={cn("absolute inset-0", preview && "overflow-visible")}
         initial={false}
         animate={{ scale: active ? 1 : 1.08 }}
         transition={{ duration: 18, ease: "linear" }}
       >
         <HeroBackground
           overlay={colors.overlay}
-          overlayOpacity={visuals.styling.overlayOpacity}
-          image={visuals.media.backgroundImage}
+          overlayOpacity={bp.styling.overlayOpacity}
+          image={bp.media.backgroundImage}
+          imageDark={bp.media.backgroundImageDark}
           dark={slide.theme === "dark"}
           sizes={bgSizes}
-          backgroundSize={visuals.media.backgroundSize}
+          backgroundSize={bp.media.backgroundSize}
+          backgroundPosition={bp.media.backgroundPosition}
+          clip={!preview}
         />
       </motion.div>
       <HeroContainer
@@ -80,10 +82,10 @@ export function ApexelHero() {
             <HeroEyebrow />
             <HeroHeading />
             <HeroDescription />
-            {responsive.showBadges && <HeroTrustBadges />}
+            {bp.styling.showBadges && <HeroTrustBadges />}
           </div>
           <div className="flex shrink-0 items-center @4xl:justify-end">
-            <HeroCTAGroup hideSecondary={!responsive.showSecondaryCta} />
+            <HeroCTAGroup hideSecondary={!bp.styling.showSecondaryCta} />
           </div>
         </div>
       </HeroContainer>
