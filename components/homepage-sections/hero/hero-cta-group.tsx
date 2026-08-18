@@ -40,6 +40,7 @@ export function HeroCTAGroup({ hideSecondary = false }: { hideSecondary?: boolea
             style={{
               ...buttonStyleCss(primary.style, colors),
               ...buttonBox(primary.size, t),
+              ...(primary.textColor ? { color: primary.textColor } : {}),
             }}
           >
             {primary.text}
@@ -53,6 +54,7 @@ export function HeroCTAGroup({ hideSecondary = false }: { hideSecondary?: boolea
             style={{
               ...buttonStyleCss(secondary.style, colors),
               ...buttonBox(secondary.size, t),
+              ...(secondary.textColor ? { color: secondary.textColor } : {}),
             }}
           >
             {secondary.text}

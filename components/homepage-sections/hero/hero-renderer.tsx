@@ -1,11 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import type { HeroBreakpoint, HeroSliderSettings, HeroSlide, HeroTheme, HeroTransition } from "@/types/homepage";
 import type { CatalogProduct } from "@/types/catalog";
 import { heroColorsFor, materializeHeroSlide } from "@/lib/hero";
 import { cn } from "@/lib/utils";
-import { useTheme } from "@/components/shared/theme-provider";
 import { HERO_LAYOUT_COMPONENTS } from "./layouts";
 import { HeroProvider } from "./hero-context";
 import { HeroNavigation } from "./hero-navigation";
@@ -47,16 +46,25 @@ function slideStyle(
   }
 }
 
+function getViewportBreakpoint(): HeroBreakpoint {
+  return window.innerWidth < 640 ? "mobile" : window.innerWidth < 1024 ? "tablet" : "desktop";
+}
+
+function subscribeToViewport(callback: () => void) {
+  window.addEventListener("resize", callback);
+  window.addEventListener("orientationchange", callback);
+  return () => {
+    window.removeEventListener("resize", callback);
+    window.removeEventListener("orientationchange", callback);
+  };
+}
+
 function useLiveBreakpoint(enabled: boolean): HeroBreakpoint {
-  const [bp, setBp] = useState<HeroBreakpoint>("desktop");
-  useEffect(() => {
-    if (!enabled) return;
-    const compute = () => setBp(window.innerWidth < 640 ? "mobile" : window.innerWidth < 1024 ? "tablet" : "desktop");
-    compute();
-    window.addEventListener("resize", compute);
-    return () => window.removeEventListener("resize", compute);
-  }, [enabled]);
-  return bp;
+  return useSyncExternalStore(
+    subscribeToViewport,
+    () => (enabled ? getViewportBreakpoint() : "desktop"),
+    () => "desktop"
+  );
 }
 
 export function HeroRenderer({
@@ -82,12 +90,10 @@ export function HeroRenderer({
   const bp = breakpoint ?? liveBp;
 
   // Each slide stores a full dataset per theme (light/dark). The public site
-  // renders whichever theme the visitor uses; the builder can force a theme so
-  // its preview shows the theme being edited.
-  const { theme: siteTheme } = useTheme();
-  const resolvedTheme = forceTheme ?? siteTheme;
-
-  const slides = rawSlides.map((s) => materializeHeroSlide(s, resolvedTheme)).filter((s) => s.enabled);
+  // renders each slide with the theme configured in the builder (its own
+  // `theme`), so it matches the builder's live preview exactly. A `forceTheme`
+  // (used by the builder) overrides that.
+  const slides = rawSlides.map((s) => materializeHeroSlide(s, forceTheme ?? s.theme)).filter((s) => s.enabled);
   const count = slides.length;
   const [internal, setInternal] = useState(0);
   const [paused, setPaused] = useState(false);

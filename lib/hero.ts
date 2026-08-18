@@ -203,8 +203,8 @@ export function defaultHeroButtonSize(overrides: Partial<HeroButtonSize> = {}): 
 
 export function defaultHeroButtons(): { primary: HeroButton; secondary: HeroButton } {
   return {
-    primary: { text: "Shop the Collection", url: "#shop-by-lens", style: "filled", size: defaultHeroButtonSize() },
-    secondary: { text: "Watch it in Use", url: "#video", style: "outline", size: defaultHeroButtonSize({ paddingX: 26 }) },
+    primary: { text: "Shop the Collection", url: "#shop-by-lens", style: "filled", size: defaultHeroButtonSize(), textColor: "" },
+    secondary: { text: "Watch it in Use", url: "#video", style: "outline", size: defaultHeroButtonSize({ paddingX: 26 }), textColor: "" },
   };
 }
 

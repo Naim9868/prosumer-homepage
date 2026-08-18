@@ -214,6 +214,7 @@ export interface HeroButton {
   url: string;
   style: HeroButtonStyle;
   size: HeroButtonSize;
+  textColor?: string; // overrides the theme-derived text color; empty = theme default
 }
 
 export interface HeroBadge {
