@@ -89,13 +89,7 @@ export function MediaEditor({ media, onChange, advanced }: { media: HeroMedia; o
               label="Background Image"
               value={media.backgroundImage}
               onChange={(backgroundImage) => set("backgroundImage", backgroundImage)}
-              hint="Shows behind the slide"
-            />
-            <ImageUploader
-              label="Background Image (Dark)"
-              value={media.backgroundImageDark ?? ""}
-              onChange={(backgroundImageDark) => set("backgroundImageDark", backgroundImageDark)}
-              hint="Used for the dark theme"
+              hint="Shows behind the slide; each theme (dark/light) keeps its own image"
             />
           </FieldGrid>
           <BackgroundSizeControls

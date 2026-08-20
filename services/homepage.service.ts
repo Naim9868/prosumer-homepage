@@ -1,5 +1,5 @@
 import "server-only";
-import { unstable_cache, revalidateTag } from "next/cache";
+import { unstable_cache, revalidatePath, revalidateTag } from "next/cache";
 import { readHomepageConfig, writeHomepageConfig } from "@/lib/homepage-store";
 import { homepageConfigSchema } from "@/lib/homepage-validation";
 import { normalizePageSettings } from "@/lib/page-settings";
@@ -48,5 +48,6 @@ export async function saveHomepageConfiguration(input: unknown): Promise<
 
   const saved = await writeHomepageConfig(normalized);
   revalidateTag(HOMEPAGE_TAG, "max");
+  revalidatePath("/");
   return { success: true, config: saved };
 }

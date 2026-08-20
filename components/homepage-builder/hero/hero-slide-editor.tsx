@@ -324,6 +324,16 @@ export function HeroSlideEditor({
                 value={bpData.buttons[which].textColor || "#000000"}
                 onChange={(v) => setButton(which, { textColor: v })}
               />
+              <ColorField
+                label="Background Color"
+                value={bpData.buttons[which].backgroundColor || "#000000"}
+                onChange={(v) => setButton(which, { backgroundColor: v })}
+              />
+              <ColorField
+                label="Border Color"
+                value={bpData.buttons[which].borderColor || "#000000"}
+                onChange={(v) => setButton(which, { borderColor: v })}
+              />
             </FieldGrid>
             <ButtonSizeEditor size={bpData.buttons[which].size} onChange={(size) => setButton(which, { size })} />
           </div>

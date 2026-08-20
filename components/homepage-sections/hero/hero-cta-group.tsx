@@ -2,7 +2,7 @@
 
 import { ArrowRight } from "lucide-react";
 import type { CSSProperties } from "react";
-import type { HeroButtonSize, HeroTypography } from "@/types/homepage";
+import type { HeroButton, HeroButtonSize, HeroTypography } from "@/types/homepage";
 import { buttonStyleCss, heroColorsFor, typographyFor, heroBreakpointFor, heroTextPositionsFor, heroTextTransform } from "@/lib/hero";
 import { useHero } from "./hero-context";
 import { Entrance } from "./hero-entrance";
@@ -17,6 +17,14 @@ function buttonBox(size: HeroButtonSize, t: HeroTypography): CSSProperties {
     ...(size.width > 0 ? { width: size.width } : {}),
     ...(size.height > 0 ? { height: size.height } : {}),
     ...(fixed ? { justifyContent: "center" } : {}),
+  };
+}
+
+function buttonOverrides(button: HeroButton): CSSProperties {
+  return {
+    ...(button.textColor ? { color: button.textColor } : {}),
+    ...(button.backgroundColor ? { background: button.backgroundColor } : {}),
+    ...(button.borderColor ? { border: `1px solid ${button.borderColor}` } : {}),
   };
 }
 
@@ -40,7 +48,7 @@ export function HeroCTAGroup({ hideSecondary = false }: { hideSecondary?: boolea
             style={{
               ...buttonStyleCss(primary.style, colors),
               ...buttonBox(primary.size, t),
-              ...(primary.textColor ? { color: primary.textColor } : {}),
+              ...buttonOverrides(primary),
             }}
           >
             {primary.text}
@@ -54,7 +62,7 @@ export function HeroCTAGroup({ hideSecondary = false }: { hideSecondary?: boolea
             style={{
               ...buttonStyleCss(secondary.style, colors),
               ...buttonBox(secondary.size, t),
-              ...(secondary.textColor ? { color: secondary.textColor } : {}),
+              ...buttonOverrides(secondary),
             }}
           >
             {secondary.text}

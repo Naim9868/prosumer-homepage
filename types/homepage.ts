@@ -43,6 +43,32 @@ export interface PageNavbarSettings {
   fixed: boolean;
   transparent: boolean;
   height: number; // px
+
+  // Colors — empty string means "use the theme default".
+  /** Solid navbar background; empty = theme glass / transparent behavior. */
+  backgroundColor: string;
+  /** Primary text (logo, links, icons). */
+  textColor: string;
+  /** Secondary / muted text. */
+  mutedTextColor: string;
+  /** Hover color for links and icons. */
+  hoverColor: string;
+  /** Hover background for icon buttons / menu rows. */
+  hoverBackgroundColor: string;
+  /** Bottom border color. */
+  borderColor: string;
+  /** Accent color (logo mark, badges, CTA button background). */
+  accentColor: string;
+  /** Text color on accent surfaces (CTA button, badges). */
+  buttonTextColor: string;
+
+  // Typography — empty/0 means "use the theme default".
+  /** CSS font-family stack for nav links; empty = theme body font. */
+  fontFamily: string;
+  /** Nav link font size in px; 0 = theme default. */
+  fontSize: number;
+  /** Nav link font weight; 0 = theme default. */
+  fontWeight: number;
 }
 
 export interface PageFooterSettings {
@@ -63,7 +89,23 @@ export interface PageSettings {
 export const DEFAULT_PAGE_SETTINGS: PageSettings = {
   containerWidth: 1440,
   sidePadding: 24,
-  navbar: { enabled: true, fixed: true, transparent: true, height: 72 },
+  navbar: {
+    enabled: true,
+    fixed: true,
+    transparent: true,
+    height: 72,
+    backgroundColor: "",
+    textColor: "",
+    mutedTextColor: "",
+    hoverColor: "",
+    hoverBackgroundColor: "",
+    borderColor: "",
+    accentColor: "",
+    buttonTextColor: "",
+    fontFamily: "",
+    fontSize: 0,
+    fontWeight: 0,
+  },
   footer: { enabled: true, backgroundColor: "", paddingTop: 64 },
 };
 
@@ -189,7 +231,6 @@ export interface HeroMedia {
   tabletImage: string;
   mobileImage: string;
   backgroundImage: string;
-  backgroundImageDark?: string;
   productImage: string;
   productId: string;
   position: HeroImagePosition;
@@ -215,6 +256,8 @@ export interface HeroButton {
   style: HeroButtonStyle;
   size: HeroButtonSize;
   textColor?: string; // overrides the theme-derived text color; empty = theme default
+  backgroundColor?: string; // overrides the theme-derived background; empty = theme default
+  borderColor?: string; // overrides the theme-derived border color; empty = theme default
 }
 
 export interface HeroBadge {

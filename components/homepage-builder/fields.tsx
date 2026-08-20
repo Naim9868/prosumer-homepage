@@ -73,3 +73,19 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
 export function FieldGrid({ children }: { children: ReactNode }) {
   return <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>;
 }
+
+export function ColorField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <Field label={label}>
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          value={value || "#000000"}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-9 w-11 shrink-0 cursor-pointer rounded-[var(--radius-sm)] border border-border bg-background p-1"
+        />
+        <TextInput value={value} onChange={(e) => onChange(e.target.value)} placeholder="transparent, #ffffff…" />
+      </div>
+    </Field>
+  );
+}

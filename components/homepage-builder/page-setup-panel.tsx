@@ -1,8 +1,23 @@
 "use client";
 
 import type { PageSettings } from "@/types/homepage";
-import { Field, FieldGrid, TextInput, Toggle } from "@/components/homepage-builder/fields";
+import { Field, FieldGrid, TextInput, Toggle, ColorField, Select } from "@/components/homepage-builder/fields";
 import { X } from "lucide-react";
+
+const FONT_OPTIONS = [
+  { label: "Theme default (Inter)", value: "" },
+  { label: "Manrope (Heading)", value: "'Manrope', ui-sans-serif, system-ui, sans-serif" },
+  { label: "Inter (Body)", value: "'Inter', ui-sans-serif, system-ui, sans-serif" },
+];
+
+const FONT_WEIGHT_OPTIONS = [
+  { label: "Default (500)", value: "0" },
+  { label: "Regular (400)", value: "400" },
+  { label: "Medium (500)", value: "500" },
+  { label: "Semibold (600)", value: "600" },
+  { label: "Bold (700)", value: "700" },
+  { label: "Extra Bold (800)", value: "800" },
+];
 
 export function PageSetupPanel({
   page,
@@ -90,6 +105,65 @@ export function PageSetupPanel({
                 onChange={(e) => setNavbar({ height: Number(e.target.value) })}
               />
             </Field>
+
+            <p className="pt-2 text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Colors</p>
+            <FieldGrid>
+              <ColorField
+                label="Background Color"
+                value={page.navbar.backgroundColor}
+                onChange={(v) => setNavbar({ backgroundColor: v })}
+              />
+              <ColorField label="Text Color" value={page.navbar.textColor} onChange={(v) => setNavbar({ textColor: v })} />
+              <ColorField
+                label="Muted Text Color"
+                value={page.navbar.mutedTextColor}
+                onChange={(v) => setNavbar({ mutedTextColor: v })}
+              />
+              <ColorField label="Hover Color" value={page.navbar.hoverColor} onChange={(v) => setNavbar({ hoverColor: v })} />
+              <ColorField
+                label="Hover Background"
+                value={page.navbar.hoverBackgroundColor}
+                onChange={(v) => setNavbar({ hoverBackgroundColor: v })}
+              />
+              <ColorField label="Border Color" value={page.navbar.borderColor} onChange={(v) => setNavbar({ borderColor: v })} />
+              <ColorField
+                label="Accent Color"
+                value={page.navbar.accentColor}
+                onChange={(v) => setNavbar({ accentColor: v })}
+              />
+              <ColorField
+                label="Button / Badge Text"
+                value={page.navbar.buttonTextColor}
+                onChange={(v) => setNavbar({ buttonTextColor: v })}
+              />
+            </FieldGrid>
+
+            <p className="pt-2 text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Typography</p>
+            <FieldGrid>
+              <Field label="Font Family">
+                <Select
+                  value={page.navbar.fontFamily}
+                  onChange={(v) => setNavbar({ fontFamily: v })}
+                  options={FONT_OPTIONS}
+                />
+              </Field>
+              <Field label="Link Font Weight">
+                <Select
+                  value={String(page.navbar.fontWeight)}
+                  onChange={(v) => setNavbar({ fontWeight: Number(v) })}
+                  options={FONT_WEIGHT_OPTIONS}
+                />
+              </Field>
+              <Field label="Link Font Size (px)">
+                <TextInput
+                  type="number"
+                  min={0}
+                  max={32}
+                  value={page.navbar.fontSize}
+                  onChange={(e) => setNavbar({ fontSize: Number(e.target.value) })}
+                />
+              </Field>
+            </FieldGrid>
           </section>
 
           <section className="space-y-4 rounded-[var(--radius-md)] border border-border bg-muted/40 p-4">

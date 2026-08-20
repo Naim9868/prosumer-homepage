@@ -166,7 +166,6 @@ export function defaultHeroMedia(theme: HeroTheme = "dark"): HeroMedia {
     tabletImage: "",
     mobileImage: "",
     backgroundImage: isDark ? "/images/hero_image_for_desktop.png" : "/images/hero-image-bg-light-theme.png",
-    backgroundImageDark: "/images/hero_image_for_desktop.png",
     productImage: "",
     productId: "",
     position: { x: 0, y: 0, scale: 1, objectPosition: "center center" },
@@ -203,8 +202,24 @@ export function defaultHeroButtonSize(overrides: Partial<HeroButtonSize> = {}): 
 
 export function defaultHeroButtons(): { primary: HeroButton; secondary: HeroButton } {
   return {
-    primary: { text: "Shop the Collection", url: "#shop-by-lens", style: "filled", size: defaultHeroButtonSize(), textColor: "" },
-    secondary: { text: "Watch it in Use", url: "#video", style: "outline", size: defaultHeroButtonSize({ paddingX: 26 }), textColor: "" },
+    primary: {
+      text: "Shop the Collection",
+      url: "#shop-by-lens",
+      style: "filled",
+      size: defaultHeroButtonSize(),
+      textColor: "",
+      backgroundColor: "",
+      borderColor: "",
+    },
+    secondary: {
+      text: "Watch it in Use",
+      url: "#video",
+      style: "outline",
+      size: defaultHeroButtonSize({ paddingX: 26 }),
+      textColor: "",
+      backgroundColor: "",
+      borderColor: "",
+    },
   };
 }
 
@@ -835,16 +850,16 @@ export function heroBreakpointFor(slide: HeroSlide, breakpoint: HeroBreakpoint):
 }
 
 /**
- * Resolve the hero section's min-height for a breakpoint based on heightMode:
- *  - "auto" → undefined (fits content)
- *  - "full-screen" → viewport height
- *  - "custom" → customHeight px
+ * CSS height for the hero section for a breakpoint based on heightMode:
+ *  - "auto" → no constraint, the section fits its content
+ *  - "full-screen" → at least the viewport height
+ *  - "custom" → the exact custom height (px) chosen by the user
  */
-export function heroMinHeightFor(slide: HeroSlide, breakpoint: HeroBreakpoint): number | string | undefined {
+export function heroSectionHeight(slide: HeroSlide, breakpoint: HeroBreakpoint): CSSProperties {
   const s = heroBreakpointFor(slide, breakpoint).styling;
-  if (s.heightMode === "full-screen") return "100svh";
-  if (s.heightMode === "custom") return s.customHeight;
-  return undefined;
+  if (s.heightMode === "full-screen") return { minHeight: "100svh" };
+  if (s.heightMode === "custom") return { height: s.customHeight };
+  return {};
 }
 
 export function heroColorsFor(slide: HeroSlide): HeroColors {

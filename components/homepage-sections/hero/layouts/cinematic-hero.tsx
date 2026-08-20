@@ -1,6 +1,6 @@
 "use client";
 
-import { heroCssVars, heroColorsFor, heroBreakpointFor, spacingFor, heroMinHeightFor, heroContainerWidthFor, heroPaddingXFor } from "@/lib/hero";
+import { heroCssVars, heroColorsFor, heroBreakpointFor, spacingFor, heroSectionHeight, heroContainerWidthFor, heroPaddingXFor } from "@/lib/hero";
 import { useHero } from "../hero-context";
 import { HeroBackground, HeroContainer } from "../hero-background";
 import { HeroContent } from "../hero-content";
@@ -8,12 +8,12 @@ import { MobileHeroPoster } from "./mobile-hero-poster";
 import { cn } from "@/lib/utils";
 
 export function CinematicHero() {
-  const { slide, breakpoint, preview } = useHero();
+  const { slide, breakpoint, preview, navigation } = useHero();
   const bp = heroBreakpointFor(slide, breakpoint);
   const colors = heroColorsFor(slide);
   const spacing = spacingFor(slide, breakpoint);
   const isMobile = breakpoint === "mobile";
-  const minHeight = heroMinHeightFor(slide, breakpoint);
+  const heightStyle = heroSectionHeight(slide, breakpoint);
 
   const bgSizes = preview
     ? breakpoint === "mobile"
@@ -31,15 +31,13 @@ export function CinematicHero() {
       style={{
         ...heroCssVars(slide),
         background: colors.background,
-        minHeight,
+        ...heightStyle,
       }}
     >
       <HeroBackground
         overlay={colors.overlay}
         overlayOpacity={bp.styling.overlayOpacity}
         image={bp.media.backgroundImage}
-        imageDark={bp.media.backgroundImageDark}
-        dark={slide.theme === "dark"}
         sizes={bgSizes}
         backgroundSize={bp.media.backgroundSize}
         backgroundPosition={bp.media.backgroundPosition}
@@ -63,6 +61,7 @@ export function CinematicHero() {
           <div aria-hidden className="hidden @5xl:block" />
         </div>
       </HeroContainer>
+      {navigation}
     </section>
   );
 }

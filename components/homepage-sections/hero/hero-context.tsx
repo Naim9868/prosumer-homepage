@@ -17,6 +17,8 @@ export interface HeroContextValue {
   cta: Variants;
   badge: Variants;
   media: Variants;
+  /** Slider controls (arrows / dots / progress) anchored to the hero section. */
+  navigation?: ReactNode;
 }
 
 const HeroContext = createContext<HeroContextValue | null>(null);
@@ -27,6 +29,7 @@ export function HeroProvider({
   breakpoint,
   preview = false,
   products = {},
+  navigation,
   children,
 }: {
   slide: HeroSlide;
@@ -34,6 +37,7 @@ export function HeroProvider({
   breakpoint: HeroBreakpoint;
   preview?: boolean;
   products?: Record<string, CatalogProduct>;
+  navigation?: ReactNode;
   children: ReactNode;
 }) {
   const value = useMemo<HeroContextValue>(() => {
@@ -49,8 +53,9 @@ export function HeroProvider({
       cta: entranceVariants(a.ctaEntrance, a.duration / 1000),
       badge: entranceVariants(a.badgeEntrance, a.duration / 1000),
       media: entranceVariants(a.imageEntrance, a.duration / 1000),
+      navigation,
     };
-  }, [slide, active, breakpoint, preview, products]);
+  }, [slide, active, breakpoint, preview, products, navigation]);
 
   return <HeroContext.Provider value={value}>{children}</HeroContext.Provider>;
 }

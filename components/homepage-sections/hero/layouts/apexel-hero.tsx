@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { heroCssVars, heroColorsFor, heroBreakpointFor, spacingFor, heroMinHeightFor, heroContainerWidthFor, heroPaddingXFor } from "@/lib/hero";
+import { heroCssVars, heroColorsFor, heroBreakpointFor, spacingFor, heroSectionHeight, heroContainerWidthFor, heroPaddingXFor } from "@/lib/hero";
 import { useHero } from "../hero-context";
 import { HeroBackground, HeroContainer } from "../hero-background";
 import { HeroEyebrow } from "../hero-eyebrow";
@@ -19,12 +19,12 @@ import { cn } from "@/lib/utils";
  * A slow Ken Burns zoom-out runs while the slide is active.
  */
 export function ApexelHero() {
-  const { slide, breakpoint, preview, active } = useHero();
+  const { slide, breakpoint, preview, active, navigation } = useHero();
   const bp = heroBreakpointFor(slide, breakpoint);
   const colors = heroColorsFor(slide);
   const spacing = spacingFor(slide, breakpoint);
   const isMobile = breakpoint === "mobile";
-  const minHeight = heroMinHeightFor(slide, breakpoint);
+  const heightStyle = heroSectionHeight(slide, breakpoint);
 
   const bgSizes = preview
     ? breakpoint === "mobile"
@@ -42,7 +42,7 @@ export function ApexelHero() {
       style={{
         ...heroCssVars(slide),
         background: colors.background,
-        minHeight,
+        ...heightStyle,
       }}
     >
       <motion.div
@@ -52,12 +52,10 @@ export function ApexelHero() {
         animate={{ scale: active ? 1 : 1.08 }}
         transition={{ duration: 18, ease: "linear" }}
       >
-        <HeroBackground
+<HeroBackground
           overlay={colors.overlay}
           overlayOpacity={bp.styling.overlayOpacity}
           image={bp.media.backgroundImage}
-          imageDark={bp.media.backgroundImageDark}
-          dark={slide.theme === "dark"}
           sizes={bgSizes}
           backgroundSize={bp.media.backgroundSize}
           backgroundPosition={bp.media.backgroundPosition}
@@ -89,6 +87,7 @@ export function ApexelHero() {
           </div>
         </div>
       </HeroContainer>
+      {navigation}
     </section>
   );
 }

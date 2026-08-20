@@ -132,6 +132,20 @@ export function HeroRenderer({
   const activeSlide = slides[active];
   const colors = heroColorsFor(activeSlide);
 
+  const navigation =
+    count > 1 ? (
+      <HeroNavigation
+        count={count}
+        active={active}
+        onPrev={() => goTo(active - 1)}
+        onNext={() => goTo(active + 1)}
+        onGo={goTo}
+        settings={settings}
+        accent={colors.accent}
+        foreground={colors.foreground}
+      />
+    ) : null;
+
   return (
     <div
       role="region"
@@ -175,24 +189,20 @@ export function HeroRenderer({
               style={slideStyle(i, active, settings.transition, settings.transitionDuration, reducedMotion)}
               aria-hidden={!isActive}
             >
-              <HeroProvider slide={slide} active={isActive} breakpoint={bp} preview={preview} products={products}>
+              <HeroProvider
+                slide={slide}
+                active={isActive}
+                breakpoint={bp}
+                preview={preview}
+                products={products}
+                navigation={isActive ? navigation : undefined}
+              >
                 <Layout />
               </HeroProvider>
             </div>
           );
         })}
       </div>
-
-      <HeroNavigation
-        count={count}
-        active={active}
-        onPrev={() => goTo(active - 1)}
-        onNext={() => goTo(active + 1)}
-        onGo={goTo}
-        settings={settings}
-        accent={colors.accent}
-        foreground={colors.foreground}
-      />
     </div>
   );
 }

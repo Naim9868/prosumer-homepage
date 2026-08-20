@@ -5,28 +5,21 @@ import type { HeroBackgroundPosition, HeroBackgroundSize } from "@/types/homepag
 
 export function HeroBackground({
   image,
-  imageDark,
   overlay,
   sizes = "100vw",
-  dark = false,
   backgroundSize = { width: 1920, height: 1080 },
   backgroundPosition = { x: 0, y: 0 },
   overlayOpacity = 1,
   clip = true,
 }: {
   image?: string;
-  imageDark?: string;
   overlay: string;
   sizes?: string;
-  dark?: boolean;
   backgroundSize?: Partial<HeroBackgroundSize>;
   backgroundPosition?: Partial<HeroBackgroundPosition>;
   overlayOpacity?: number;
   clip?: boolean;
 }) {
-  const hasDarkImage = Boolean(imageDark);
-  const showDark = dark && hasDarkImage;
-
   // The image box has its own absolute px size and its own px offset from the
   // section center — both independent of the section dimensions. When it is
   // larger than the section it overflows; `clip` controls whether that
@@ -44,13 +37,8 @@ export function HeroBackground({
       <div className="absolute inset-0" style={{ background: "var(--hero-background)" }} />
 
       {image && (
-        <div className="absolute" style={{ display: showDark ? "none" : "block", ...boxStyle }}>
+        <div className="absolute" style={boxStyle}>
           <HeroImage src={image} alt="" sizes={sizes} priority className="object-cover" />
-        </div>
-      )}
-      {imageDark && (
-        <div className="absolute" style={{ display: showDark ? "block" : "none", ...boxStyle }}>
-          <HeroImage src={imageDark} alt="" sizes={sizes} priority className="object-cover" />
         </div>
       )}
 
