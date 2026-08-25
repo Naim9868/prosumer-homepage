@@ -120,6 +120,7 @@ export const PREDEFINED_SECTION_TYPES = [
   "bestSellers",
   "flashSale",
   "categories",
+  "whyUs",
   "brands",
   "gallery",
   "testimonials",
@@ -444,6 +445,46 @@ export interface BrandsSettings {
   logos: { name: string; url: string }[];
 }
 
+export const WHY_US_ICONS = [
+  "truck",
+  "banknote",
+  "shield-check",
+  "headset",
+  "gem",
+  "rotate-ccw",
+  "star",
+  "sparkles",
+  "zap",
+  "heart",
+  "camera",
+  "package",
+] as const;
+
+export type WhyUsIcon = (typeof WHY_US_ICONS)[number];
+
+export interface WhyUsItem {
+  id: string;
+  icon: WhyUsIcon;
+  title: string;
+  description: string;
+}
+
+export type WhyUsIconVariant = "soft" | "filled" | "outline";
+
+export interface WhyUsSettings {
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  columns: 2 | 3 | 4;
+  items: WhyUsItem[];
+  /** Scroll-in animation on each card, matching the homepage behavior. */
+  animated: boolean;
+  /** Icon chip style. "soft" = the default homepage look. */
+  iconVariant: WhyUsIconVariant;
+  /** Icon size in px inside the chip. */
+  iconSize: number;
+}
+
 export interface GallerySettings {
   title: string;
   subtitle: string;
@@ -502,6 +543,7 @@ export interface SectionSettingsMap {
   flashSale: FlashSaleSettings;
   categories: CategoriesSettings;
   brands: BrandsSettings;
+  whyUs: WhyUsSettings;
   gallery: GallerySettings;
   testimonials: TestimonialsSettings;
   beforeAfter: BeforeAfterSettings;
@@ -527,6 +569,8 @@ export const BLOCK_TYPES = [
   "video",
   "icon",
   "html",
+  "customWidget",
+  "container",
 ] as const;
 
 export type BlockType = (typeof BLOCK_TYPES)[number];
@@ -587,6 +631,140 @@ export interface HtmlBlockSettings {
   html: string;
 }
 
+export interface CustomWidgetBlockSettings {
+  tag: "div" | "section" | "article" | "aside" | "nav";
+  align: "left" | "center" | "right";
+  badge?: string;
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  contentHtml?: string;
+  mediaType: "none" | "icon" | "image";
+  icon: string;
+  iconSize: number;
+  imageUrl?: string;
+  imageAlt?: string;
+  primaryLabel?: string;
+  primaryUrl?: string;
+  secondaryLabel?: string;
+  secondaryUrl?: string;
+  openInNewTab?: boolean;
+  contentGap: number;
+}
+
+export interface ContainerBlockSettings {
+  name: string;
+  layout: CustomSectionLayout;
+  blocks: Block[];
+}
+
+// ---------------------------------------------------------------
+// Responsive style & advanced settings for block-level styling
+// ---------------------------------------------------------------
+
+export type EditorDevice = "desktop" | "tablet" | "mobile";
+
+/** A value that can differ per device. Undefined at a breakpoint inherits from the larger one. */
+export type ResponsiveValue<T> = Partial<Record<EditorDevice, T>>;
+
+/** Layout properties per device. */
+export interface LayoutProps {
+  width?: string;
+  height?: string;
+  minWidth?: string;
+  maxWidth?: string;
+  margin?: string;
+  padding?: string;
+  display?: string;
+  position?: string;
+  zIndex?: string;
+  overflow?: string;
+  gap?: string;
+  alignItems?: string;
+  justifyContent?: string;
+  flexDirection?: string;
+}
+
+/** Typography properties per device. */
+export interface TypographyProps {
+  fontFamily?: string;
+  fontSize?: string;
+  fontWeight?: string;
+  lineHeight?: string;
+  letterSpacing?: string;
+  textTransform?: string;
+  textDecoration?: string;
+  textAlign?: string;
+}
+
+/** Color properties (flat, not per-device — colors don't change on mobile). */
+export interface ColorProps {
+  color?: string;
+  backgroundColor?: string;
+  backgroundGradient?: string;
+  opacity?: string;
+}
+
+/** Border properties per device. */
+export interface BorderProps {
+  borderType?: string;
+  borderWidth?: string;
+  borderColor?: string;
+  borderRadius?: string;
+}
+
+/** Shadow properties (flat). */
+export interface ShadowProps {
+  shadowX?: string;
+  shadowY?: string;
+  shadowBlur?: string;
+  shadowSpread?: string;
+  shadowColor?: string;
+}
+
+/** Per-device breakpoint style data. */
+export interface BlockBreakpointStyle {
+  layout?: LayoutProps;
+  typography?: TypographyProps;
+  colors?: ColorProps;
+  border?: BorderProps;
+  shadow?: ShadowProps;
+}
+
+/** The responsive style object — every property can have separate desktop/tablet/mobile values. */
+export interface BlockStyle {
+  desktop?: BlockBreakpointStyle;
+  tablet?: BlockBreakpointStyle;
+  mobile?: BlockBreakpointStyle;
+}
+
+/** Responsive visibility. */
+export interface BlockVisibility {
+  desktop?: boolean;
+  tablet?: boolean;
+  mobile?: boolean;
+}
+
+/** Animation settings. */
+export type BlockAnimationType = "none" | "fadeIn" | "fadeInUp" | "fadeInDown" | "fadeInLeft" | "fadeInRight" | "scaleIn" | "slideInUp" | "slideInDown";
+
+export interface BlockAnimation {
+  type?: BlockAnimationType;
+  duration?: number;
+  delay?: number;
+  easing?: string;
+}
+
+/** Advanced settings for a block. */
+export interface BlockAdvanced {
+  cssId?: string;
+  cssClasses?: string;
+  customAttributes?: string;
+  customCSS?: string;
+  visibility?: BlockVisibility;
+  animation?: BlockAnimation;
+}
+
 export interface BlockSettingsMap {
   heading: HeadingBlockSettings;
   paragraph: ParagraphBlockSettings;
@@ -599,6 +777,8 @@ export interface BlockSettingsMap {
   video: VideoBlockSettings;
   icon: IconBlockSettings;
   html: HtmlBlockSettings;
+  customWidget: CustomWidgetBlockSettings;
+  container: ContainerBlockSettings;
 }
 
 export interface Block<T extends BlockType = BlockType> {
@@ -606,10 +786,73 @@ export interface Block<T extends BlockType = BlockType> {
   type: T;
   order: number;
   settings: BlockSettingsMap[T];
+  /** Responsive style overrides — desktop/tablet/mobile. */
+  style?: BlockStyle;
+  /** Layout positioning — column span, row span, order, align-self. */
+  layout?: BlockLayout;
+  /** Advanced settings: CSS ID, classes, animation, visibility, custom CSS. */
+  advanced?: BlockAdvanced;
 }
+
+// ---------------------------------------------------------------
+// Custom section layout system (Elementor-like grid / flex)
+// ---------------------------------------------------------------
+
+export type LayoutMode = "stack" | "grid" | "flex";
+
+export interface CustomSectionLayout {
+  /** Layout mode: stack = vertical column (default), grid = CSS grid, flex = CSS flexbox. */
+  mode: LayoutMode;
+  /** Number of columns for grid mode (1–12). */
+  columns: number;
+  /** Optional explicit column fractions for grid mode, e.g. [2,1,1]. */
+  columnRatios?: number[];
+  /** Gap between items in px. */
+  gap: number;
+  /** Flex direction for flex mode. "row-wrap" = horizontal with wrapping. */
+  flexDirection: "row" | "column" | "row-wrap" | "column-wrap";
+  /** CSS justify-content value for flex mode. */
+  justifyContent: string;
+  /** CSS align-items value for flex mode. */
+  alignItems: string;
+  /** Responsive overrides per device. Undefined inherits from desktop. */
+  responsive?: {
+    tablet?: Partial<Pick<CustomSectionLayout, "mode" | "columns" | "columnRatios" | "gap" | "flexDirection" | "justifyContent" | "alignItems">>;
+    mobile?: Partial<Pick<CustomSectionLayout, "mode" | "columns" | "columnRatios" | "gap" | "flexDirection" | "justifyContent" | "alignItems">>;
+  };
+}
+
+export const DEFAULT_CUSTOM_LAYOUT: CustomSectionLayout = {
+  mode: "stack",
+  columns: 3,
+  gap: 24,
+  flexDirection: "row-wrap",
+  justifyContent: "flex-start",
+  alignItems: "stretch",
+};
+
+export interface BlockLayout {
+  /** How many grid columns this block spans (1–12). Defaults to 1. */
+  columnSpan: number;
+  /** How many grid rows this block spans. Defaults to 1. */
+  rowSpan: number;
+  /** CSS order value for flex/grid reordering. Defaults to 0. */
+  order: number;
+  /** CSS align-self override for this block. */
+  alignSelf: string;
+}
+
+export const DEFAULT_BLOCK_LAYOUT: BlockLayout = {
+  columnSpan: 1,
+  rowSpan: 1,
+  order: 0,
+  alignSelf: "auto",
+};
 
 export interface CustomSectionSettings {
   name: string; // admin-facing label
+  /** Layout configuration for blocks inside this section. */
+  layout: CustomSectionLayout;
 }
 
 // ---------------------------------------------------------------
@@ -664,6 +907,7 @@ export const SECTION_TYPE_META: Record<SectionType, SectionTypeMeta> = {
   bestSellers: { type: "bestSellers", label: "Best Sellers", description: "Top-selling products, horizontal scroll." },
   flashSale: { type: "flashSale", label: "Flash Sale", description: "Countdown-driven promotional grid." },
   categories: { type: "categories", label: "Categories", description: "Shop-by-category card grid." },
+  whyUs: { type: "whyUs", label: "Why Choose Us", description: "Icon-and-text value cards, like the homepage." },
   brands: { type: "brands", label: "Brand Partners", description: "Auto-scrolling logo marquee." },
   gallery: { type: "gallery", label: "Gallery", description: "Masonry image gallery." },
   testimonials: { type: "testimonials", label: "Testimonials", description: "Customer review cards." },
@@ -687,4 +931,6 @@ export const BLOCK_TYPE_META: Record<BlockType, { label: string; description: st
   video: { label: "Video", description: "Embedded YouTube video" },
   icon: { label: "Icon", description: "Icon with label" },
   html: { label: "HTML", description: "Raw HTML (advanced)" },
+  customWidget: { label: "Custom Widget", description: "Elementor-style fully customizable content block" },
+  container: { label: "Container", description: "Nested container with its own widgets and layout" },
 };

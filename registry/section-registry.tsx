@@ -8,6 +8,7 @@ import { NewArrivalsSection } from "@/components/homepage-sections/new-arrivals-
 import { BestSellersSection } from "@/components/homepage-sections/best-sellers-section";
 import { FlashSaleSection } from "@/components/homepage-sections/flash-sale-section";
 import { BrandsSection } from "@/components/homepage-sections/brands-section";
+import { WhyUsSection } from "@/components/homepage-sections/why-us-section";
 import { GallerySection } from "@/components/homepage-sections/gallery-section";
 import { TestimonialsSection } from "@/components/homepage-sections/testimonials-section";
 import { BeforeAfterSection } from "@/components/homepage-sections/before-after-section";
@@ -38,6 +39,7 @@ export const SECTION_REGISTRY: {
   bestSellers: BestSellersSection,
   flashSale: FlashSaleSection,
   categories: CategoriesSection,
+  whyUs: WhyUsSection,
   brands: BrandsSection,
   gallery: GallerySection,
   testimonials: TestimonialsSection,

@@ -12,6 +12,8 @@ import { ProductSliderBlock } from "@/components/blocks/product-slider-block";
 import { VideoBlock } from "@/components/blocks/video-block";
 import { IconBlock } from "@/components/blocks/icon-block";
 import { HtmlBlock } from "@/components/blocks/html-block";
+import { CustomWidgetBlock } from "@/components/blocks/custom-widget-block";
+import { ContainerBlock } from "@/components/blocks/container-block";
 
 /**
  * Adding a new block type: create the component, add one line here.
@@ -29,4 +31,6 @@ export const BLOCK_REGISTRY: { [K in BlockType]: ComponentType<{ block: Block<K>
   video: VideoBlock,
   icon: IconBlock,
   html: HtmlBlock,
+  customWidget: CustomWidgetBlock,
+  container: ContainerBlock,
 };

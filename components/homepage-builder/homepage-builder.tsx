@@ -189,11 +189,15 @@ export function HomepageBuilder({
 
       {/* Main split */}
       <div className="flex flex-1 overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className={cn("min-w-0 flex-1", selectedSection?.type === "custom" ? "overflow-hidden" : "overflow-y-auto p-6")}>
           {selectedSection ? (
-            <div className={cn("mx-auto", selectedSection.type === "hero" ? "w-full" : "max-w-2xl")}>
+            selectedSection.type === "custom" ? (
               <SectionEditorPanel section={selectedSection} onChange={updateSection} />
-            </div>
+            ) : (
+              <div className={cn("mx-auto", selectedSection.type === "hero" || selectedSection.type === "whyUs" ? "w-full" : "max-w-2xl")}>
+                <SectionEditorPanel section={selectedSection} onChange={updateSection} />
+              </div>
+            )
           ) : (
             <div className="flex h-full items-center justify-center text-center text-[13.5px] text-foreground-muted">
               Select a section from the menu to edit it, or add a new one.

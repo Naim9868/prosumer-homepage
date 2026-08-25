@@ -197,3 +197,102 @@ h1, h2, h3, h4, h5, h6 {
   animation-timing-function: linear;
   animation-fill-mode: forwards;
 }
+
+/* ------------------------------------------------------------
+   EDITOR THEME — independent from the website theme.
+   Applied via the .editor-dark / .editor-light class on the
+   builder root. Canvas preview remains unaffected.
+------------------------------------------------------------- */
+
+.editor-light,
+.editor-light :root {
+  --editor-bg: #f8f9fb;
+  --editor-surface: #ffffff;
+  --editor-panel: #ffffff;
+  --editor-card: #f3f4f6;
+  --editor-border: #e2e4e6;
+  --editor-border-hover: #c8cbcf;
+  --editor-text: #14161a;
+  --editor-text-secondary: #565c64;
+  --editor-text-muted: #9ca3af;
+  --editor-input-bg: #ffffff;
+  --editor-input-border: #d1d5db;
+  --editor-input-focus: #8a6a2e;
+  --editor-hover: #f3f4f6;
+  --editor-active: #e8eaec;
+  --editor-accent: #8a6a2e;
+  --editor-accent-light: #b08d4615;
+  --editor-danger: #a5352c;
+  --editor-danger-light: #a5352c15;
+  --editor-success: #2f6b4d;
+  --editor-success-light: #2f6b4d15;
+  --editor-warning: #935c1e;
+  --editor-warning-light: #935c1e15;
+  --editor-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --editor-shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --editor-radius-sm: 6px;
+  --editor-radius-md: 8px;
+  --editor-radius-lg: 12px;
+  --editor-font: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+.editor-dark {
+  --editor-bg: #121416;
+  --editor-surface: #1a1c1e;
+  --editor-panel: #1a1c1e;
+  --editor-card: #1f2225;
+  --editor-border: #2a2d31;
+  --editor-border-hover: #3a3d41;
+  --editor-text: #e8e8e6;
+  --editor-text-secondary: #9a9fa6;
+  --editor-text-muted: #5a5f66;
+  --editor-input-bg: #1a1c1e;
+  --editor-input-border: #2a2d31;
+  --editor-input-focus: #c9a44c;
+  --editor-hover: #25282b;
+  --editor-active: #2a2d31;
+  --editor-accent: #c9a44c;
+  --editor-accent-light: #c9a44c18;
+  --editor-danger: #d6635a;
+  --editor-danger-light: #d6635a18;
+  --editor-success: #4c8f6b;
+  --editor-success-light: #4c8f6b18;
+  --editor-warning: #c1873b;
+  --editor-warning-light: #c1873b18;
+  --editor-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  --editor-shadow-lg: 0 8px 32px rgba(0,0,0,0.35);
+}
+
+/* Editor block animation keyframes */
+@keyframes editor-fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes editor-fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes editor-fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes editor-fadeInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes editor-fadeInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes editor-scaleIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes editor-slideInUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@keyframes editor-slideInDown {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}

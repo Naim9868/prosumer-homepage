@@ -8,8 +8,11 @@ import {
   SectionSettingsMap,
   DEFAULT_SECTION_STYLE,
   CustomSection,
+  DEFAULT_CUSTOM_LAYOUT,
+  DEFAULT_BLOCK_LAYOUT,
 } from "@/types/homepage";
 import { createDefaultHeroSettings } from "@/lib/hero";
+import { whyUs as whyUsSeed } from "@/lib/data";
 
 function uid(prefix: string) {
   return `${prefix}_${Math.random().toString(36).slice(2, 9)}${Date.now().toString(36).slice(-4)}`;
@@ -51,6 +54,21 @@ const defaultSectionSettings: SectionSettingsMap = {
   brands: {
     title: "Optical glass sourced from",
     logos: [],
+  },
+  whyUs: {
+    eyebrow: "Why Prosumer",
+    title: "Built around Bangladeshi shooters",
+    subtitle: "",
+    columns: 3,
+    animated: true,
+    iconVariant: "soft",
+    iconSize: 20,
+    items: whyUsSeed.map((w, i) => ({
+      id: `why_${i}`,
+      icon: w.icon,
+      title: w.title,
+      description: w.description,
+    })),
   },
   gallery: {
     title: "Shot on Prosumer",
@@ -106,6 +124,38 @@ const defaultBlockSettings: BlockSettingsMap = {
   video: { youtubeId: "" },
   icon: { icon: "Star", label: "Feature", size: 32 },
   html: { html: "<p>Custom HTML</p>" },
+  customWidget: {
+    tag: "div",
+    align: "left",
+    badge: "New",
+    eyebrow: "Widget",
+    title: "Custom widget title",
+    description: "Use this as a fully customizable content card with your own structure, media, and CTAs.",
+    contentHtml: "",
+    mediaType: "icon",
+    icon: "Sparkles",
+    iconSize: 22,
+    imageUrl: "",
+    imageAlt: "",
+    primaryLabel: "Primary action",
+    primaryUrl: "#",
+    secondaryLabel: "Secondary action",
+    secondaryUrl: "#",
+    openInNewTab: false,
+    contentGap: 12,
+  },
+  container: {
+    name: "Inner Container",
+    layout: {
+      mode: "grid",
+      columns: 2,
+      gap: 16,
+      flexDirection: "row-wrap",
+      justifyContent: "flex-start",
+      alignItems: "stretch",
+    },
+    blocks: [],
+  },
 };
 
 export function createDefaultSection<T extends PredefinedSectionType>(type: T, order: number): Extract<Section, { type: T }> {
@@ -126,7 +176,7 @@ export function createCustomSection(order: number): CustomSection {
     enabled: true,
     order,
     style: { ...DEFAULT_SECTION_STYLE },
-    settings: { name: "Custom Section" },
+    settings: { name: "Custom Section", layout: { ...DEFAULT_CUSTOM_LAYOUT } },
     blocks: [],
   };
 }
@@ -137,6 +187,7 @@ export function createDefaultBlock(type: BlockType, order: number): Block {
     type,
     order,
     settings: defaultBlockSettings[type],
+    layout: { ...DEFAULT_BLOCK_LAYOUT },
   } as Block;
 }
 

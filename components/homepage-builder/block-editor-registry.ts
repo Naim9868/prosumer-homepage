@@ -12,6 +12,8 @@ import {
   VideoBlockEditor,
   IconBlockEditor,
   HtmlBlockEditor,
+  CustomWidgetBlockEditor,
+  ContainerBlockEditor,
 } from "@/components/homepage-builder/block-editors";
 
 type EditorProps<K extends BlockType> = { settings: BlockSettingsMap[K]; onChange: (next: BlockSettingsMap[K]) => void };
@@ -29,4 +31,6 @@ export const BLOCK_EDITOR_REGISTRY: { [K in BlockType]: ComponentType<EditorProp
   video: VideoBlockEditor,
   icon: IconBlockEditor,
   html: HtmlBlockEditor,
+  customWidget: CustomWidgetBlockEditor,
+  container: ContainerBlockEditor,
 };
