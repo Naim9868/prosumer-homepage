@@ -1,6 +1,6 @@
 "use client";
 
-import type { HeroFloatingBadge, HeroMedia } from "@/types/homepage";
+import type { HeroFloatingBadge, HeroImageWidthMode, HeroMedia } from "@/types/homepage";
 import { Field, FieldGrid, TextInput, Select, Toggle } from "@/components/homepage-builder/fields";
 import { CatalogPicker, type CatalogPickerItem } from "@/components/homepage-builder/catalog-picker";
 import { ImagePositionControls } from "@/components/homepage-builder/hero/image-position-controls";
@@ -92,6 +92,39 @@ export function MediaEditor({ media, onChange, advanced }: { media: HeroMedia; o
               hint="Shows behind the slide; each theme (dark/light) keeps its own image"
             />
           </FieldGrid>
+
+          <div className="rounded-[var(--radius-sm)] border border-border p-3 space-y-3">
+            <Field label="Image Width">
+              <Select
+                value={media.imageWidthMode}
+                onChange={(v) => set("imageWidthMode", v as HeroImageWidthMode)}
+                options={[
+                  { label: "Auto (responsive)", value: "auto" },
+                  { label: "Manual (fixed px)", value: "manual" },
+                ]}
+              />
+            </Field>
+            {media.imageWidthMode === "manual" && (
+              <Field label="Width (px)" hint="Fixed width for the builder image">
+                <input
+                  type="number"
+                  min={100}
+                  max={1200}
+                  step={4}
+                  value={media.imageWidth}
+                  onChange={(e) => {
+                    const n = Number(e.target.value);
+                    if (Number.isFinite(n)) set("imageWidth", Math.max(100, Math.min(1200, n)));
+                  }}
+                  className="flex h-9 w-full rounded-[var(--radius-sm)] border border-border bg-background px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+              </Field>
+            )}
+            <p className="text-[11px] text-foreground-muted/70">
+              Auto mode keeps the image width consistent and responsive across all devices.
+              Manual mode sets a fixed pixel width.
+            </p>
+          </div>
           <BackgroundSizeControls
             size={media.backgroundSize ?? { width: 1920, height: 1080 }}
             position={media.backgroundPosition ?? { x: 0, y: 0 }}

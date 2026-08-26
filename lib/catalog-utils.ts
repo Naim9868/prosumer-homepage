@@ -31,9 +31,16 @@ export function getFeaturedProducts(catalog: CatalogData | undefined, limit?: nu
   return source.slice(0, limit ?? source.length);
 }
 
-export function getNewArrivals(catalog: CatalogData | undefined, limit?: number): CatalogProduct[] {
+export function getNewArrivals(catalog: CatalogData | undefined, limit?: number, days?: number): CatalogProduct[] {
   if (!catalog) return [];
-  const sorted = [...catalog.products].sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
+  let products = [...catalog.products];
+  if (days && days > 0) {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    const cutoffStr = cutoff.toISOString();
+    products = products.filter((p) => p.createdAt >= cutoffStr);
+  }
+  const sorted = products.sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
   return sorted.slice(0, limit ?? sorted.length);
 }
 

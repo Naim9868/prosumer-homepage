@@ -177,6 +177,8 @@ export function defaultHeroMedia(theme: HeroTheme = "dark"): HeroMedia {
       subtitle: "Reach without crop",
       position: "top-left",
     },
+    imageWidthMode: "auto",
+    imageWidth: 480,
   };
 }
 
@@ -659,6 +661,8 @@ function mergeBreakpointData(defaults: HeroBreakpointData, input: HeroBreakpoint
       backgroundSize: mergeBackgroundSize(defaults.media.backgroundSize, v.media?.backgroundSize),
       backgroundPosition: { ...defaults.media.backgroundPosition, ...v.media?.backgroundPosition },
       floatingBadge: { ...defaults.media.floatingBadge, ...v.media?.floatingBadge },
+      imageWidthMode: v.media?.imageWidthMode ?? defaults.media.imageWidthMode ?? "auto",
+      imageWidth: v.media?.imageWidth ?? defaults.media.imageWidth ?? 480,
     },
     styling: mergeBreakpointStyling(defaults.styling, v.styling),
   };

@@ -194,7 +194,7 @@ export function HomepageBuilder({
             selectedSection.type === "custom" ? (
               <SectionEditorPanel section={selectedSection} onChange={updateSection} />
             ) : (
-              <div className={cn("mx-auto", selectedSection.type === "hero" || selectedSection.type === "whyUs" ? "w-full" : "max-w-2xl")}>
+              <div className={cn("mx-auto", selectedSection.type === "hero" || selectedSection.type === "whyUs" || selectedSection.type === "categories" || selectedSection.type === "featuredProducts" || selectedSection.type === "newArrivals" || selectedSection.type === "bestSellers" ? "w-full" : "max-w-2xl")}>
                 <SectionEditorPanel section={selectedSection} onChange={updateSection} />
               </div>
             )

@@ -219,7 +219,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-60px" }}
         transition={{ duration: 0.5, delay: (index % 4) * 0.07, ease: [0.22, 1, 0.36, 1] }}
-        className="group relative overflow-hidden rounded-[var(--radius-lg)] border border-border bg-card transition-all duration-500 hover:border-primary/40 hover:shadow-lg"
+        className="group relative overflow-hidden rounded-[var(--radius-rdm)] border border-border bg-card transition-all duration-500 hover:border-primary/40 hover:shadow-lg"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={handleCardClick}
@@ -334,7 +334,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
             )}
 
             {categoryName && (
-              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-foreground-muted">
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[8px] font-medium uppercase tracking-wider text-foreground-muted">
                 {categoryName}
               </span>
             )}

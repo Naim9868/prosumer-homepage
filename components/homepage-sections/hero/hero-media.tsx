@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { motion } from "framer-motion";
 import type { CatalogProduct } from "@/types/catalog";
 import { heroColorsFor, heroBreakpointFor, mediaImageFor } from "@/lib/hero";
@@ -20,6 +21,9 @@ export function HeroMedia({ className }: { className?: string }) {
   const img = media.productImage || bpImg;
   const product = media.productId ? products[media.productId] : undefined;
 
+  const imageWidthStyle: CSSProperties =
+    media.imageWidthMode === "manual" ? { width: media.imageWidth } : {};
+
   return (
     <motion.div
       variants={container}
@@ -29,8 +33,15 @@ export function HeroMedia({ className }: { className?: string }) {
     >
       <Entrance variants={mediaVariants} className="relative">
         <div
-          className="relative aspect-[4/5] w-full overflow-hidden rounded-[var(--radius-xl)] border"
-          style={{ borderColor: "var(--hero-border)", boxShadow: "0 30px 80px rgba(0,0,0,0.35)" }}
+          className={cn(
+            "relative aspect-[4/5] overflow-hidden rounded-[var(--radius-xl)] border",
+            media.imageWidthMode === "auto" && "w-full"
+          )}
+          style={{
+            borderColor: "var(--hero-border)",
+            boxShadow: "0 30px 80px rgba(0,0,0,0.35)",
+            ...imageWidthStyle,
+          }}
         >
           {img ? (
             <div

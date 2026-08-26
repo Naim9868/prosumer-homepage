@@ -169,6 +169,7 @@ function NestedContainerContent({
               blockStyle={buildPreviewBlockStyle(child, layout.mode, layout.columns, layout.gap)}
               userStyles={{}}
               parentPath={[...parentPath, block.id]}
+              selectedBlockId={selectedBlockId}
             />
           ))}
         </div>
@@ -505,6 +506,7 @@ export function ResponsiveCanvasRenderer({
                       actions={actions}
                       blockStyle={layoutStyle}
                       userStyles={userStyles}
+                      selectedBlockId={selectedBlockId}
                     />
                   );
                 })}

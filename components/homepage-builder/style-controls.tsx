@@ -67,6 +67,15 @@ export function StyleControls({
         </Field>
       </FieldGrid>
 
+      <FieldGrid>
+        <Field label="Padding Left (px)">
+          <TextInput type="number" min={0} max={400} value={style.paddingLeft ?? ""} onChange={(e) => set("paddingLeft", e.target.value ? Number(e.target.value) : undefined)} placeholder="Default" />
+        </Field>
+        <Field label="Padding Right (px)">
+          <TextInput type="number" min={0} max={400} value={style.paddingRight ?? ""} onChange={(e) => set("paddingRight", e.target.value ? Number(e.target.value) : undefined)} placeholder="Default" />
+        </Field>
+      </FieldGrid>
+
       <div className="flex flex-wrap gap-6 pt-1">
         <label className="flex items-center gap-2 text-[13px] font-medium text-foreground">
           <Toggle checked={!style.hideOnDesktop} onChange={(v) => set("hideOnDesktop", !v)} label="Visible on desktop" />

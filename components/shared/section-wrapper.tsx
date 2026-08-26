@@ -43,8 +43,11 @@ export function SectionWrapper({
       <div
         className={cn("mx-auto w-full", width)}
         style={{
-          paddingLeft: "clamp(12px, var(--page-padding, 24px), 5vw)",
-          paddingRight: "clamp(12px, var(--page-padding, 24px), 5vw)",
+           paddingLeft: style.paddingLeft ?? "clamp(12px, var(--page-padding, 24px), 1vw)",
+            paddingRight: style.paddingRight ?? "clamp(12px, var(--page-padding, 24px), 1vw)",
+
+          // paddingLeft: style.paddingLeft ?? 0,
+          // paddingRight: style.paddingRight ?? 0,
         }}
       >
         {children}

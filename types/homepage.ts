@@ -17,6 +17,8 @@ export interface SectionStyle {
   containerWidth?: "sm" | "md" | "lg" | "xl" | "7xl" | "full";
   paddingTop?: number; // px
   paddingBottom?: number; // px
+  paddingLeft?: number; // px
+  paddingRight?: number; // px
   textAlign?: "left" | "center" | "right";
   borderRadius?: number; // px
   hideOnDesktop?: boolean;
@@ -226,6 +228,8 @@ export interface HeroBackgroundPosition {
   y: number; // px
 }
 
+export type HeroImageWidthMode = "auto" | "manual";
+
 export interface HeroMedia {
   source: HeroMediaSource;
   desktopImage: string;
@@ -238,6 +242,10 @@ export interface HeroMedia {
   backgroundSize: HeroBackgroundSize;
   backgroundPosition: HeroBackgroundPosition;
   floatingBadge: HeroFloatingBadge;
+  /** "auto" = image fills its container consistently across devices; "manual" = fixed pixel width. */
+  imageWidthMode: HeroImageWidthMode;
+  /** Fixed width in px when imageWidthMode is "manual". */
+  imageWidth: number;
 }
 
 /** Button sizing overrides (px); 0/0 means "auto" for the given dimension. */
@@ -400,24 +408,42 @@ export interface HeroSettings {
 }
 
 export interface FeaturedProductsSettings {
+  eyebrow?: string;
   title: string;
   subtitle: string;
   productIds: string[];
-  columns: 2 | 3 | 4;
-  limit: number;
+  viewAllLabel?: string;
+  viewAllUrl?: string;
+  layout?: CatDeviceLayout;
+  eyebrowStyle?: CatResponsiveThemeStyle;
+  titleStyle?: CatResponsiveThemeStyle;
+  subtitleStyle?: CatResponsiveThemeStyle;
+  viewAllStyle?: CatResponsiveThemeStyle;
 }
 
 export interface NewArrivalsSettings {
+  eyebrow?: string;
   title: string;
   subtitle: string;
-  limit: number;
+  days?: number;
+  layout?: CatDeviceLayout;
+  eyebrowStyle?: CatResponsiveThemeStyle;
+  titleStyle?: CatResponsiveThemeStyle;
+  subtitleStyle?: CatResponsiveThemeStyle;
 }
 
 export interface BestSellersSettings {
+  eyebrow?: string;
   title: string;
   subtitle: string;
   productIds: string[];
-  limit: number;
+  viewAllLabel?: string;
+  viewAllUrl?: string;
+  layout?: CatDeviceLayout;
+  eyebrowStyle?: CatResponsiveThemeStyle;
+  titleStyle?: CatResponsiveThemeStyle;
+  subtitleStyle?: CatResponsiveThemeStyle;
+  viewAllStyle?: CatResponsiveThemeStyle;
 }
 
 export interface FlashSaleSettings {
@@ -429,15 +455,47 @@ export interface FlashSaleSettings {
   buttonUrl: string;
 }
 
+export interface CategoriesTextStyle {
+  fontFamily?: string;
+  fontSize?: number;
+  fontWeight?: number;
+  lineHeight?: number;
+  letterSpacing?: number;
+  color?: string;
+  backgroundColor?: string;
+  paddingTop?: number;
+  paddingBottom?: number;
+  paddingLeft?: number;
+  paddingRight?: number;
+  marginTop?: number;
+  marginBottom?: number;
+  marginLeft?: number;
+  marginRight?: number;
+  textAlign?: "left" | "center" | "right";
+}
+
+export type CardTextPosition = "inside" | "outside-top" | "outside-bottom";
+
+export type CatTheme = "light" | "dark";
+
+export type CatResponsiveThemeStyle = Partial<Record<EditorDevice, Partial<Record<CatTheme, CategoriesTextStyle>>>>;
+
+export type CatDeviceLayout = Partial<Record<EditorDevice, { columns: 1 | 2 | 3 | 4 | 5 | 6; gridGap: number; limit?: number }>>;
+
 export interface CategoriesSettings {
+  eyebrow?: string;
   title: string;
   subtitle: string;
   categoryIds: string[];
-  /**
-   * Grid column layout. 2 = compact two-up on mobile, 3 = three-up.
-   * Desktop always uses a readable multi-column editorial grid.
-   */
-  columns?: 2 | 3;
+  cardTextPosition?: CardTextPosition;
+  cardTextOffsetX?: number;
+  cardTextOffsetY?: number;
+  layout?: CatDeviceLayout;
+  eyebrowStyle?: CatResponsiveThemeStyle;
+  titleStyle?: CatResponsiveThemeStyle;
+  subtitleStyle?: CatResponsiveThemeStyle;
+  cardNameStyle?: CatResponsiveThemeStyle;
+  cardDescriptionStyle?: CatResponsiveThemeStyle;
 }
 
 export interface BrandsSettings {
