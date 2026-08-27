@@ -1,5 +1,4 @@
 import * as Icons from "lucide-react";
-import Image from "next/image";
 import type { Block } from "@/types/homepage";
 import { cn } from "@/lib/utils";
 
@@ -40,12 +39,11 @@ export function CustomWidgetBlock({ block }: { block: Block<"customWidget"> }) {
 
         {media === "image" && s.imageUrl ? (
           <div className="relative aspect-video w-full overflow-hidden rounded-xl">
-            <Image
+            <img
               src={s.imageUrl}
               alt={s.imageAlt || s.title || "Widget image"}
-              fill
-              sizes="(min-width: 1024px) 800px, 100vw"
-              className="object-cover"
+              className="h-full w-full object-cover"
+              loading="lazy"
             />
           </div>
         ) : null}

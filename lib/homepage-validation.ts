@@ -7,6 +7,14 @@ const sectionStyleSchema = z.object({
   containerWidth: z.enum(["sm", "md", "lg", "xl", "7xl", "full"]).optional(),
   paddingTop: z.number().min(0).max(400).optional(),
   paddingBottom: z.number().min(0).max(400).optional(),
+  paddingLeft: z.number().min(0).max(400).optional(),
+  paddingRight: z.number().min(0).max(400).optional(),
+  minHeight: z.number().min(0).max(3000).optional(),
+  overflow: z.enum(["visible", "hidden", "auto"]).optional(),
+  position: z.enum(["static", "relative", "absolute", "sticky"]).optional(),
+  zIndex: z.number().optional(),
+  marginTop: z.number().min(-400).max(400).optional(),
+  marginBottom: z.number().min(-400).max(400).optional(),
   textAlign: z.enum(["left", "center", "right"]).optional(),
   borderRadius: z.number().min(0).max(64).optional(),
   hideOnDesktop: z.boolean().optional(),
@@ -29,12 +37,46 @@ const pageSettingsSchema = z.object({
   }),
 });
 
+const blockStyleSchema = z.object({
+  desktop: z.record(z.string(), z.unknown()).optional(),
+  tablet: z.record(z.string(), z.unknown()).optional(),
+  mobile: z.record(z.string(), z.unknown()).optional(),
+});
+
+const blockLayoutSchema = z.object({
+  columnSpan: z.number().min(1).max(12),
+  rowSpan: z.number().min(1).max(12),
+  order: z.number(),
+  alignSelf: z.string(),
+});
+
+const blockAdvancedSchema = z.object({
+  cssId: z.string().optional(),
+  cssClasses: z.string().optional(),
+  customAttributes: z.string().optional(),
+  customCSS: z.string().optional(),
+  visibility: z.object({
+    desktop: z.boolean().optional(),
+    tablet: z.boolean().optional(),
+    mobile: z.boolean().optional(),
+  }).optional(),
+  animation: z.object({
+    type: z.string().optional(),
+    duration: z.number().optional(),
+    delay: z.number().optional(),
+    easing: z.string().optional(),
+  }).optional(),
+});
+
 const blockSchema = z.object({
   id: z.string().min(1),
   type: z.enum(BLOCK_TYPES),
   order: z.number(),
   settings: z.record(z.string(), z.unknown()),
-});
+  style: blockStyleSchema.optional(),
+  layout: blockLayoutSchema.optional(),
+  advanced: blockAdvancedSchema.optional(),
+}).passthrough();
 
 const sectionTypeSchema = z.union([z.enum(PREDEFINED_SECTION_TYPES), z.literal("custom")]);
 
@@ -116,6 +158,25 @@ export const homepageConfigSchema = z
               message: `Hero slide ${i + 1}${scope}: primary CTA text is required.`,
             });
           }
+        }
+      }
+    }
+
+    const beforeAfter = config.sections.find((section) => section.type === "beforeAfter");
+    if (beforeAfter) {
+      const settings = beforeAfter.settings as Record<string, unknown>;
+      const items = Array.isArray(settings.items) ? settings.items : [];
+      for (const [i, item] of items.entries()) {
+        if (!item || typeof item !== "object") continue;
+        const comparison = item as Record<string, unknown>;
+        if (!String(comparison.title ?? "").trim()) {
+          ctx.addIssue({ code: "custom", path: ["sections", "beforeAfter", "items", i, "title"], message: `Before/After comparison ${i + 1}: title is required.` });
+        }
+        if (!String(comparison.categoryId ?? "").trim()) {
+          ctx.addIssue({ code: "custom", path: ["sections", "beforeAfter", "items", i, "categoryId"], message: `Before/After comparison ${i + 1}: category is required.` });
+        }
+        if (!String(comparison.beforeImage ?? "").trim() || !String(comparison.afterImage ?? "").trim()) {
+          ctx.addIssue({ code: "custom", path: ["sections", "beforeAfter", "items", i, "images"], message: `Before/After comparison ${i + 1}: both images are required.` });
         }
       }
     }

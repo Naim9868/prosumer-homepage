@@ -15,12 +15,12 @@ import {
 import { WhyUsEditor } from "@/components/homepage-builder/section-editors/why-us-editor";
 import {
   TestimonialsEditor,
-  BeforeAfterEditor,
   VideoEditor,
   FaqEditor,
   NewsletterEditor,
   BannerEditor,
 } from "@/components/homepage-builder/section-editors/misc-section-editors";
+import { BeforeAfterEditor as ResponsiveBeforeAfterEditor } from "@/components/homepage-builder/section-editors/before-after-editor";
 
 type EditorProps<K extends PredefinedSectionType> = {
   settings: SectionSettingsMap[K];
@@ -41,7 +41,7 @@ export const SECTION_EDITOR_REGISTRY: { [K in PredefinedSectionType]: ComponentT
   brands: BrandsEditor,
   gallery: GalleryEditor,
   testimonials: TestimonialsEditor,
-  beforeAfter: BeforeAfterEditor,
+  beforeAfter: ResponsiveBeforeAfterEditor,
   video: VideoEditor,
   faq: FaqEditor,
   newsletter: NewsletterEditor,

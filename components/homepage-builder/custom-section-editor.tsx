@@ -13,7 +13,7 @@ import {
   type DragStartEvent,
   type DragEndEvent,
 } from "@dnd-kit/core";
-import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
+import { arrayMove } from "@dnd-kit/sortable";
 import { Layers, Plus } from "lucide-react";
 import type { Block, BlockType, BlockStyle, BlockAdvanced, BlockLayout, BlockSettingsMap, CustomSection, CustomSectionLayout } from "@/types/homepage";
 import { BLOCK_TYPE_META, BLOCK_TYPES } from "@/types/homepage";
@@ -71,6 +71,23 @@ function findBlockInTree(blocks: Block[], id: string): { parent: Block[]; block:
     }
   }
   return null;
+}
+
+/** Resolve sortable IDs such as parentId--childId back to the real block ID. */
+function findBlockBySortableId(blocks: Block[], sortableId: string): { parent: Block[]; block: Block; index: number } | null {
+  if (!sortableId.includes("--")) return findBlockInTree(blocks, sortableId);
+
+  const parts = sortableId.split("--");
+  let current = blocks;
+  let found: { parent: Block[]; block: Block; index: number } | null = null;
+
+  for (const part of parts) {
+    found = findBlockInTree(current, part);
+    if (!found) return null;
+    current = isContainer(found.block) ? found.block.settings.blocks || [] : [];
+  }
+
+  return found;
 }
 
 /** Find a container block that contains the given child ID. */
@@ -154,86 +171,53 @@ type SectionPreset = {
   id: string;
   label: string;
   description: string;
-  build: (startOrder: number) => { layout: CustomSectionLayout; blocks: Block[] };
+  build: () => { layout: CustomSectionLayout; blocks: Block[] };
 };
-
-function customWidget(order: number, title: string, span = 1): Block {
-  const block = createDefaultBlock("customWidget", order);
-  if (block.type === "customWidget") {
-    block.settings = {
-      ...block.settings,
-      title,
-      description: "Fully customizable widget. Edit content, style, layout and advanced controls.",
-      eyebrow: "Custom",
-      badge: "Widget",
-    };
-  }
-  block.layout = {
-    ...(block.layout || { columnSpan: 1, rowSpan: 1, order: 0, alignSelf: "auto" }),
-    columnSpan: span,
-    order,
-  };
-  return block;
-}
 
 const SECTION_PRESETS: SectionPreset[] = [
   {
     id: "one-col",
     label: "1 Column",
     description: "Single full-width column",
-    build: (startOrder) => ({
+    build: () => ({
       layout: { mode: "grid", columns: 1, gap: 24, flexDirection: "row-wrap", justifyContent: "flex-start", alignItems: "stretch" },
-      blocks: [customWidget(startOrder, "Section block", 1)],
+      blocks: [],
     }),
   },
   {
     id: "two-col",
     label: "2 Columns",
     description: "Balanced two-column structure",
-    build: (startOrder) => ({
+    build: () => ({
       layout: { mode: "grid", columns: 2, gap: 24, flexDirection: "row-wrap", justifyContent: "flex-start", alignItems: "stretch" },
-      blocks: [
-        customWidget(startOrder, "Left column", 1),
-        customWidget(startOrder + 1, "Right column", 1),
-      ],
+      blocks: [],
     }),
   },
   {
     id: "three-col",
     label: "3 Columns",
     description: "Cards/features in three columns",
-    build: (startOrder) => ({
+    build: () => ({
       layout: { mode: "grid", columns: 3, gap: 20, flexDirection: "row-wrap", justifyContent: "flex-start", alignItems: "stretch" },
-      blocks: [
-        customWidget(startOrder, "Column 1", 1),
-        customWidget(startOrder + 1, "Column 2", 1),
-        customWidget(startOrder + 2, "Column 3", 1),
-      ],
+      blocks: [],
     }),
   },
   {
     id: "split-2-1",
     label: "2/3 + 1/3",
     description: "Feature plus supporting panel",
-    build: (startOrder) => ({
+    build: () => ({
       layout: { mode: "grid", columns: 3, gap: 24, flexDirection: "row-wrap", justifyContent: "flex-start", alignItems: "stretch" },
-      blocks: [
-        customWidget(startOrder, "Main content", 2),
-        customWidget(startOrder + 1, "Side content", 1),
-      ],
+      blocks: [],
     }),
   },
   {
     id: "flex-row",
     label: "Flex Row",
     description: "Wrapping flex layout",
-    build: (startOrder) => ({
+    build: () => ({
       layout: { mode: "flex", columns: 3, gap: 20, flexDirection: "row-wrap", justifyContent: "flex-start", alignItems: "stretch" },
-      blocks: [
-        customWidget(startOrder, "Flex item 1", 1),
-        customWidget(startOrder + 1, "Flex item 2", 1),
-        customWidget(startOrder + 2, "Flex item 3", 1),
-      ],
+      blocks: [],
     }),
   },
 ];
@@ -328,6 +312,19 @@ function CustomSectionEditorInner({
     setSelection({ kind: "block", id: block.id });
   }, [section.blocks, updateBlocks]);
 
+  const addEmptySection = useCallback(() => {
+    const container = createDefaultBlock("container", section.blocks.length);
+    if (container.type !== "container") return;
+
+    container.settings = {
+      ...container.settings,
+      name: `Section ${section.blocks.length + 1}`,
+      blocks: [],
+    };
+    updateBlocks([...section.blocks, container]);
+    setSelection({ kind: "block", id: container.id });
+  }, [section.blocks, updateBlocks]);
+
   const addBlockToContainerCb = useCallback((containerId: string, type: BlockType) => {
     const found = findBlockInTree(section.blocks, containerId);
     if (!found || !isContainer(found.block)) return;
@@ -351,16 +348,14 @@ function CustomSectionEditorInner({
     const preset = SECTION_PRESETS.find((p) => p.id === presetId);
     if (!preset) return;
     const sorted = [...section.blocks].sort((a, b) => a.order - b.order);
-    const startOrder = sorted.length;
-    const built = preset.build(startOrder);
-    const nextBlocks = [...sorted, ...built.blocks].map((b, i) => ({ ...b, order: i }));
+    const built = preset.build();
+    const nextBlocks = sorted.map((b, i) => ({ ...b, order: i }));
     onChange({
       ...section,
       settings: { ...section.settings, layout: built.layout },
       blocks: nextBlocks,
     });
-    const first = built.blocks[0];
-    if (first) setSelection({ kind: "block", id: first.id });
+    setSelection({ kind: "section" });
   }, [onChange, section]);
 
   const saveCurrentSectionAsTemplate = useCallback(() => {
@@ -515,7 +510,7 @@ function CustomSectionEditorInner({
     if (overId.startsWith("drop-")) {
       const containerId = overId.replace("drop-", "");
       // Find the active block and move it into the container
-      const found = findBlockInTree(section.blocks, activeId);
+      const found = findBlockBySortableId(section.blocks, activeId);
       if (found) {
         // Remove from current location
         const container = findContainerForChild(section.blocks, activeId);
@@ -571,8 +566,6 @@ function CustomSectionEditorInner({
   const handleDragCancel = useCallback(() => setDragType(null), []);
 
   const handleCanvasDeselect = useCallback(() => setSelection({ kind: "section" }), []);
-
-  const blockIds = useMemo(() => blocks.map((b) => b.id), [blocks]);
 
   const canvasActions: CanvasBlockActions = useMemo(() => ({
     onSelect: (id) => setSelection({ kind: "block", id }),
@@ -723,7 +716,18 @@ function CustomSectionEditorInner({
                 {blocks.length} block{blocks.length !== 1 && "s"}
               </span>
             </div>
-            <ThemeSwitcher />
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={addEmptySection}
+                className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-[11px] font-semibold transition-colors hover:bg-[var(--editor-accent-light)]"
+                style={{ borderColor: "var(--editor-accent)", color: "var(--editor-accent)", background: "var(--editor-surface)" }}
+                title="Add an empty nested section"
+              >
+                <Plus className="h-3.5 w-3.5" /> Add Section
+              </button>
+              <ThemeSwitcher />
+            </div>
           </div>
           <div
             className="absolute inset-0 top-10 overflow-y-auto p-6"
@@ -736,6 +740,7 @@ function CustomSectionEditorInner({
               selectedBlockId={selectedBlock?.id}
               actions={canvasActions}
               layout={section.settings.layout}
+                sectionStyle={section.style}
             />
           </div>
         </div>

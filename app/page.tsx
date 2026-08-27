@@ -5,7 +5,7 @@ import { getHomepageData } from "@/services/homepage.service";
 import { getCatalogData } from "@/lib/catalog";
 import { pageCssVars } from "@/lib/page-settings";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const [config, catalog] = await Promise.all([getHomepageData(), getCatalogData()]);

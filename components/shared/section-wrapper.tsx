@@ -36,6 +36,12 @@ export function SectionWrapper({
         backgroundPosition: style.backgroundImage ? "center" : undefined,
         paddingTop: style.paddingTop ?? 80,
         paddingBottom: style.paddingBottom ?? 80,
+        minHeight: style.minHeight || undefined,
+        overflow: style.overflow ?? "visible",
+        position: style.position ?? "relative",
+        zIndex: style.zIndex,
+        marginTop: style.marginTop,
+        marginBottom: style.marginBottom,
         borderRadius: style.borderRadius || undefined,
         textAlign: style.textAlign,
       }}
@@ -44,7 +50,7 @@ export function SectionWrapper({
         className={cn("mx-auto w-full", width)}
         style={{
            paddingLeft: style.paddingLeft ?? "clamp(12px, var(--page-padding, 24px), 1vw)",
-            paddingRight: style.paddingRight ?? "clamp(12px, var(--page-padding, 24px), 1vw)",
+           paddingRight: style.paddingRight ?? "clamp(12px, var(--page-padding, 24px), 1vw)",
 
           // paddingLeft: style.paddingLeft ?? 0,
           // paddingRight: style.paddingRight ?? 0,

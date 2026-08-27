@@ -19,6 +19,12 @@ export interface SectionStyle {
   paddingBottom?: number; // px
   paddingLeft?: number; // px
   paddingRight?: number; // px
+  minHeight?: number; // px
+  overflow?: "visible" | "hidden" | "auto";
+  position?: "static" | "relative" | "absolute" | "sticky";
+  zIndex?: number;
+  marginTop?: number; // px
+  marginBottom?: number; // px
   textAlign?: "left" | "center" | "right";
   borderRadius?: number; // px
   hideOnDesktop?: boolean;
@@ -555,13 +561,82 @@ export interface TestimonialsSettings {
   testimonialIds: string[];
 }
 
-export interface BeforeAfterSettings {
+export interface BeforeAfterCategory {
+  id: string;
+  name: string;
+  slug: string;
+  isActive: boolean;
+  order: number;
+}
+
+export interface BeforeAfterItem {
+  id: string;
   title: string;
-  subtitle: string;
+  description: string;
+  categoryId: string;
   beforeImage: string;
   afterImage: string;
   beforeLabel: string;
   afterLabel: string;
+  productId?: string;
+  buttonText: string;
+  buttonUrl?: string;
+  isActive: boolean;
+  order: number;
+}
+
+export interface BeforeAfterStyle {
+  fontFamily?: string;
+  fontSize?: number;
+  fontWeight?: number;
+  lineHeight?: number;
+  letterSpacing?: number;
+  color?: string;
+  backgroundColor?: string;
+  borderColor?: string;
+  borderRadius?: number;
+  paddingTop?: number;
+  paddingBottom?: number;
+  paddingLeft?: number;
+  paddingRight?: number;
+  marginTop?: number;
+  marginBottom?: number;
+  textAlign?: "left" | "center" | "right";
+}
+
+export type BeforeAfterResponsiveStyle = Partial<Record<EditorDevice, Partial<Record<CatTheme, BeforeAfterStyle>>>>;
+
+export interface BeforeAfterLayout {
+  imageWidth: number;
+  imageAspectRatio: number;
+  contentGap: number;
+  categoryGap: number;
+  itemGap: number;
+  imageColumnPercent: number;
+  contentColumnPercent: number;
+}
+
+export interface BeforeAfterSettings {
+  eyebrow?: string;
+  title: string;
+  subtitle: string;
+  categories: BeforeAfterCategory[];
+  items: BeforeAfterItem[];
+  layout: Partial<Record<EditorDevice, BeforeAfterLayout>>;
+  sectionStyle?: BeforeAfterResponsiveStyle;
+  headingStyle?: BeforeAfterResponsiveStyle;
+  subtitleStyle?: BeforeAfterResponsiveStyle;
+  categoryStyle?: BeforeAfterResponsiveStyle;
+  activeCategoryStyle?: BeforeAfterResponsiveStyle;
+  itemTitleStyle?: BeforeAfterResponsiveStyle;
+  itemDescriptionStyle?: BeforeAfterResponsiveStyle;
+  ctaStyle?: BeforeAfterResponsiveStyle;
+  comparisonStyle?: BeforeAfterResponsiveStyle;
+  /** Legacy fields are kept so existing saved single-comparison sections render during migration. */
+  beforeImage?: string;
+  afterImage?: string;
+  beforeLabel?: string;
+  afterLabel?: string;
 }
 
 export interface VideoSettings {
@@ -735,6 +810,10 @@ export interface LayoutProps {
   padding?: string;
   display?: string;
   position?: string;
+  top?: string;
+  right?: string;
+  bottom?: string;
+  left?: string;
   zIndex?: string;
   overflow?: string;
   gap?: string;

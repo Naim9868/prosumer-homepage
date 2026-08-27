@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
-import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
+import { useMemo } from "react";
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Trash2, Copy, ChevronUp, ChevronDown, Settings2, Plus } from "lucide-react";
-import type { Block, BlockType, EditorDevice, CustomSectionLayout } from "@/types/homepage";
+import type { Block, BlockType, EditorDevice, CustomSectionLayout, SectionStyle } from "@/types/homepage";
 import type { CatalogData } from "@/types/catalog";
 import { BLOCK_REGISTRY } from "@/registry/block-registry";
 import { BLOCK_TYPE_META } from "@/types/homepage";
@@ -118,7 +118,7 @@ function buildContainerLayoutStyle(layout: CustomSectionLayout): React.CSSProper
   }
 }
 
-const CONTAINER_PALETTE_TYPES: BlockType[] = ["customWidget", "heading", "paragraph", "image", "button", "spacer", "divider", "icon"];
+const CONTAINER_PALETTE_TYPES: BlockType[] = ["customWidget", "container", "heading", "paragraph", "image", "button", "spacer", "divider", "icon"];
 
 function NestedContainerContent({
   block,
@@ -133,7 +133,9 @@ function NestedContainerContent({
   actions: CanvasBlockActions;
   parentPath: string[];
 }) {
-  const layout = block.settings.layout ?? DEFAULT_CUSTOM_LAYOUT;
+  const { device } = useEditorDevice();
+  const baseLayout = block.settings.layout ?? DEFAULT_CUSTOM_LAYOUT;
+  const layout = resolveLayoutForDevice(baseLayout, device);
   const children = [...(block.settings.blocks || [])].sort((a, b) => a.order - b.order);
   const childIds = useMemo(() => children.map((c) => `${block.id}--${c.id}`), [children, block.id]);
   const containerLayoutStyle = buildContainerLayoutStyle(layout);
@@ -143,7 +145,7 @@ function NestedContainerContent({
   return (
     <div
       ref={setNodeRef}
-      className="relative rounded-md border-2 border-dashed p-2 transition-colors"
+      className="relative rounded-md border border-dashed p-2 pt-8 transition-colors"
       style={{
         borderColor: isOver ? "var(--editor-accent)" : "var(--editor-border)",
         background: isOver ? "var(--editor-accent-light, rgba(59,130,246,0.05))" : "transparent",
@@ -234,8 +236,10 @@ function SortableBlock({
   const blockClasses = ["group relative", isDragging ? "z-50" : "", block.advanced?.cssClasses || ""]
     .filter(Boolean)
     .join(" ");
+  const isContainer = block.type === "container";
 
   const wrapperStyle: React.CSSProperties = {
+    ...(isContainer ? { position: "relative", overflow: "visible" } : {}),
     ...blockStyle,
     ...userStyles,
     transform: CSS.Transform.toString(transform),
@@ -243,8 +247,6 @@ function SortableBlock({
     opacity: isDragging ? 0.4 : 1,
     zIndex: isDragging ? 50 : undefined,
   };
-
-  const isContainer = block.type === "container";
 
   return (
     <div
@@ -419,12 +421,14 @@ export function ResponsiveCanvasRenderer({
   selectedBlockId,
   actions,
   layout,
+  sectionStyle,
 }: {
   blocks: Block[];
   catalog?: CatalogData;
   selectedBlockId?: string;
   actions: CanvasBlockActions;
   layout?: CustomSectionLayout;
+  sectionStyle?: SectionStyle;
 }) {
   const { device } = useEditorDevice();
   const baseLayout = layout ?? DEFAULT_CUSTOM_LAYOUT;
@@ -479,10 +483,34 @@ export function ResponsiveCanvasRenderer({
           </span>
         </div>
 
-        <div className="relative overflow-hidden rounded-lg border-2 border-dashed"
-          style={{ borderColor: "var(--editor-accent)", background: "var(--editor-card)" }}>
+        <div className="relative overflow-visible rounded-lg border border-dashed"
+          style={{
+            borderColor: "var(--editor-accent)",
+            backgroundColor: sectionStyle?.backgroundColor && sectionStyle.backgroundColor !== "transparent"
+              ? sectionStyle.backgroundColor
+              : "var(--editor-card)",
+            backgroundImage: sectionStyle?.backgroundImage ? `url(${sectionStyle.backgroundImage})` : undefined,
+            backgroundSize: sectionStyle?.backgroundImage ? "cover" : undefined,
+            backgroundPosition: sectionStyle?.backgroundImage ? "center" : undefined,
+            position: sectionStyle?.position ?? "relative",
+            minHeight: sectionStyle?.minHeight,
+            overflow: sectionStyle?.overflow ?? "visible",
+            zIndex: sectionStyle?.zIndex,
+            marginTop: sectionStyle?.marginTop,
+            marginBottom: sectionStyle?.marginBottom,
+            borderRadius: sectionStyle?.borderRadius,
+          }}>
 
-          <div className="relative min-h-[200px] p-4">
+          <div
+            className="relative min-h-[200px]"
+            style={{
+              paddingTop: sectionStyle?.paddingTop ?? 80,
+              paddingBottom: sectionStyle?.paddingBottom ?? 80,
+              paddingLeft: sectionStyle?.paddingLeft ?? 24,
+              paddingRight: sectionStyle?.paddingRight ?? 24,
+              textAlign: sectionStyle?.textAlign,
+            }}
+          >
             {effectiveLayout.mode !== "stack" && (
               <div className="absolute right-2 top-2 z-10">
                 <span className="rounded px-1.5 py-0.5 text-[9px] font-bold uppercase"

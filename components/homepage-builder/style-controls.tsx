@@ -74,6 +74,32 @@ export function StyleControls({
         <Field label="Padding Right (px)">
           <TextInput type="number" min={0} max={400} value={style.paddingRight ?? ""} onChange={(e) => set("paddingRight", e.target.value ? Number(e.target.value) : undefined)} placeholder="Default" />
         </Field>
+        <Field label="Minimum Height (px)">
+          <TextInput type="number" min={0} max={3000} value={style.minHeight ?? ""} onChange={(e) => set("minHeight", e.target.value ? Number(e.target.value) : undefined)} placeholder="Auto" />
+        </Field>
+        <Field label="Overflow">
+          <Select
+            value={style.overflow ?? "visible"}
+            onChange={(v) => set("overflow", v as SectionStyle["overflow"])}
+            options={[{ label: "Visible", value: "visible" }, { label: "Hidden", value: "hidden" }, { label: "Auto", value: "auto" }]}
+          />
+        </Field>
+        <Field label="Section Position">
+          <Select
+            value={style.position ?? "relative"}
+            onChange={(v) => set("position", v as SectionStyle["position"])}
+            options={[{ label: "Relative", value: "relative" }, { label: "Static", value: "static" }, { label: "Sticky", value: "sticky" }, { label: "Absolute", value: "absolute" }]}
+          />
+        </Field>
+        <Field label="Z-Index">
+          <TextInput type="number" min={-100} max={1000} value={style.zIndex ?? ""} onChange={(e) => set("zIndex", e.target.value ? Number(e.target.value) : undefined)} placeholder="Auto" />
+        </Field>
+        <Field label="Margin Top (px)">
+          <TextInput type="number" min={-400} max={400} value={style.marginTop ?? ""} onChange={(e) => set("marginTop", e.target.value ? Number(e.target.value) : undefined)} placeholder="0" />
+        </Field>
+        <Field label="Margin Bottom (px)">
+          <TextInput type="number" min={-400} max={400} value={style.marginBottom ?? ""} onChange={(e) => set("marginBottom", e.target.value ? Number(e.target.value) : undefined)} placeholder="0" />
+        </Field>
       </FieldGrid>
 
       <div className="flex flex-wrap gap-6 pt-1">

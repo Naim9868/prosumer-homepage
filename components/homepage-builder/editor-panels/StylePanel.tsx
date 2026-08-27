@@ -1,5 +1,5 @@
 "use client";
-import type { Block, BlockStyle, BlockBreakpointStyle } from "@/types/homepage";
+import type { Block, BlockStyle } from "@/types/homepage";
 import { useEditorDevice } from "@/components/homepage-builder/editor-context";
 import { SectionHeader } from "@/components/homepage-builder/editor-controls/SectionHeader";
 import { ResponsiveInput } from "@/components/homepage-builder/editor-controls/ResponsiveInput";
@@ -32,6 +32,12 @@ function LayoutControls({ style, onUpdate }: { style: BlockStyle; onUpdate: Styl
       <ResponsiveInput label="Padding" value={style[device]?.layout?.padding ? { [device]: style[device]!.layout!.padding } : {}} onChange={(v) => set("padding", v[device] || "")} placeholder="0" units={["px", "rem", "%"]} />
       <SelectControl label="Display" value={bp("display")} onChange={(v) => set("display", v)} options={[{ label: "Default", value: "" }, ...DISPLAY_OPTIONS.map((o) => ({ label: o, value: o }))]} />
       <SelectControl label="Position" value={bp("position")} onChange={(v) => set("position", v)} options={[{ label: "Default", value: "" }, ...POSITION_OPTIONS.map((o) => ({ label: o, value: o }))]} />
+      <div className="grid grid-cols-2 gap-2">
+        <ResponsiveInput label="Top" value={style[device]?.layout?.top ? { [device]: style[device]!.layout!.top } : {}} onChange={(v) => set("top", v[device] || "")} placeholder="auto" units={units} />
+        <ResponsiveInput label="Right" value={style[device]?.layout?.right ? { [device]: style[device]!.layout!.right } : {}} onChange={(v) => set("right", v[device] || "")} placeholder="auto" units={units} />
+        <ResponsiveInput label="Bottom" value={style[device]?.layout?.bottom ? { [device]: style[device]!.layout!.bottom } : {}} onChange={(v) => set("bottom", v[device] || "")} placeholder="auto" units={units} />
+        <ResponsiveInput label="Left" value={style[device]?.layout?.left ? { [device]: style[device]!.layout!.left } : {}} onChange={(v) => set("left", v[device] || "")} placeholder="auto" units={units} />
+      </div>
       <ResponsiveInput label="Z-Index" value={style[device]?.layout?.zIndex ? { [device]: style[device]!.layout!.zIndex } : {}} onChange={(v) => set("zIndex", v[device] || "")} placeholder="auto" />
       <SelectControl label="Overflow" value={bp("overflow")} onChange={(v) => set("overflow", v)} options={[{ label: "Default", value: "" }, ...OVERFLOW_OPTIONS.map((o) => ({ label: o, value: o }))]} />
       <ResponsiveInput label="Gap" value={style[device]?.layout?.gap ? { [device]: style[device]!.layout!.gap } : {}} onChange={(v) => set("gap", v[device] || "")} placeholder="0" units={["px", "rem"]} />

@@ -1,107 +1,88 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
-import { GripVertical } from "lucide-react";
-import { SectionHeading } from "@/components/shared/layout-primitives";
+import { useEffect, useState, type CSSProperties } from "react";
+import { ArrowUpRight } from "lucide-react";
 import { SectionWrapper } from "@/components/shared/section-wrapper";
-import type { Section } from "@/types/homepage";
+import { BeforeAfterSlider } from "@/components/shared/before-after-slider";
+import { useTheme } from "@/components/shared/theme-provider";
+import type { CatalogData } from "@/types/catalog";
+import type { BeforeAfterItem, BeforeAfterLayout, BeforeAfterResponsiveStyle, CatTheme, EditorDevice, Section } from "@/types/homepage";
 
-export function BeforeAfterSection({ section }: { section: Extract<Section, { type: "beforeAfter" }> }) {
-  const { title, subtitle, beforeImage, afterImage, beforeLabel, afterLabel } = section.settings;
-  const trackRef = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState(50);
-  const dragging = useRef(false);
-
-  const updateFromClientX = useCallback((clientX: number) => {
-    const el = trackRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const pct = ((clientX - rect.left) / rect.width) * 100;
-    setPosition(Math.min(98, Math.max(2, pct)));
-  }, []);
-
-  const onPointerDown = (e: React.PointerEvent) => {
-    dragging.current = true;
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    updateFromClientX(e.clientX);
+function styleFor(map: BeforeAfterResponsiveStyle | undefined, device: EditorDevice, theme: CatTheme): CSSProperties {
+  const style = map?.[device]?.[theme] ?? map?.desktop?.[theme] ?? {};
+  return {
+    fontFamily: style.fontFamily, fontSize: style.fontSize, fontWeight: style.fontWeight, lineHeight: style.lineHeight,
+    letterSpacing: style.letterSpacing, color: style.color, backgroundColor: style.backgroundColor, borderColor: style.borderColor,
+    borderRadius: style.borderRadius, paddingTop: style.paddingTop, paddingBottom: style.paddingBottom, paddingLeft: style.paddingLeft,
+    paddingRight: style.paddingRight, marginTop: style.marginTop, marginBottom: style.marginBottom, textAlign: style.textAlign,
   };
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!dragging.current) return;
-    updateFromClientX(e.clientX);
-  };
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "ArrowLeft") setPosition((p) => Math.max(2, p - 3));
-    if (e.key === "ArrowRight") setPosition((p) => Math.min(98, p + 3));
-  };
-
-  return (
-    <SectionWrapper style={section.style}>
-      <SectionHeading eyebrow="The Difference" title={title} description={subtitle} align="center" className="mx-auto" />
-      <div
-        ref={trackRef}
-        className="relative mx-auto mt-12 aspect-[16/10] w-full max-w-3xl select-none overflow-hidden rounded-[var(--radius-lg)] border border-border shadow-lg"
-        onPointerMove={onPointerMove}
-        onPointerUp={() => (dragging.current = false)}
-      >
-        <div className="absolute inset-0">
-          <SceneSvg variant="sharp" image={afterImage} />
-          <span className="absolute right-4 top-4 rounded-full bg-black/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur">
-            {afterLabel}
-          </span>
-        </div>
-        <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}>
-          <SceneSvg variant="soft" image={beforeImage} />
-          <span className="absolute left-4 top-4 rounded-full bg-black/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur">
-            {beforeLabel}
-          </span>
-        </div>
-        <div className="absolute inset-y-0 z-10 w-[2px] bg-white/80" style={{ left: `${position}%` }} aria-hidden />
-        <button
-          type="button"
-          role="slider"
-          aria-label="Comparison position"
-          aria-valuenow={Math.round(position)}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          onPointerDown={onPointerDown}
-          onKeyDown={onKeyDown}
-          className="absolute top-1/2 z-10 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize items-center justify-center rounded-full bg-white text-black shadow-lg"
-          style={{ left: `${position}%` }}
-        >
-          <GripVertical className="h-4 w-4" />
-        </button>
-      </div>
-    </SectionWrapper>
-  );
 }
 
-function SceneSvg({ variant, image }: { variant: "sharp" | "soft"; image?: string }) {
-  if (image) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={image} alt="" className="h-full w-full object-cover" />;
-  }
-  const blur = variant === "soft" ? 3.2 : 0;
-  const sat = variant === "soft" ? 0.75 : 1.15;
+const fallbackLayout: BeforeAfterLayout = { imageWidth: 1080, imageAspectRatio: 1.6, contentGap: 32, categoryGap: 8, itemGap: 8, imageColumnPercent: 75, contentColumnPercent: 25 };
+
+export function BeforeAfterSection({ section, catalog, breakpoint, forceTheme }: { section: Extract<Section, { type: "beforeAfter" }>; catalog?: CatalogData; breakpoint?: EditorDevice; forceTheme?: CatTheme }) {
+  const settings = section.settings;
+  const { theme } = useTheme();
+  const [device, setDevice] = useState<EditorDevice>(breakpoint ?? "desktop");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedItemId, setSelectedItemId] = useState("");
+
+  useEffect(() => {
+    if (breakpoint) return undefined;
+    const update = () => setDevice(window.innerWidth < 768 ? "mobile" : window.innerWidth < 1024 ? "tablet" : "desktop");
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [breakpoint]);
+
+  const categories = [...(settings.categories ?? [])].filter((category) => category.isActive).sort((a, b) => a.order - b.order);
+  const items = [...(settings.items ?? [])].filter((item) => item.isActive && item.beforeImage && item.afterImage).sort((a, b) => a.order - b.order);
+  const legacyItem: BeforeAfterItem | null = settings.beforeImage && settings.afterImage ? {
+    id: "legacy-before-after", title: settings.title, description: settings.subtitle, categoryId: "legacy",
+    beforeImage: settings.beforeImage, afterImage: settings.afterImage, beforeLabel: settings.beforeLabel || "Before",
+    afterLabel: settings.afterLabel || "After", buttonText: "", isActive: true, order: 0,
+  } : null;
+  const availableItems = items.length ? items : legacyItem ? [legacyItem] : [];
+  const activeCategory = selectedCategory || categories[0]?.id || "";
+  const visibleItems = categories.length ? availableItems.filter((item) => item.categoryId === activeCategory) : availableItems;
+  const activeItem = visibleItems.find((item) => item.id === selectedItemId) ?? visibleItems[0];
+  const product = activeItem?.productId ? catalog?.products.find((candidate) => candidate.id === activeItem.productId) : undefined;
+  const layout = { ...fallbackLayout, ...(settings.layout?.desktop ?? {}), ...(settings.layout?.[device] ?? {}) };
+  const currentTheme: CatTheme = forceTheme ?? theme;
+  const headingStyle = styleFor(settings.headingStyle, device, currentTheme);
+  const subtitleStyle = styleFor(settings.subtitleStyle, device, currentTheme);
+  const categoryStyle = styleFor(settings.categoryStyle, device, currentTheme);
+  const activeCategoryStyle = styleFor(settings.activeCategoryStyle, device, currentTheme);
+  const itemTitleStyle = styleFor(settings.itemTitleStyle, device, currentTheme);
+  const itemDescriptionStyle = styleFor(settings.itemDescriptionStyle, device, currentTheme);
+  const ctaStyle = styleFor(settings.ctaStyle, device, currentTheme);
+  const comparisonStyle = styleFor(settings.comparisonStyle, device, currentTheme);
+
+  if (!activeItem) return null;
   return (
-    <svg viewBox="0 0 640 400" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
-      <defs>
-        <filter id={`grade-${variant}`}>
-          <feGaussianBlur stdDeviation={blur} />
-          <feColorMatrix type="saturate" values={String(sat)} />
-        </filter>
-        <linearGradient id={`sky-${variant}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={variant === "soft" ? "#8ea3ad" : "#2a5b78"} />
-          <stop offset="100%" stopColor={variant === "soft" ? "#c7cdd0" : "#e8dcae"} />
-        </linearGradient>
-      </defs>
-      <g filter={`url(#grade-${variant})`}>
-        <rect width="640" height="400" fill={`url(#sky-${variant})`} />
-        <circle cx="500" cy="90" r="46" fill={variant === "soft" ? "#e2e2df" : "#f4e8b8"} />
-        {Array.from({ length: 6 }).map((_, i) => (
-          <polygon key={i} points={`${40 + i * 100},400 ${70 + i * 100},220 ${100 + i * 100},400`} fill={variant === "soft" ? "#6b7478" : `hsl(${140 + i * 6} 30% ${22 + i * 3}%)`} />
-        ))}
-        <rect x="0" y="360" width="640" height="40" fill={variant === "soft" ? "#767d80" : "#3a4a3f"} />
-      </g>
-    </svg>
+    <SectionWrapper style={section.style}>
+      <div style={styleFor(settings.sectionStyle, device, currentTheme)}>
+      <div className="mx-auto max-w-2xl text-center" style={headingStyle}>
+        {settings.eyebrow && <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">{settings.eyebrow}</p>}
+        <h2 className="mt-3 text-balance font-heading text-[clamp(1.75rem,3.4vw,2.75rem)] font-semibold leading-[1.1]" style={headingStyle}>{settings.title}</h2>
+        {settings.subtitle && <p className="mt-4 text-[15px] leading-relaxed" style={subtitleStyle}>{settings.subtitle}</p>}
+      </div>
+      {categories.length > 0 && (
+        <div className="mt-8 flex overflow-x-auto pb-2 sm:justify-center" style={{ gap: layout.categoryGap }} role="tablist" aria-label="Comparison categories">
+          {categories.map((category) => <button key={category.id} type="button" role="tab" aria-selected={activeCategory === category.id} onClick={() => { setSelectedCategory(category.id); setSelectedItemId(""); }} style={activeCategory === category.id ? { ...categoryStyle, ...activeCategoryStyle } : categoryStyle} className="shrink-0 rounded-full border px-4 py-2 text-[12px] font-semibold transition-colors">{category.name}</button>)}
+        </div>
+      )}
+      {visibleItems.length > 1 && <div className="mx-auto mt-6 flex max-w-3xl overflow-x-auto pb-1" style={{ gap: layout.itemGap }} aria-label="Comparisons">{visibleItems.map((item) => <button key={item.id} type="button" onClick={() => setSelectedItemId(item.id)} style={item.id === activeItem.id ? { ...categoryStyle, ...activeCategoryStyle } : categoryStyle} className="shrink-0 rounded-[var(--radius-sm)] border px-3 py-2 text-left text-[12px]">{item.title}</button>)}</div>}
+      <div className="mx-auto mt-8 grid w-full items-center lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]" style={{ gap: layout.contentGap, gridTemplateColumns: `${layout.imageColumnPercent}fr ${layout.contentColumnPercent}fr` }}>
+        <div style={{ maxWidth: layout.imageWidth, width: "100%" }}><BeforeAfterSlider beforeImage={activeItem.beforeImage} afterImage={activeItem.afterImage} beforeLabel={activeItem.beforeLabel} afterLabel={activeItem.afterLabel} style={{ ...comparisonStyle, aspectRatio: layout.imageAspectRatio }} /></div>
+        <div className="text-center lg:text-left">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">{categories.find((category) => category.id === activeItem.categoryId)?.name}</p>
+          <h3 className="mt-2 font-heading text-2xl font-bold" style={itemTitleStyle}>{activeItem.title}</h3>
+          <p className="mt-3 text-[14px] leading-6" style={itemDescriptionStyle}>{activeItem.description}</p>
+          {(activeItem.buttonUrl || product) && activeItem.buttonText && <a href={activeItem.buttonUrl || `/products/${product?.slug}`} style={ctaStyle} className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-[13px] font-semibold text-primary-foreground transition-transform hover:scale-[1.02]">{activeItem.buttonText}<ArrowUpRight className="h-4 w-4" /></a>}
+        </div>
+      </div>
+      </div>
+    </SectionWrapper>
   );
 }

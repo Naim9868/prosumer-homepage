@@ -1,5 +1,5 @@
 import "server-only";
-import { unstable_cache, revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { readHomepageConfig, writeHomepageConfig } from "@/lib/homepage-store";
 import { homepageConfigSchema } from "@/lib/homepage-validation";
 import { normalizePageSettings } from "@/lib/page-settings";
@@ -13,17 +13,13 @@ const HOMEPAGE_TAG = "homepage";
  * directly, and returns sections pre-sorted and pre-filtered to what
  * a visitor should actually see.
  */
-export const getHomepageData = unstable_cache(
-  async (): Promise<HomepageConfig> => {
-    const config = await readHomepageConfig();
-    return {
-      ...config,
-      sections: [...config.sections].sort((a, b) => a.order - b.order),
-    };
-  },
-  ["homepage-data"],
-  { tags: [HOMEPAGE_TAG], revalidate: 60 }
-);
+export async function getHomepageData(): Promise<HomepageConfig> {
+  const config = await readHomepageConfig();
+  return {
+    ...config,
+    sections: [...config.sections].sort((a, b) => a.order - b.order),
+  };
+}
 
 /** Admin-only: full config, including disabled sections, for the builder. */
 export async function getHomepageConfigForAdmin(): Promise<HomepageConfig> {

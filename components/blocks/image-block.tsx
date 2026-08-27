@@ -1,4 +1,3 @@
-import Image from "next/image";
 import type { Block } from "@/types/homepage";
 import { cn } from "@/lib/utils";
 
@@ -13,7 +12,7 @@ export function ImageBlock({ block }: { block: Block<"image"> }) {
   }
   return (
     <div className={cn("relative aspect-video w-full overflow-hidden", rounded && "rounded-[var(--radius-lg)]")}>
-      <Image src={url} alt={alt || ""} fill sizes="(min-width: 1024px) 800px, 100vw" className="object-cover" />
+      <img src={url} alt={alt || ""} className="h-full w-full object-cover" loading="lazy" />
     </div>
   );
 }
