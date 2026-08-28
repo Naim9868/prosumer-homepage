@@ -103,9 +103,9 @@ const defaultSectionSettings: SectionSettingsMap = {
     categories: [],
     items: [],
     layout: {
-      desktop: { imageWidth: 1080, imageAspectRatio: 1.6, contentGap: 32, categoryGap: 8, itemGap: 8, imageColumnPercent: 75, contentColumnPercent: 25 },
-      tablet: { imageWidth: 680, imageAspectRatio: 1.6, contentGap: 24, categoryGap: 8, itemGap: 8, imageColumnPercent: 100, contentColumnPercent: 0 },
-      mobile: { imageWidth: 640, imageAspectRatio: 1.25, contentGap: 20, categoryGap: 8, itemGap: 8, imageColumnPercent: 100, contentColumnPercent: 0 },
+      desktop: { layoutMode: "row", imageWidth: 1080, imageAspectRatio: 1.6, contentGap: 32, categoryGap: 8, itemGap: 8, imageColumnPercent: 75, contentColumnPercent: 25 },
+      tablet: { layoutMode: "column", imageWidth: 680, imageAspectRatio: 1.6, contentGap: 24, categoryGap: 8, itemGap: 8, imageColumnPercent: 100, contentColumnPercent: 0 },
+      mobile: { layoutMode: "column", imageWidth: 640, imageAspectRatio: 1.25, contentGap: 20, categoryGap: 8, itemGap: 8, imageColumnPercent: 100, contentColumnPercent: 0 },
     },
     sectionStyle: {},
     headingStyle: {},

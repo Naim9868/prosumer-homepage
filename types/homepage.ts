@@ -594,19 +594,26 @@ export interface BeforeAfterStyle {
   color?: string;
   backgroundColor?: string;
   borderColor?: string;
+  borderWidth?: number;
+  borderStyle?: "solid" | "dashed" | "dotted" | "double" | "none";
   borderRadius?: number;
+  width?: number;
+  height?: number;
   paddingTop?: number;
   paddingBottom?: number;
   paddingLeft?: number;
   paddingRight?: number;
   marginTop?: number;
   marginBottom?: number;
+  marginLeft?: number;
+  marginRight?: number;
   textAlign?: "left" | "center" | "right";
 }
 
 export type BeforeAfterResponsiveStyle = Partial<Record<EditorDevice, Partial<Record<CatTheme, BeforeAfterStyle>>>>;
 
 export interface BeforeAfterLayout {
+  layoutMode: "row" | "column";
   imageWidth: number;
   imageAspectRatio: number;
   contentGap: number;

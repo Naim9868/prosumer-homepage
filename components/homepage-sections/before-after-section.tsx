@@ -13,12 +13,13 @@ function styleFor(map: BeforeAfterResponsiveStyle | undefined, device: EditorDev
   return {
     fontFamily: style.fontFamily, fontSize: style.fontSize, fontWeight: style.fontWeight, lineHeight: style.lineHeight,
     letterSpacing: style.letterSpacing, color: style.color, backgroundColor: style.backgroundColor, borderColor: style.borderColor,
-    borderRadius: style.borderRadius, paddingTop: style.paddingTop, paddingBottom: style.paddingBottom, paddingLeft: style.paddingLeft,
-    paddingRight: style.paddingRight, marginTop: style.marginTop, marginBottom: style.marginBottom, textAlign: style.textAlign,
+    borderWidth: style.borderWidth, borderStyle: style.borderStyle, borderRadius: style.borderRadius, width: style.width, height: style.height,
+    paddingTop: style.paddingTop, paddingBottom: style.paddingBottom, paddingLeft: style.paddingLeft,
+    paddingRight: style.paddingRight, marginTop: style.marginTop, marginBottom: style.marginBottom, marginLeft: style.marginLeft, marginRight: style.marginRight, textAlign: style.textAlign,
   };
 }
 
-const fallbackLayout: BeforeAfterLayout = { imageWidth: 1080, imageAspectRatio: 1.6, contentGap: 32, categoryGap: 8, itemGap: 8, imageColumnPercent: 75, contentColumnPercent: 25 };
+const fallbackLayout: BeforeAfterLayout = { layoutMode: "row", imageWidth: 1080, imageAspectRatio: 1.6, contentGap: 32, categoryGap: 8, itemGap: 8, imageColumnPercent: 75, contentColumnPercent: 25 };
 
 export function BeforeAfterSection({ section, catalog, breakpoint, forceTheme }: { section: Extract<Section, { type: "beforeAfter" }>; catalog?: CatalogData; breakpoint?: EditorDevice; forceTheme?: CatTheme }) {
   const settings = section.settings;
@@ -73,9 +74,9 @@ export function BeforeAfterSection({ section, catalog, breakpoint, forceTheme }:
         </div>
       )}
       {visibleItems.length > 1 && <div className="mx-auto mt-6 flex max-w-3xl overflow-x-auto pb-1" style={{ gap: layout.itemGap }} aria-label="Comparisons">{visibleItems.map((item) => <button key={item.id} type="button" onClick={() => setSelectedItemId(item.id)} style={item.id === activeItem.id ? { ...categoryStyle, ...activeCategoryStyle } : categoryStyle} className="shrink-0 rounded-[var(--radius-sm)] border px-3 py-2 text-left text-[12px]">{item.title}</button>)}</div>}
-      <div className="mx-auto mt-8 grid w-full items-center lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]" style={{ gap: layout.contentGap, gridTemplateColumns: `${layout.imageColumnPercent}fr ${layout.contentColumnPercent}fr` }}>
-        <div style={{ maxWidth: layout.imageWidth, width: "100%" }}><BeforeAfterSlider beforeImage={activeItem.beforeImage} afterImage={activeItem.afterImage} beforeLabel={activeItem.beforeLabel} afterLabel={activeItem.afterLabel} style={{ ...comparisonStyle, aspectRatio: layout.imageAspectRatio }} /></div>
-        <div className="text-center lg:text-left">
+      <div className="mx-auto mt-8 flex w-full items-center" style={{ gap: layout.contentGap, flexDirection: layout.layoutMode === "row" ? "row" : "column" }}>
+        <div style={{ maxWidth: layout.imageWidth, width: "100%", flex: layout.layoutMode === "row" ? `0 1 ${layout.imageColumnPercent}%` : "0 1 auto" }}><BeforeAfterSlider beforeImage={activeItem.beforeImage} afterImage={activeItem.afterImage} beforeLabel={activeItem.beforeLabel} afterLabel={activeItem.afterLabel} style={{ ...comparisonStyle, aspectRatio: layout.imageAspectRatio }} /></div>
+        <div className="w-full text-center lg:text-left" style={{ flex: layout.layoutMode === "row" ? `0 1 ${layout.contentColumnPercent}%` : "0 1 auto" }}>
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">{categories.find((category) => category.id === activeItem.categoryId)?.name}</p>
           <h3 className="mt-2 font-heading text-2xl font-bold" style={itemTitleStyle}>{activeItem.title}</h3>
           <p className="mt-3 text-[14px] leading-6" style={itemDescriptionStyle}>{activeItem.description}</p>
