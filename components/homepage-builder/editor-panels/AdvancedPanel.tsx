@@ -1,6 +1,6 @@
 "use client";
-import type { Block, BlockAdvanced, BlockVisibility, BlockAnimation, BlockAnimationType } from "@/types/homepage";
-import { useEditorDevice } from "@/components/homepage-builder/editor-context";
+import type { Block, BlockAdvanced, BlockVisibility, BlockAnimation, BlockAnimationType, ResponsiveBlockAdvanced, SectionTheme } from "@/types/homepage";
+import { useEditorDevice, useEditorTheme } from "@/components/homepage-builder/editor-context";
 import { SectionHeader } from "@/components/homepage-builder/editor-controls/SectionHeader";
 import { ToggleControl } from "@/components/homepage-builder/editor-controls/ToggleControl";
 import { SelectControl } from "@/components/homepage-builder/editor-controls/SelectControl";
@@ -90,14 +90,44 @@ function CustomCSSControl({ css, onChange }: { css: string; onChange: (v: string
   );
 }
 
-export function AdvancedPanel({ block, onUpdate }: { block: Block; onUpdate: (advanced: BlockAdvanced) => void }) {
-  const advanced = block.advanced || {};
+export function AdvancedPanel({
+  block,
+  onUpdate,
+  onResponsiveUpdate,
+}: {
+  block: Block;
+  onUpdate: (advanced: BlockAdvanced) => void;
+  onResponsiveUpdate?: (update: { responsiveAdvanced?: ResponsiveBlockAdvanced }) => void;
+}) {
+  const { device } = useEditorDevice();
+  const { resolvedTheme } = useEditorTheme();
+  const theme = resolvedTheme as SectionTheme;
+
+  const advanced = block.responsiveAdvanced?.[theme]?.[device] ?? block.advanced ?? {};
+
+  const handleUpdate = (patch: Partial<BlockAdvanced>) => {
+    if (onResponsiveUpdate) {
+      const updated = { ...advanced, ...patch };
+      onResponsiveUpdate({
+        responsiveAdvanced: {
+          ...block.responsiveAdvanced,
+          [theme]: {
+            ...block.responsiveAdvanced?.[theme],
+            [device]: updated,
+          },
+        },
+      });
+    } else {
+      onUpdate({ ...advanced, ...patch } as BlockAdvanced);
+    }
+  };
+
   return (
     <div className="space-y-0">
-      <VisibilityControls visibility={advanced.visibility || {}} onChange={(v) => onUpdate({ ...advanced, visibility: v })} />
-      <AttributeControls advanced={advanced} onChange={onUpdate} />
-      <AnimationControls animation={advanced.animation || {}} onChange={(v) => onUpdate({ ...advanced, animation: v })} />
-      <CustomCSSControl css={advanced.customCSS || ""} onChange={(v) => onUpdate({ ...advanced, customCSS: v })} />
+      <VisibilityControls visibility={advanced.visibility || {}} onChange={(v) => handleUpdate({ visibility: v })} />
+      <AttributeControls advanced={advanced} onChange={handleUpdate as (v: BlockAdvanced) => void} />
+      <AnimationControls animation={advanced.animation || {}} onChange={(v) => handleUpdate({ animation: v })} />
+      <CustomCSSControl css={advanced.customCSS || ""} onChange={(v) => handleUpdate({ customCSS: v })} />
     </div>
   );
 }

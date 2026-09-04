@@ -31,6 +31,16 @@ export interface SectionStyle {
   hideOnMobile?: boolean;
 }
 
+export type SectionTheme = "light" | "dark";
+export type SectionDevice = "desktop" | "tablet" | "mobile";
+
+/** Optional per-theme/per-device section styles. Missing slots inherit the legacy style. */
+export type ResponsiveSectionStyles = {
+  [theme in SectionTheme]?: {
+    [device in SectionDevice]?: Partial<SectionStyle>;
+  };
+};
+
 export const DEFAULT_SECTION_STYLE: SectionStyle = {
   backgroundColor: "transparent",
   containerWidth: "7xl",
@@ -882,6 +892,34 @@ export interface BlockStyle {
   mobile?: BlockBreakpointStyle;
 }
 
+/** Per-theme/per-device block breakpoint styles. Missing slots inherit from legacy BlockStyle. */
+export type ResponsiveBlockStyles = {
+  [theme in SectionTheme]?: {
+    [device in SectionDevice]?: BlockBreakpointStyle;
+  };
+};
+
+/** Per-theme/per-device block layout. Each device stores its own columnSpan, rowSpan, order, alignSelf. */
+export type ResponsiveBlockLayout = {
+  [theme in SectionTheme]?: {
+    [device in SectionDevice]?: BlockLayout;
+  };
+};
+
+/** Per-theme/per-device block settings (content). Each device stores its own content configuration. */
+export type ResponsiveBlockSettings = {
+  [theme in SectionTheme]?: {
+    [device in SectionDevice]?: Record<string, unknown>;
+  };
+};
+
+/** Per-theme/per-device block advanced settings. Each device stores its own CSS ID, classes, animation, visibility, custom CSS. */
+export type ResponsiveBlockAdvanced = {
+  [theme in SectionTheme]?: {
+    [device in SectionDevice]?: BlockAdvanced;
+  };
+};
+
 /** Responsive visibility. */
 export interface BlockVisibility {
   desktop?: boolean;
@@ -930,12 +968,20 @@ export interface Block<T extends BlockType = BlockType> {
   type: T;
   order: number;
   settings: BlockSettingsMap[T];
-  /** Responsive style overrides — desktop/tablet/mobile. */
+  /** Legacy responsive style overrides — desktop/tablet/mobile (theme-agnostic). Kept for backward compat. */
   style?: BlockStyle;
-  /** Layout positioning — column span, row span, order, align-self. */
+  /** Per-theme/per-device responsive styles (CSS properties). When present, these override the legacy `style` field. */
+  responsiveStyles?: ResponsiveBlockStyles;
+  /** Layout positioning — column span, row span, order, align-self. Legacy global fallback. */
   layout?: BlockLayout;
-  /** Advanced settings: CSS ID, classes, animation, visibility, custom CSS. */
+  /** Per-theme/per-device responsive layout. When present, these override the legacy `layout` field. */
+  responsiveLayout?: ResponsiveBlockLayout;
+  /** Advanced settings: CSS ID, classes, animation, visibility, custom CSS. Legacy global fallback. */
   advanced?: BlockAdvanced;
+  /** Per-theme/per-device responsive advanced settings. When present, these override the legacy `advanced` field. */
+  responsiveAdvanced?: ResponsiveBlockAdvanced;
+  /** Per-theme/per-device responsive content settings. When present, these override the legacy `settings` field. */
+  responsiveSettings?: ResponsiveBlockSettings;
 }
 
 // ---------------------------------------------------------------
@@ -1022,6 +1068,7 @@ export interface CustomSection extends BaseSection {
   type: "custom";
   settings: CustomSectionSettings;
   blocks: Block[];
+  responsiveStyles?: ResponsiveSectionStyles;
 }
 
 export type Section = PredefinedSection | CustomSection;

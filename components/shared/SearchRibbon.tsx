@@ -68,7 +68,7 @@ export function SearchRibbon({ isOpen, onClose, className }: SearchRibbonProps) 
     onClose();
     setSearchQuery("");
     setSearchResults([]);
-    router.push(`/products/${slug}`);
+    router.push(`/product/${slug}`);
   };
 
   const goToShop = () => {
@@ -118,7 +118,7 @@ export function SearchRibbon({ isOpen, onClose, className }: SearchRibbonProps) 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="I am shopping for..."
-                  className="w-full bg-transparent px-3 py-3.5 text-sm text-foreground outline-none placeholder:text-foreground-muted [&::-webkit-search-cancel-button]:hidden"
+                  className="w-full bg-transparent px-3 py-3.5 text-sm text-foreground outline-none focus:outline-none focus-visible:outline-none focus:shadow-none placeholder:text-foreground-muted [&::-webkit-search-cancel-button]:hidden"
                 />
 
                 {searchLoading && <Loader2 className="absolute right-10 h-4 w-4 animate-spin text-primary" />}

@@ -16,7 +16,7 @@ export function useWishlist() {
       const productId = getProductId(product);
       if (wishlistItems.some((item) => item.productId === productId)) return false;
 
-      const variant = selectedVariant || (product as IProduct).variants?.find((v) => v.isDefault) || (product as IProduct).variants?.[0];
+      const variant = selectedVariant || (product as IProduct).variants?.find((v: IProductVariant) => v.isDefault) || (product as IProduct).variants?.[0];
       const productImage = getProductImage(product);
 
       const newItem: WishlistItem = {

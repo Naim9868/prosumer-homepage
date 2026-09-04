@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -15,19 +15,21 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { Layers, Plus } from "lucide-react";
-import type { Block, BlockType, BlockStyle, BlockAdvanced, BlockLayout, BlockSettingsMap, CustomSection, CustomSectionLayout } from "@/types/homepage";
-import { BLOCK_TYPE_META, BLOCK_TYPES } from "@/types/homepage";
+import type { Block, BlockType, BlockStyle, BlockAdvanced, BlockLayout, BlockSettingsMap, CustomSection, CustomSectionLayout, ResponsiveBlockStyles, ResponsiveBlockLayout, ResponsiveBlockSettings, ResponsiveBlockAdvanced, SectionTheme } from "@/types/homepage";
+import { BLOCK_TYPE_META, BLOCK_TYPES, DEFAULT_BLOCK_LAYOUT } from "@/types/homepage";
 import { createDefaultBlock } from "@/lib/homepage-defaults";
 import { useCatalog } from "@/components/shared/catalog-context";
 import {
   EditorDeviceProvider,
   EditorThemeProvider,
   useEditorTheme,
+  useEditorDevice,
 } from "@/components/homepage-builder/editor-context";
 import { DeviceSwitcher } from "@/components/homepage-builder/editor-controls/DeviceSwitcher";
 import { BlockStylePanel } from "@/components/homepage-builder/editor-panels/BlockStylePanel";
 import { SectionSettingsPanel } from "@/components/homepage-builder/editor-panels/SectionSettingsPanel";
 import { ResponsiveCanvasRenderer, type CanvasBlockActions } from "@/components/homepage-builder/responsive-canvas";
+import { createResponsiveSectionStyles, resolveSectionStyle } from "@/lib/style-utils";
 
 type Selection = { kind: "section" } | { kind: "block"; id: string };
 
@@ -45,6 +47,10 @@ type GlobalWidgetTemplate = {
   style?: BlockStyle;
   layout?: BlockLayout;
   advanced?: BlockAdvanced;
+  responsiveStyles?: ResponsiveBlockStyles;
+  responsiveLayout?: ResponsiveBlockLayout;
+  responsiveSettings?: ResponsiveBlockSettings;
+  responsiveAdvanced?: ResponsiveBlockAdvanced;
 };
 
 const SECTION_TEMPLATE_STORAGE_KEY = "homepage-builder-custom-section-templates-v1";
@@ -56,48 +62,94 @@ function cloneJson<T>(value: T): T {
 
 // ─── Tree utilities ────────────────────────────────────────────
 
+type TreeDevice = "desktop" | "tablet" | "mobile";
+
 function isContainer(block: Block): block is Block<"container"> {
   return block.type === "container";
 }
 
+/**
+ * Get the effective children of a container, considering responsive overrides.
+ * When theme+device are provided, responsiveSettings[theme][device].blocks takes priority.
+ * Otherwise falls back to settings.blocks.
+ */
+function getEffectiveContainerChildren(block: Block, theme?: SectionTheme, device?: TreeDevice): Block[] | undefined {
+  if (!isContainer(block)) return undefined;
+  if (theme && device) {
+    const responsive = block.responsiveSettings?.[theme]?.[device];
+    if (responsive && typeof responsive === "object" && "blocks" in responsive && Array.isArray((responsive as Record<string, unknown>).blocks)) {
+      return (responsive as Record<string, unknown>).blocks as Block[];
+    }
+  }
+  return block.settings.blocks;
+}
+
+/**
+ * Write the effective children back to the correct location on a container.
+ * If responsiveSettings[theme][device].blocks existed, updates there.
+ * Otherwise updates settings.blocks.
+ */
+function setEffectiveContainerChildren(block: Block, children: Block[], theme?: SectionTheme, device?: TreeDevice): Block {
+  if (!isContainer(block)) return block;
+  if (theme && device) {
+    const responsive = block.responsiveSettings?.[theme]?.[device];
+    if (responsive && typeof responsive === "object" && "blocks" in responsive && Array.isArray((responsive as Record<string, unknown>).blocks)) {
+      return {
+        ...block,
+        responsiveSettings: {
+          ...block.responsiveSettings,
+          [theme]: {
+            ...block.responsiveSettings?.[theme],
+            [device]: { ...responsive, blocks: children },
+          },
+        },
+      } as Block;
+    }
+  }
+  return { ...block, settings: { ...block.settings, blocks: children } } as Block<"container">;
+}
+
 /** Find a block anywhere in the tree by its ID. Returns the block and its parent blocks array. */
-function findBlockInTree(blocks: Block[], id: string): { parent: Block[]; block: Block; index: number } | null {
+function findBlockInTree(blocks: Block[], id: string, theme?: SectionTheme, device?: TreeDevice): { parent: Block[]; block: Block; index: number } | null {
   for (let i = 0; i < blocks.length; i++) {
     const b = blocks[i];
     if (b.id === id) return { parent: blocks, block: b, index: i };
-    if (isContainer(b) && b.settings.blocks?.length) {
-      const found = findBlockInTree(b.settings.blocks, id);
+    const children = getEffectiveContainerChildren(b, theme, device);
+    if (children?.length) {
+      const found = findBlockInTree(children, id, theme, device);
       if (found) return found;
     }
   }
   return null;
 }
 
-/** Resolve sortable IDs such as parentId--childId back to the real block ID. */
-function findBlockBySortableId(blocks: Block[], sortableId: string): { parent: Block[]; block: Block; index: number } | null {
-  if (!sortableId.includes("--")) return findBlockInTree(blocks, sortableId);
+/**
+ * Resolve sortable IDs such as parentId--childId back to the real block.
+ *
+ * Sortable IDs follow the pattern: parentId--childId (or grandparentId--parentId--childId
+ * for deeply nested blocks). The actual block ID is always the last segment.
+ * We search the entire tree for it, which handles cases where the parent itself
+ * is nested inside another container.
+ */
+function findBlockBySortableId(blocks: Block[], sortableId: string, theme?: SectionTheme, device?: TreeDevice): { parent: Block[]; block: Block; index: number } | null {
+  if (!sortableId.includes("--")) return findBlockInTree(blocks, sortableId, theme, device);
 
-  const parts = sortableId.split("--");
-  let current = blocks;
-  let found: { parent: Block[]; block: Block; index: number } | null = null;
+  // Extract the actual block ID — it's always the last segment after the last --
+  const lastSep = sortableId.lastIndexOf("--");
+  const blockId = sortableId.substring(lastSep + 2);
 
-  for (const part of parts) {
-    found = findBlockInTree(current, part);
-    if (!found) return null;
-    current = isContainer(found.block) ? found.block.settings.blocks || [] : [];
-  }
-
-  return found;
+  return findBlockInTree(blocks, blockId, theme, device);
 }
 
 /** Find a container block that contains the given child ID. */
-function findContainerForChild(blocks: Block[], childId: string): Block<"container"> | null {
+function findContainerForChild(blocks: Block[], childId: string, theme?: SectionTheme, device?: TreeDevice): Block<"container"> | null {
   for (const block of blocks) {
-    if (isContainer(block) && block.settings.blocks?.some((c) => c.id === childId)) {
-      return block;
+    const children = getEffectiveContainerChildren(block, theme, device);
+    if (children?.some((c) => c.id === childId)) {
+      return block as Block<"container">;
     }
-    if (isContainer(block) && block.settings.blocks?.length) {
-      const found = findContainerForChild(block.settings.blocks, childId);
+    if (children?.length) {
+      const found = findContainerForChild(children, childId, theme, device);
       if (found) return found;
     }
   }
@@ -105,61 +157,71 @@ function findContainerForChild(blocks: Block[], childId: string): Block<"contain
 }
 
 /** Add a block to a container's children array. */
-function addBlockToContainer(blocks: Block[], containerId: string, newBlock: Block): Block[] {
+function addBlockToContainer(blocks: Block[], containerId: string, newBlock: Block, theme?: SectionTheme, device?: TreeDevice): Block[] {
   return blocks.map((b) => {
     if (b.id === containerId && isContainer(b)) {
-      const children = [...(b.settings.blocks || []), newBlock].map((c, i) => ({ ...c, order: i }));
-      return { ...b, settings: { ...b.settings, blocks: children } } as Block<"container">;
+      const existing = getEffectiveContainerChildren(b, theme, device) || [];
+      const children = [...existing, newBlock].map((c, i) => ({ ...c, order: i }));
+      return setEffectiveContainerChildren(b, children, theme, device);
     }
-    if (isContainer(b) && b.settings.blocks?.length) {
-      return { ...b, settings: { ...b.settings, blocks: addBlockToContainer(b.settings.blocks, containerId, newBlock) } } as Block<"container">;
+    const children = getEffectiveContainerChildren(b, theme, device);
+    if (children?.length) {
+      return setEffectiveContainerChildren(b, addBlockToContainer(children, containerId, newBlock, theme, device), theme, device);
     }
     return b;
   });
 }
 
 /** Remove a child from a container. */
-function removeBlockFromContainer(blocks: Block[], containerId: string, childId: string): Block[] {
+function removeBlockFromContainer(blocks: Block[], containerId: string, childId: string, theme?: SectionTheme, device?: TreeDevice): Block[] {
   return blocks.map((b) => {
     if (b.id === containerId && isContainer(b)) {
-      const children = (b.settings.blocks || [])
+      const existing = getEffectiveContainerChildren(b, theme, device) || [];
+      const children = existing
         .filter((c) => c.id !== childId)
         .map((c: Block, i: number) => ({ ...c, order: i }));
-      return { ...b, settings: { ...b.settings, blocks: children } } as Block<"container">;
+      return setEffectiveContainerChildren(b, children, theme, device);
     }
-    if (isContainer(b) && b.settings.blocks?.length) {
-      return { ...b, settings: { ...b.settings, blocks: removeBlockFromContainer(b.settings.blocks, containerId, childId) } } as Block<"container">;
+    const children = getEffectiveContainerChildren(b, theme, device);
+    if (children?.length) {
+      return setEffectiveContainerChildren(b, removeBlockFromContainer(children, containerId, childId, theme, device), theme, device);
     }
     return b;
   });
 }
 
 /** Reorder a child within a container. */
-function moveBlockInContainer(blocks: Block[], containerId: string, childId: string, direction: "up" | "down"): Block[] {
+function moveBlockInContainer(blocks: Block[], containerId: string, childId: string, direction: "up" | "down", theme?: SectionTheme, device?: TreeDevice): Block[] {
   return blocks.map((b) => {
     if (b.id === containerId && isContainer(b)) {
-      const sorted = [...(b.settings.blocks || [])].sort((a, c) => a.order - c.order);
+      const existing = getEffectiveContainerChildren(b, theme, device) || [];
+      const sorted = [...existing].sort((a, c) => a.order - c.order);
       const idx = sorted.findIndex((c) => c.id === childId);
       if (idx < 0) return b;
       if (direction === "up" && idx === 0) return b;
       if (direction === "down" && idx === sorted.length - 1) return b;
       const targetIdx = direction === "up" ? idx - 1 : idx + 1;
       const reordered = arrayMove(sorted, idx, targetIdx).map((c, i) => ({ ...c, order: i }));
-      return { ...b, settings: { ...b.settings, blocks: reordered } } as Block<"container">;
+      return setEffectiveContainerChildren(b, reordered, theme, device);
     }
-    if (isContainer(b) && b.settings.blocks?.length) {
-      return { ...b, settings: { ...b.settings, blocks: moveBlockInContainer(b.settings.blocks, containerId, childId, direction) } } as Block<"container">;
+    const children = getEffectiveContainerChildren(b, theme, device);
+    if (children?.length) {
+      return setEffectiveContainerChildren(b, moveBlockInContainer(children, containerId, childId, direction, theme, device), theme, device);
     }
     return b;
   });
 }
 
 /** Update a nested block's settings/style/layout/advanced anywhere in the tree. */
-function updateNestedBlock(blocks: Block[], blockId: string, updater: (prev: Block) => Block): Block[] {
+function updateNestedBlock(blocks: Block[], blockId: string, updater: (prev: Block) => Block, theme?: SectionTheme, device?: TreeDevice): Block[] {
   return blocks.map((b) => {
     if (b.id === blockId) return updater(b);
-    if (isContainer(b) && b.settings.blocks?.length) {
-      return { ...b, settings: { ...b.settings, blocks: updateNestedBlock(b.settings.blocks, blockId, updater) } } as Block<"container">;
+    const children = getEffectiveContainerChildren(b, theme, device);
+    if (children?.length) {
+      const updated = updateNestedBlock(children, blockId, updater, theme, device);
+      if (updated !== children) {
+        return setEffectiveContainerChildren(b, updated, theme, device);
+      }
     }
     return b;
   });
@@ -262,6 +324,14 @@ function CustomSectionEditorInner({
   onChange: (next: CustomSection) => void;
 }) {
   const catalog = useCatalog();
+  const { resolvedTheme } = useEditorTheme();
+  const { device } = useEditorDevice();
+  const currentTheme = resolvedTheme as SectionTheme;
+
+  useEffect(() => {
+    if (section.responsiveStyles) return;
+    onChange({ ...section, responsiveStyles: createResponsiveSectionStyles(section.style) });
+  }, [onChange, section]);
   const [selection, setSelection] = useState<Selection>({ kind: "section" });
   const [dragType, setDragType] = useState<BlockType | null>(null);
   const [sectionTemplates, setSectionTemplates] = useState<SectionTemplate[]>(() => {
@@ -285,14 +355,17 @@ function CustomSectionEditorInner({
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
+  const latestBlocksRef = useRef(section.blocks);
+  useEffect(() => { latestBlocksRef.current = section.blocks; }, [section.blocks]);
+
   const blocks = useMemo(() => [...section.blocks].sort((a, b) => a.order - b.order), [section.blocks]);
 
   /** Find the currently selected block anywhere in the tree. */
   const selectedBlock = useMemo(() => {
     if (selection.kind !== "block") return undefined;
-    const found = findBlockInTree(section.blocks, selection.id);
+    const found = findBlockInTree(section.blocks, selection.id, currentTheme, device);
     return found?.block;
-  }, [section.blocks, selection]);
+  }, [section.blocks, selection, currentTheme, device]);
 
   const persistSectionTemplates = useCallback((next: SectionTemplate[]) => {
     setSectionTemplates(next);
@@ -304,45 +377,65 @@ function CustomSectionEditorInner({
     try { localStorage.setItem(GLOBAL_WIDGET_STORAGE_KEY, JSON.stringify(next)); } catch {}
   }, []);
 
-  const updateBlocks = useCallback((next: Block[]) => onChange({ ...section, blocks: next }), [section, onChange]);
+  const updateBlocks = useCallback((next: Block[] | ((prev: Block[]) => Block[])) => {
+    const resolved = typeof next === "function" ? (next as (prev: Block[]) => Block[])(latestBlocksRef.current) : next;
+    latestBlocksRef.current = resolved;
+    onChange({ ...section, blocks: resolved });
+  }, [section, onChange]);
 
   const addBlock = useCallback((type: BlockType) => {
-    const block = createDefaultBlock(type, section.blocks.length);
-    updateBlocks([...section.blocks, block]);
+    const block = createDefaultBlock(type, latestBlocksRef.current.length);
+    updateBlocks((prev) => [...prev, block]);
     setSelection({ kind: "block", id: block.id });
-  }, [section.blocks, updateBlocks]);
+  }, [updateBlocks]);
 
   const addEmptySection = useCallback(() => {
-    const container = createDefaultBlock("container", section.blocks.length);
+    const container = createDefaultBlock("container", latestBlocksRef.current.length);
     if (container.type !== "container") return;
 
     container.settings = {
       ...container.settings,
-      name: `Section ${section.blocks.length + 1}`,
+      name: `Section ${latestBlocksRef.current.length + 1}`,
       blocks: [],
     };
-    updateBlocks([...section.blocks, container]);
+    updateBlocks((prev) => [...prev, container]);
     setSelection({ kind: "block", id: container.id });
-  }, [section.blocks, updateBlocks]);
+  }, [updateBlocks]);
 
   const addBlockToContainerCb = useCallback((containerId: string, type: BlockType) => {
-    const found = findBlockInTree(section.blocks, containerId);
-    if (!found || !isContainer(found.block)) return;
-    const container = found.block;
-    const childCount = container.settings.blocks?.length ?? 0;
-    const block = createDefaultBlock(type, childCount);
-    updateBlocks(addBlockToContainer(section.blocks, containerId, block));
-  }, [section.blocks, updateBlocks]);
+    try {
+      if (!containerId || !type) {
+        console.warn("addBlockToContainerCb: Missing containerId or type");
+        return;
+      }
+      const found = findBlockInTree(latestBlocksRef.current, containerId, currentTheme, device);
+      if (!found || !isContainer(found.block)) {
+        console.warn(`addBlockToContainerCb: Container ${containerId} not found or not a container`);
+        return;
+      }
+      const container = found.block;
+      const effectiveChildren = getEffectiveContainerChildren(container, currentTheme, device) || [];
+      const childCount = effectiveChildren.length;
+      const block = createDefaultBlock(type, childCount);
+      updateBlocks((prev) => addBlockToContainer(prev, containerId, block, currentTheme, device));
+    } catch (err) {
+      console.error("Error adding block to container:", err);
+    }
+  }, [updateBlocks, currentTheme, device]);
 
   const addGlobalWidgetTemplate = useCallback((template: GlobalWidgetTemplate) => {
-    const block = createDefaultBlock("customWidget", section.blocks.length);
+    const block = createDefaultBlock("customWidget", latestBlocksRef.current.length);
     if (block.type === "customWidget") block.settings = cloneJson(template.settings);
     block.style = template.style ? cloneJson(template.style) : undefined;
     block.layout = template.layout ? cloneJson(template.layout) : block.layout;
     block.advanced = template.advanced ? cloneJson(template.advanced) : undefined;
-    updateBlocks([...section.blocks, block]);
+    block.responsiveStyles = template.responsiveStyles ? cloneJson(template.responsiveStyles) : undefined;
+    block.responsiveLayout = template.responsiveLayout ? cloneJson(template.responsiveLayout) : undefined;
+    block.responsiveSettings = template.responsiveSettings ? cloneJson(template.responsiveSettings) : undefined;
+    block.responsiveAdvanced = template.responsiveAdvanced ? cloneJson(template.responsiveAdvanced) : undefined;
+    updateBlocks((prev) => [...prev, block]);
     setSelection({ kind: "block", id: block.id });
-  }, [section.blocks, updateBlocks]);
+  }, [updateBlocks]);
 
   const addSectionPreset = useCallback((presetId: string) => {
     const preset = SECTION_PRESETS.find((p) => p.id === presetId);
@@ -397,6 +490,10 @@ function CustomSectionEditorInner({
       style: selectedBlock.style ? cloneJson(selectedBlock.style) : undefined,
       layout: selectedBlock.layout ? cloneJson(selectedBlock.layout) : undefined,
       advanced: selectedBlock.advanced ? cloneJson(selectedBlock.advanced) : undefined,
+      responsiveStyles: selectedBlock.responsiveStyles ? cloneJson(selectedBlock.responsiveStyles) : undefined,
+      responsiveLayout: selectedBlock.responsiveLayout ? cloneJson(selectedBlock.responsiveLayout) : undefined,
+      responsiveSettings: selectedBlock.responsiveSettings ? cloneJson(selectedBlock.responsiveSettings) : undefined,
+      responsiveAdvanced: selectedBlock.responsiveAdvanced ? cloneJson(selectedBlock.responsiveAdvanced) : undefined,
     };
     persistGlobalWidgetTemplates([template, ...globalWidgetTemplates]);
   }, [selectedBlock, persistGlobalWidgetTemplates, globalWidgetTemplates]);
@@ -406,162 +503,408 @@ function CustomSectionEditorInner({
   }, [persistGlobalWidgetTemplates, globalWidgetTemplates]);
 
   const removeBlock = useCallback((id: string) => {
-    const container = findContainerForChild(section.blocks, id);
-    if (container) {
-      updateBlocks(removeBlockFromContainer(section.blocks, container.id, id));
-    } else {
-      updateBlocks(section.blocks.filter((b) => b.id !== id));
+    try {
+      if (!id) {
+        console.warn("removeBlock: Missing block id");
+        return;
+      }
+      const container = findContainerForChild(latestBlocksRef.current, id, currentTheme, device);
+      if (container) {
+        updateBlocks((prev) => removeBlockFromContainer(prev, container.id, id, currentTheme, device));
+      } else {
+        updateBlocks((prev) => prev.filter((b) => b.id !== id));
+      }
+      if (selection.kind === "block" && selection.id === id) setSelection({ kind: "section" });
+    } catch (err) {
+      console.error("Error removing block:", err);
     }
-    if (selection.kind === "block" && selection.id === id) setSelection({ kind: "section" });
-  }, [section.blocks, updateBlocks, selection]);
+  }, [updateBlocks, selection, currentTheme, device]);
 
   const duplicateBlock = useCallback((id: string) => {
-    const found = findBlockInTree(section.blocks, id);
-    if (!found) return;
-    const source = found.block;
-    const copy: Block = {
-      ...source,
-      id: `blk_${Math.random().toString(36).slice(2, 9)}`,
-      settings: JSON.parse(JSON.stringify(source.settings)),
-      style: source.style ? JSON.parse(JSON.stringify(source.style)) : undefined,
-      layout: source.layout ? { ...source.layout } : undefined,
-      advanced: source.advanced ? { ...source.advanced } : undefined,
-    };
+    try {
+      if (!id) {
+        console.warn("duplicateBlock: Missing block id");
+        return;
+      }
+      const found = findBlockInTree(latestBlocksRef.current, id, currentTheme, device);
+      if (!found) {
+        console.warn(`duplicateBlock: Block ${id} not found`);
+        return;
+      }
+      const source = found.block;
+      const copy: Block = {
+        ...source,
+        id: `blk_${Math.random().toString(36).slice(2, 9)}`,
+        order: (source.order ?? 0) + 1,
+        settings: JSON.parse(JSON.stringify(source.settings)),
+        style: source.style ? JSON.parse(JSON.stringify(source.style)) : undefined,
+        layout: source.layout ? { ...source.layout } : undefined,
+        advanced: source.advanced ? { ...source.advanced } : undefined,
+        responsiveStyles: source.responsiveStyles ? JSON.parse(JSON.stringify(source.responsiveStyles)) : undefined,
+        responsiveLayout: source.responsiveLayout ? JSON.parse(JSON.stringify(source.responsiveLayout)) : undefined,
+        responsiveSettings: source.responsiveSettings ? JSON.parse(JSON.stringify(source.responsiveSettings)) : undefined,
+        responsiveAdvanced: source.responsiveAdvanced ? JSON.parse(JSON.stringify(source.responsiveAdvanced)) : undefined,
+      };
 
-    const container = findContainerForChild(section.blocks, id);
-    if (container) {
-      const children = [...(container.settings.blocks || []), copy].map((c, i) => ({ ...c, order: i }));
-      updateBlocks(section.blocks.map((b) =>
-        b.id === container.id ? { ...b, settings: { ...b.settings, blocks: children } } : b
-      ));
-    } else {
-      const sorted = [...section.blocks].sort((a, b) => a.order - b.order);
-      const idx = sorted.findIndex((b) => b.id === id);
-      const next = [...sorted];
-      next.splice(idx + 1, 0, copy);
-      updateBlocks(next.map((b, i) => ({ ...b, order: i })));
+      const container = findContainerForChild(latestBlocksRef.current, id, currentTheme, device);
+      if (container) {
+        updateBlocks((prev) => {
+          const existing = getEffectiveContainerChildren(container, currentTheme, device) || [];
+          const children = [...existing, copy].map((c, i) => ({ ...c, order: i }));
+          return updateNestedBlock(prev, container.id, (b) => setEffectiveContainerChildren(b, children, currentTheme, device), currentTheme, device);
+        });
+      } else {
+        updateBlocks((prev) => {
+          const sorted = [...prev].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+          const idx = sorted.findIndex((b) => b.id === id);
+          if (idx < 0) return prev;
+          const next = [...sorted];
+          next.splice(idx + 1, 0, copy);
+          return next.map((b, i) => ({ ...b, order: i }));
+        });
+      }
+      setSelection({ kind: "block", id: copy.id });
+    } catch (err) {
+      console.error("Error duplicating block:", err);
     }
-    setSelection({ kind: "block", id: copy.id });
-  }, [section.blocks, updateBlocks]);
+  }, [updateBlocks, currentTheme, device]);
 
   const moveBlock = useCallback((id: string, direction: "up" | "down") => {
-    const container = findContainerForChild(section.blocks, id);
-    if (container) {
-      updateBlocks(moveBlockInContainer(section.blocks, container.id, id, direction));
-    } else {
-      const sorted = [...section.blocks].sort((a, b) => a.order - b.order);
-      const idx = sorted.findIndex((b) => b.id === id);
-      if (idx < 0) return;
-      if (direction === "up" && idx === 0) return;
-      if (direction === "down" && idx === sorted.length - 1) return;
-      const targetIdx = direction === "up" ? idx - 1 : idx + 1;
-      updateBlocks(arrayMove(sorted, idx, targetIdx).map((b, i) => ({ ...b, order: i })));
+    try {
+      if (!id || !["up", "down"].includes(direction)) {
+        console.warn("moveBlock: Invalid id or direction");
+        return;
+      }
+      const container = findContainerForChild(latestBlocksRef.current, id, currentTheme, device);
+      if (container) {
+        updateBlocks((prev) => moveBlockInContainer(prev, container.id, id, direction, currentTheme, device));
+      } else {
+        updateBlocks((prev) => {
+          const sorted = [...prev].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+          const idx = sorted.findIndex((b) => b.id === id);
+          if (idx < 0) return prev;
+          if (direction === "up" && idx === 0) return prev;
+          if (direction === "down" && idx === sorted.length - 1) return prev;
+          const targetIdx = direction === "up" ? idx - 1 : idx + 1;
+          return arrayMove(sorted, idx, targetIdx).map((b, i) => ({ ...b, order: i }));
+        });
+      }
+    } catch (err) {
+      console.error("Error moving block:", err);
     }
-  }, [section.blocks, updateBlocks]);
+  }, [updateBlocks, currentTheme, device]);
 
   const updateBlockSettings = useCallback((id: string, settings: BlockSettingsMap[BlockType]) => {
-    updateBlocks(updateNestedBlock(section.blocks, id, (b) => ({ ...b, settings })));
-  }, [section.blocks, updateBlocks]);
+    try {
+      if (!id || !settings) {
+        console.warn("updateBlockSettings: Missing id or settings");
+        return;
+      }
+      updateBlocks((prevBlocks) => updateNestedBlock(prevBlocks, id, (b) => ({ ...b, settings }), currentTheme, device));
+    } catch (err) {
+      console.error("Error updating block settings:", err);
+    }
+  }, [updateBlocks, currentTheme, device]);
 
-  const updateBlockStyle = useCallback((id: string, style: BlockStyle) => {
-    updateBlocks(updateNestedBlock(section.blocks, id, (b) => ({ ...b, style })));
-  }, [section.blocks, updateBlocks]);
+  const updateBlockStyle = useCallback((id: string, update: { responsiveStyles?: ResponsiveBlockStyles }) => {
+    try {
+      if (!id || !update) {
+        console.warn("updateBlockStyle: Missing id or update");
+        return;
+      }
+      updateBlocks((prevBlocks) => updateNestedBlock(prevBlocks, id, (b) => {
+        if (!update.responsiveStyles) return b;
+        const prev = b.responsiveStyles ?? {};
+      const next: ResponsiveBlockStyles = {};
+      for (const th of Object.keys(update.responsiveStyles) as Array<keyof ResponsiveBlockStyles>) {
+        const themeUpdate = update.responsiveStyles[th];
+        if (!themeUpdate) continue;
+        const prevTheme = prev[th] ?? {};
+        const merged: Record<string, import("@/types/homepage").BlockBreakpointStyle> = { ...prevTheme };
+        for (const dev of Object.keys(themeUpdate) as Array<keyof typeof themeUpdate>) {
+          const prevBP = prevTheme[dev];
+          const newBP = themeUpdate[dev];
+          if (!prevBP && !newBP) continue;
+          if (!prevBP || !newBP) {
+            merged[dev] = (newBP ?? prevBP) as import("@/types/homepage").BlockBreakpointStyle;
+            continue;
+          }
+          const deepMerged: Record<string, unknown> = {};
+          const allCatKeys = new Set([...Object.keys(prevBP), ...Object.keys(newBP)]);
+          for (const cat of allCatKeys) {
+            const prevVal = (prevBP as Record<string, unknown>)[cat];
+            const newVal = (newBP as Record<string, unknown>)[cat];
+            if (prevVal && newVal && typeof prevVal === "object" && typeof newVal === "object" && !Array.isArray(prevVal) && !Array.isArray(newVal)) {
+              deepMerged[cat] = { ...(prevVal as Record<string, unknown>), ...(newVal as Record<string, unknown>) };
+            } else if (newVal !== undefined) {
+              deepMerged[cat] = newVal;
+            } else {
+              deepMerged[cat] = prevVal;
+            }
+          }
+          merged[dev] = deepMerged as import("@/types/homepage").BlockBreakpointStyle;
+        }
+        next[th] = merged as ResponsiveBlockStyles[typeof th];
+      }
+      return { ...b, responsiveStyles: { ...prev, ...next } };
+    }, currentTheme, device));
+    } catch (err) {
+      console.error("Error updating block style:", err);
+    }
+  }, [updateBlocks, currentTheme, device]);
 
   const updateBlockAdvanced = useCallback((id: string, advanced: BlockAdvanced) => {
-    updateBlocks(updateNestedBlock(section.blocks, id, (b) => ({ ...b, advanced })));
-  }, [section.blocks, updateBlocks]);
+    updateBlocks((prevBlocks) => updateNestedBlock(prevBlocks, id, (b) => ({ ...b, advanced }), currentTheme, device));
+  }, [updateBlocks, currentTheme, device]);
 
   const updateBlockLayout = useCallback((id: string, layout: BlockLayout) => {
-    updateBlocks(updateNestedBlock(section.blocks, id, (b) => ({ ...b, layout })));
-  }, [section.blocks, updateBlocks]);
+    updateBlocks((prevBlocks) => updateNestedBlock(prevBlocks, id, (b) => ({ ...b, layout }), currentTheme, device));
+  }, [updateBlocks, currentTheme, device]);
+
+  const updateBlockLayoutResponsive = useCallback((id: string, update: { responsiveLayout?: ResponsiveBlockLayout }) => {
+    updateBlocks((prevBlocks) => updateNestedBlock(prevBlocks, id, (b) => {
+      if (!update.responsiveLayout) return b;
+      const prev = b.responsiveLayout ?? {};
+      const next: ResponsiveBlockLayout = {};
+      for (const th of Object.keys(update.responsiveLayout) as Array<keyof ResponsiveBlockLayout>) {
+        const themeUpdate = update.responsiveLayout[th];
+        if (!themeUpdate) continue;
+        const prevTheme = prev[th] ?? {};
+        const merged: Record<string, BlockLayout> = { ...prevTheme };
+        for (const dev of Object.keys(themeUpdate) as Array<keyof typeof themeUpdate>) {
+          merged[dev] = { ...DEFAULT_BLOCK_LAYOUT, ...(prevTheme[dev] ?? {}), ...(themeUpdate[dev] ?? {}) };
+        }
+        next[th] = merged as ResponsiveBlockLayout[typeof th];
+      }
+      return { ...b, responsiveLayout: { ...prev, ...next } };
+    }, currentTheme, device));
+  }, [updateBlocks, currentTheme, device]);
+
+  const updateBlockSettingsResponsive = useCallback((id: string, update: { responsiveSettings?: ResponsiveBlockSettings }) => {
+    updateBlocks((prevBlocks) => updateNestedBlock(prevBlocks, id, (b) => {
+      if (!update.responsiveSettings) return b;
+      const prev = b.responsiveSettings ?? {};
+      const next: ResponsiveBlockSettings = {};
+      for (const th of Object.keys(update.responsiveSettings) as Array<keyof ResponsiveBlockSettings>) {
+        const themeUpdate = update.responsiveSettings[th];
+        if (!themeUpdate) continue;
+        const prevTheme = prev[th] ?? {};
+        const merged: Record<string, Record<string, unknown>> = { ...prevTheme };
+        for (const dev of Object.keys(themeUpdate) as Array<keyof typeof themeUpdate>) {
+          merged[dev] = { ...(prevTheme[dev] ?? {}), ...themeUpdate[dev] };
+        }
+        next[th] = merged as ResponsiveBlockSettings[typeof th];
+      }
+      return { ...b, responsiveSettings: { ...prev, ...next } };
+    }, currentTheme, device));
+  }, [updateBlocks, currentTheme, device]);
+
+  const updateBlockAdvancedResponsive = useCallback((id: string, update: { responsiveAdvanced?: ResponsiveBlockAdvanced }) => {
+    updateBlocks((prevBlocks) => updateNestedBlock(prevBlocks, id, (b) => {
+      if (!update.responsiveAdvanced) return b;
+      const prev = b.responsiveAdvanced ?? {};
+      const next: ResponsiveBlockAdvanced = {};
+      for (const th of Object.keys(update.responsiveAdvanced) as Array<keyof ResponsiveBlockAdvanced>) {
+        const themeUpdate = update.responsiveAdvanced[th];
+        if (!themeUpdate) continue;
+        const prevTheme = prev[th] ?? {};
+        const merged: Record<string, BlockAdvanced> = { ...prevTheme };
+        for (const dev of Object.keys(themeUpdate) as Array<keyof typeof themeUpdate>) {
+          merged[dev] = { ...(prevTheme[dev] ?? {}), ...themeUpdate[dev] };
+        }
+        next[th] = merged as ResponsiveBlockAdvanced[typeof th];
+      }
+      return { ...b, responsiveAdvanced: { ...prev, ...next } };
+    }, currentTheme, device));
+  }, [updateBlocks, currentTheme, device]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
-    const id = String(event.active.id);
-    if (id.startsWith("palette-")) setDragType(id.replace("palette-", "") as BlockType);
+    try {
+      const id = String(event.active.id);
+      if (id?.startsWith("palette-")) {
+        const type = id.replace("palette-", "") as BlockType;
+        if (BLOCK_TYPES.includes(type)) {
+          setDragType(type);
+        }
+      }
+    } catch (err) {
+      console.error('Drag start error:', err);
+    }
   }, []);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     setDragType(null);
-    if (!over) return;
+    const th = currentTheme;
+    const dev = device;
+    
+    try {
+      if (!over || !active) return;
 
-    const activeId = String(active.id);
-    const overId = String(over.id);
+      const activeId = String(active.id);
+      const overId = String(over.id);
 
-    // Palette → canvas drop
-    if (activeId.startsWith("palette-")) {
-      const type = activeId.replace("palette-", "") as BlockType;
+      if (!activeId || !overId) return;
 
-      // Check if dropping into a container
-      if (overId.startsWith("drop-")) {
-        const containerId = overId.replace("drop-", "");
-        addBlockToContainerCb(containerId, type);
+      // Palette → canvas drop
+      if (activeId.startsWith("palette-")) {
+        const type = activeId.replace("palette-", "") as BlockType;
+        if (!BLOCK_TYPES.includes(type)) return;
+
+        // Check if dropping into a container
+        if (overId.startsWith("drop-")) {
+          const containerId = overId.replace("drop-", "");
+          if (containerId && latestBlocksRef.current.some(b => b.id === containerId || findBlockInTree(latestBlocksRef.current, containerId, th, dev))) {
+            addBlockToContainerCb(containerId, type);
+          }
+          return;
+        }
+
+        addBlock(type);
         return;
       }
 
-      addBlock(type);
-      return;
-    }
+      // Canvas reorder — same block, skip
+      if (activeId === overId) return;
 
-    // Canvas reorder — same block, skip
-    if (activeId === overId) return;
-
-    // Check if we're dropping onto a container drop zone
-    if (overId.startsWith("drop-")) {
-      const containerId = overId.replace("drop-", "");
-      // Find the active block and move it into the container
-      const found = findBlockBySortableId(section.blocks, activeId);
-      if (found) {
-        // Remove from current location
-        const container = findContainerForChild(section.blocks, activeId);
-        let nextBlocks: Block[];
-        if (container) {
-          nextBlocks = removeBlockFromContainer(section.blocks, container.id, activeId);
-        } else {
-          nextBlocks = section.blocks.filter((b) => b.id !== activeId);
+      // Check if we're dropping onto a container drop zone
+      if (overId.startsWith("drop-")) {
+        const containerId = overId.replace("drop-", "");
+        // Find the active block and move it into the container
+        const found = findBlockBySortableId(latestBlocksRef.current, activeId, th, dev);
+        if (found) {
+          const blockToAdd = cloneJson(found.block);
+          const actualBlockId = found.block.id;
+          updateBlocks((prev) => {
+            try {
+              const container = findContainerForChild(prev, actualBlockId, th, dev);
+              let nextBlocks: Block[];
+              if (container) {
+                nextBlocks = removeBlockFromContainer(prev, container.id, actualBlockId, th, dev);
+              } else {
+                nextBlocks = prev.filter((b) => b.id !== actualBlockId);
+              }
+              return addBlockToContainer(nextBlocks, containerId, blockToAdd, th, dev);
+            } catch (err) {
+              console.error('Error moving block to container:', err);
+              return prev;
+            }
+          });
         }
-        // Add to target container
-        const blockToAdd = found.block;
-        updateBlocks(addBlockToContainer(nextBlocks, containerId, blockToAdd));
+        return;
       }
-      return;
-    }
 
-    // Check if both IDs are nested (contain "--") — reorder within same container
-    const activeNested = activeId.includes("--");
-    const overNested = overId.includes("--");
+      // Check if both IDs are nested (contain "--") — reorder within same container
+      const activeNested = activeId.includes("--");
+      const overNested = overId.includes("--");
 
-    if (activeNested && overNested) {
-      const activeParent = activeId.split("--")[0];
-      const overParent = overId.split("--")[0];
-      const activeChildId = activeId.split("--").slice(1).join("--");
-      const overChildId = overId.split("--").slice(1).join("--");
+      if (activeNested && overNested) {
+        // Find the actual blocks using their real IDs (last segment after --)
+        const activeFound = findBlockBySortableId(latestBlocksRef.current, activeId, th, dev);
+        const overFound = findBlockBySortableId(latestBlocksRef.current, overId, th, dev);
 
-      if (activeParent === overParent) {
-        // Same container — reorder
-        const found = findBlockInTree(section.blocks, activeParent);
-        if (found && isContainer(found.block)) {
-          const container = found.block;
-          const sorted = [...(container.settings.blocks || [])].sort((a, b) => a.order - b.order);
-          const oldIdx = sorted.findIndex((c) => c.id === activeChildId);
-          const newIdx = sorted.findIndex((c) => c.id === overChildId);
-          if (oldIdx >= 0 && newIdx >= 0) {
-            const reordered = arrayMove(sorted, oldIdx, newIdx).map((c, i) => ({ ...c, order: i }));
-            updateBlocks(section.blocks.map((b) =>
-              b.id === activeParent ? { ...b, settings: { ...b.settings, blocks: reordered } } : b
-            ));
+        if (activeFound && overFound) {
+          const activeChildId = activeFound.block.id;
+          const overChildId = overFound.block.id;
+
+          // Find the parent container for the active block
+          const activeParentContainer = findContainerForChild(latestBlocksRef.current, activeChildId, th, dev);
+          // Find the parent container for the over block
+          const overParentContainer = findContainerForChild(latestBlocksRef.current, overChildId, th, dev);
+
+          // Only reorder if both blocks are in the same container
+          if (activeParentContainer && overParentContainer && activeParentContainer.id === overParentContainer.id) {
+            updateBlocks((prev) => {
+              try {
+                const found = findBlockInTree(prev, activeParentContainer.id, th, dev);
+                if (found && isContainer(found.block)) {
+                  const existing = getEffectiveContainerChildren(found.block, th, dev) || [];
+                  const sorted = [...existing].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+                  const oldIdx = sorted.findIndex((c) => c.id === activeChildId);
+                  const newIdx = sorted.findIndex((c) => c.id === overChildId);
+                  if (oldIdx >= 0 && newIdx >= 0 && oldIdx !== newIdx) {
+                    const reordered = arrayMove(sorted, oldIdx, newIdx).map((c, i) => ({ ...c, order: i }));
+                    return updateNestedBlock(prev, activeParentContainer.id, (b) => setEffectiveContainerChildren(b, reordered, th, dev), th, dev);
+                  }
+                }
+                return prev;
+              } catch (err) {
+                console.error('Error reordering nested blocks:', err);
+                return prev;
+              }
+            });
           }
         }
+        return;
       }
-      return;
-    }
 
-    // Top-level reorder
-    const oldIndex = blocks.findIndex((b) => b.id === activeId);
-    const newIndex = blocks.findIndex((b) => b.id === overId);
-    if (oldIndex < 0 || newIndex < 0) return;
-    updateBlocks(arrayMove(blocks, oldIndex, newIndex).map((b, i) => ({ ...b, order: i })));
-  }, [addBlock, addBlockToContainerCb, blocks, section.blocks, updateBlocks]);
+      // Cross-level: nested block → top-level block (move out of container to root)
+      if (activeNested && !overNested) {
+        const activeFound = findBlockBySortableId(latestBlocksRef.current, activeId, th, dev);
+        if (activeFound) {
+          const blockToMove = cloneJson(activeFound.block);
+          updateBlocks((prev) => {
+            try {
+              const container = findContainerForChild(prev, activeFound.block.id, th, dev);
+              if (!container) return prev;
+              const removed = removeBlockFromContainer(prev, container.id, activeFound.block.id, th, dev);
+              // Insert near the over block
+              const overIdx = removed.findIndex((b) => b.id === overId);
+              if (overIdx < 0) {
+                return [...removed, blockToMove].map((b, i) => ({ ...b, order: i }));
+              }
+              const next = [...removed];
+              next.splice(overIdx, 0, blockToMove);
+              return next.map((b, i) => ({ ...b, order: i }));
+            } catch (err) {
+              console.error('Error moving nested block to root:', err);
+              return prev;
+            }
+          });
+        }
+        return;
+      }
+
+      // Cross-level: top-level block → nested block (move into that block's parent container)
+      if (!activeNested && overNested) {
+        const overFound = findBlockBySortableId(latestBlocksRef.current, overId, th, dev);
+        if (overFound) {
+          const container = findContainerForChild(latestBlocksRef.current, overFound.block.id, th, dev);
+          if (container) {
+            const blockToAdd = latestBlocksRef.current.find((b) => b.id === activeId);
+            if (blockToAdd) {
+              updateBlocks((prev) => {
+                try {
+                  const removed = prev.filter((b) => b.id !== activeId);
+                  return addBlockToContainer(removed, container.id, cloneJson(blockToAdd), th, dev);
+                } catch (err) {
+                  console.error('Error moving root block into container:', err);
+                  return prev;
+                }
+              });
+            }
+          }
+        }
+        return;
+      }
+
+      // Top-level reorder
+      updateBlocks((prev) => {
+        try {
+          const sorted = [...prev].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+          const oldIndex = sorted.findIndex((b) => b.id === activeId);
+          const newIndex = sorted.findIndex((b) => b.id === overId);
+          if (oldIndex < 0 || newIndex < 0 || oldIndex === newIndex) return prev;
+          return arrayMove(sorted, oldIndex, newIndex).map((b, i) => ({ ...b, order: i }));
+        } catch (err) {
+          console.error('Error reordering top-level blocks:', err);
+          return prev;
+        }
+      });
+    } catch (err) {
+      console.error('Drag end error:', err);
+    }
+  }, [addBlock, addBlockToContainerCb, updateBlocks, currentTheme, device]);
 
   const handleDragCancel = useCallback(() => setDragType(null), []);
 
@@ -575,12 +918,12 @@ function CustomSectionEditorInner({
     onMoveDown: (id) => moveBlock(id, "down"),
     onAddToContainer: addBlockToContainerCb,
     onRemoveFromContainer: (containerId, childId) => {
-      updateBlocks(removeBlockFromContainer(section.blocks, containerId, childId));
+      updateBlocks((prev) => removeBlockFromContainer(prev, containerId, childId, currentTheme, device));
     },
     onMoveInContainer: (containerId, childId, direction) => {
-      updateBlocks(moveBlockInContainer(section.blocks, containerId, childId, direction));
+      updateBlocks((prev) => moveBlockInContainer(prev, containerId, childId, direction, currentTheme, device));
     },
-  }), [removeBlock, duplicateBlock, moveBlock, addBlockToContainerCb, section.blocks, updateBlocks]);
+  }), [removeBlock, duplicateBlock, moveBlock, addBlockToContainerCb, updateBlocks, currentTheme, device]);
 
   return (
     <DndContext
@@ -740,7 +1083,7 @@ function CustomSectionEditorInner({
               selectedBlockId={selectedBlock?.id}
               actions={canvasActions}
               layout={section.settings.layout}
-                sectionStyle={section.style}
+              sectionStyle={resolveSectionStyle(section.style, section.responsiveStyles, resolvedTheme, device)}
             />
           </div>
         </div>
@@ -765,9 +1108,12 @@ function CustomSectionEditorInner({
                 <BlockStylePanel
                   block={selectedBlock}
                   onSettingsUpdate={(settings) => updateBlockSettings(selectedBlock.id, settings)}
-                  onStyleUpdate={(style) => updateBlockStyle(selectedBlock.id, style)}
+                  onStyleUpdate={(update) => updateBlockStyle(selectedBlock.id, update)}
                   onAdvancedUpdate={(adv) => updateBlockAdvanced(selectedBlock.id, adv)}
                   onLayoutUpdate={(layout) => updateBlockLayout(selectedBlock.id, layout)}
+                  onResponsiveLayoutUpdate={(update) => updateBlockLayoutResponsive(selectedBlock.id, update)}
+                  onResponsiveSettingsUpdate={(update) => updateBlockSettingsResponsive(selectedBlock.id, update)}
+                  onResponsiveAdvancedUpdate={(update) => updateBlockAdvancedResponsive(selectedBlock.id, update)}
                   onBack={() => setSelection({ kind: "section" })}
                 />
               </>

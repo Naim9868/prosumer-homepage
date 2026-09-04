@@ -15,19 +15,24 @@ export function SectionWrapper({
   style,
   children,
   id,
+  dataCustomSectionId,
+  disableVisibilityClasses = false,
 }: {
   style: SectionStyle;
   children: ReactNode;
   id?: string;
+  dataCustomSectionId?: string;
+  disableVisibilityClasses?: boolean;
 }) {
   const width = widthClass[style.containerWidth ?? "7xl"];
 
   return (
     <section
       id={id}
+      data-custom-section-id={dataCustomSectionId}
       className={cn(
-        style.hideOnMobile && "hidden sm:block",
-        style.hideOnDesktop && "sm:hidden"
+        !disableVisibilityClasses && style.hideOnMobile && "hidden sm:block",
+        !disableVisibilityClasses && style.hideOnDesktop && "sm:hidden"
       )}
       style={{
         backgroundColor: style.backgroundColor && style.backgroundColor !== "transparent" ? style.backgroundColor : undefined,

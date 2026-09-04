@@ -26,10 +26,10 @@ export default function ProductDetailClient({ product }: Props) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>(() => {
-    const def = product.variants?.find((v) => v.isDefault) || product.variants?.[0];
+    const def = product.variants?.find((v: IProductVariant) => v.isDefault) || product.variants?.[0];
     if (!def) return {};
     const attrs: Record<string, string> = {};
-    def.attributes?.forEach((a) => {
+    def.attributes?.forEach((a: { key: string; value: string }) => {
       attrs[a.key] = a.value;
     });
     return attrs;
@@ -42,15 +42,15 @@ export default function ProductDetailClient({ product }: Props) {
   const selectedVariant = useMemo<IProductVariant | undefined>(() => {
     const variants = product.variants || [];
     if (!variants.length) return undefined;
-    const match = variants.find((v) => v.attributes?.every((a) => selectedAttributes[a.key] === a.value));
-    return match || variants.find((v) => v.isDefault) || variants[0];
+    const match = variants.find((v: IProductVariant) => v.attributes?.every((a: { key: string; value: string }) => selectedAttributes[a.key] === a.value));
+    return match || variants.find((v: IProductVariant) => v.isDefault) || variants[0];
   }, [product.variants, selectedAttributes]);
 
   const attributeTypes = useMemo(() => {
     if (!product.variants?.length) return [];
     const map = new Map<string, Set<string>>();
-    product.variants.forEach((v) => {
-      v.attributes?.forEach((a) => {
+    product.variants.forEach((v: IProductVariant) => {
+      v.attributes?.forEach((a: { key: string; value: string }) => {
         if (!map.has(a.key)) map.set(a.key, new Set());
         map.get(a.key)!.add(a.value);
       });
@@ -70,7 +70,7 @@ export default function ProductDetailClient({ product }: Props) {
   const currentStock = useMemo(() => {
     if (selectedVariant) return selectedVariant.inventory - (selectedVariant.reserved || 0);
     if (product.variants?.length) {
-      return product.variants.reduce((sum, v) => sum + (v.inventory || 0), 0);
+      return product.variants.reduce((sum: number, v: IProductVariant) => sum + (v.inventory || 0), 0);
     }
     return product.totalInventory || product.inventorySummary?.available || 0;
   }, [selectedVariant, product]);
@@ -80,7 +80,7 @@ export default function ProductDetailClient({ product }: Props) {
   const allImages = useMemo(() => {
     if (selectedVariant?.images?.length) return selectedVariant.images;
     const images: string[] = [];
-    product.imageGroups?.forEach((g) => g.images?.forEach((img) => images.push(img.url)));
+    product.imageGroups?.forEach((g: { images?: { url: string }[] }) => g.images?.forEach((img: { url: string }) => images.push(img.url)));
     if (images.length === 0 && product.thumbnail) images.push(product.thumbnail);
     return images;
   }, [product, selectedVariant]);
@@ -197,7 +197,7 @@ export default function ProductDetailClient({ product }: Props) {
           </div>
           {allImages.length > 1 && (
             <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
-              {allImages.map((img, i) => (
+              {allImages.map((img: string, i: number) => (
                 <button
                   type="button"
                   key={i}
@@ -239,13 +239,13 @@ export default function ProductDetailClient({ product }: Props) {
 
         <h1 className="text-3xl font-bold text-foreground lg:text-4xl">{product.name}</h1>
 
-        {product.ratingAverage > 0 && (
+        {product.ratingAverage != null && product.ratingAverage > 0 && (
           <div className="flex items-center gap-2">
             <div className="flex items-center">
               {[...Array(5)].map((_, i) => (
                 <svg
                   key={i}
-                  className={cn("h-4 w-4", i < Math.floor(product.ratingAverage) ? "text-yellow-400" : "text-muted")}
+                  className={cn("h-4 w-4", i < Math.floor(product.ratingAverage!) ? "text-yellow-400" : "text-muted")}
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -391,9 +391,9 @@ export default function ProductDetailClient({ product }: Props) {
           )}
         </div>
 
-        {product.tags?.length > 0 && (
+        {product.tags && product.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 pt-2">
-            {product.tags.map((tag) => (
+            {product.tags!.map((tag: string) => (
               <span key={tag} className="rounded-full bg-muted px-3 py-1 text-xs text-foreground-muted">
                 {tag}
               </span>

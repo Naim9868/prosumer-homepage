@@ -40,8 +40,12 @@ const BlockSchema = new Schema(
     order: { type: Number, required: true },
     settings: { type: Schema.Types.Mixed, default: {} },
     style: { type: Schema.Types.Mixed, default: undefined },
+    responsiveStyles: { type: Schema.Types.Mixed, default: undefined },
     layout: { type: Schema.Types.Mixed, default: undefined },
+    responsiveLayout: { type: Schema.Types.Mixed, default: undefined },
     advanced: { type: Schema.Types.Mixed, default: undefined },
+    responsiveAdvanced: { type: Schema.Types.Mixed, default: undefined },
+    responsiveSettings: { type: Schema.Types.Mixed, default: undefined },
   },
   { _id: false }
 );
@@ -53,6 +57,7 @@ const SectionSchema = new Schema(
     enabled: { type: Boolean, default: true },
     order: { type: Number, required: true },
     style: { type: SectionStyleSchema, default: () => ({}) },
+    responsiveStyles: { type: Schema.Types.Mixed, default: undefined },
     settings: { type: Schema.Types.Mixed, default: {} },
     blocks: { type: [BlockSchema], default: undefined }, // only present on "custom" sections
   },

@@ -2,61 +2,79 @@ import type { CSSProperties, ComponentType } from "react";
 import { SectionWrapper } from "@/components/shared/section-wrapper";
 import { BLOCK_REGISTRY } from "@/registry/block-registry";
 import type { CatalogData } from "@/types/catalog";
-import type { CustomSection, CustomSectionLayout, Block, EditorDevice } from "@/types/homepage";
+import type { CustomSection, CustomSectionLayout, Block, EditorDevice, SectionTheme } from "@/types/homepage";
 import { DEFAULT_CUSTOM_LAYOUT, DEFAULT_BLOCK_LAYOUT } from "@/types/homepage";
-import { blockStyleToInline, generateSectionCSS, parseCustomAttributes } from "@/lib/style-utils";
+import { blockStyleToInlineEditor, generateResponsiveSectionCSS, generateSectionCSS, parseCustomAttributes, resolveSectionStyle } from "@/lib/style-utils";
+
+const DEVICES: EditorDevice[] = ["desktop", "tablet", "mobile"];
+
+function resolveBlockForDevice(block: Block, theme: SectionTheme, device: EditorDevice): Block {
+  const responsiveSettings = block.responsiveSettings?.[theme]?.[device];
+  const resolvedSettings = responsiveSettings ? { ...block.settings, ...responsiveSettings } as typeof block.settings : block.settings;
+  const responsiveLayout = block.responsiveLayout?.[theme]?.[device];
+  const resolvedLayout = responsiveLayout ?? block.layout;
+  const responsiveAdvanced = block.responsiveAdvanced?.[theme]?.[device];
+  const resolvedAdvanced = responsiveAdvanced ? { ...block.advanced, ...responsiveAdvanced } : block.advanced;
+  return { ...block, settings: resolvedSettings, layout: resolvedLayout, advanced: resolvedAdvanced };
+}
+
+function resolveBlockForPublic(block: Block): Block {
+  return resolveBlockForDevice(block, "light", "desktop");
+}
+
+function getContainerChildrenForDevice(container: Block<"container">, theme: SectionTheme, device: EditorDevice): Block[] {
+  const responsive = container.responsiveSettings?.[theme]?.[device];
+  if (responsive && typeof responsive === "object" && "blocks" in responsive && Array.isArray((responsive as Record<string, unknown>).blocks)) {
+    return (responsive as Record<string, unknown>).blocks as Block[];
+  }
+  return container.settings.blocks ?? [];
+}
+
+function getContainerLayoutForDevice(container: Block<"container">, theme: SectionTheme, device: EditorDevice): CustomSectionLayout {
+  const responsive = container.responsiveSettings?.[theme]?.[device];
+  const responsiveLayout = responsive && typeof responsive === "object" && "layout" in responsive
+    ? (responsive as Record<string, unknown>).layout as CustomSectionLayout | undefined
+    : undefined;
+  return responsiveLayout ?? container.settings.layout ?? DEFAULT_CUSTOM_LAYOUT;
+}
+
+function resolveLayoutForDevice(layout: CustomSectionLayout, device: EditorDevice): CustomSectionLayout {
+  if (device === "desktop") return layout;
+  const override = layout.responsive?.[device];
+  if (!override) return layout;
+  return { ...layout, ...override };
+}
+
+// ─── Layout helpers ─────────────────────────────────────────────
 
 function buildGridStyle(layout: CustomSectionLayout): CSSProperties {
   const ratios = layout.columnRatios;
   const hasRatios = Array.isArray(ratios) && ratios.length === layout.columns;
   const template = hasRatios ? ratios.map((r) => `${r}fr`).join(" ") : `repeat(${layout.columns}, 1fr)`;
-  return {
-    display: "grid",
-    gridTemplateColumns: template,
-    gap: layout.gap,
-    alignItems: layout.alignItems,
-    justifyItems: layout.justifyContent,
-  };
+  return { display: "grid", gridTemplateColumns: template, gap: layout.gap, alignItems: layout.alignItems, justifyItems: layout.justifyContent };
 }
 
 function buildFlexStyle(layout: CustomSectionLayout): CSSProperties {
-  const dir = layout.flexDirection === "row-wrap" || layout.flexDirection === "column-wrap"
-    ? layout.flexDirection === "row-wrap" ? "row" : "column"
-    : layout.flexDirection;
+  const dir = layout.flexDirection === "row-wrap" || layout.flexDirection === "column-wrap" ? (layout.flexDirection === "row-wrap" ? "row" : "column") : layout.flexDirection;
   const wrap = layout.flexDirection === "row-wrap" || layout.flexDirection === "column-wrap" ? "wrap" : "nowrap";
-  return {
-    display: "flex",
-    flexDirection: dir,
-    flexWrap: wrap,
-    gap: layout.gap,
-    justifyContent: layout.justifyContent,
-    alignItems: layout.alignItems,
-  };
+  return { display: "flex", flexDirection: dir, flexWrap: wrap, gap: layout.gap, justifyContent: layout.justifyContent, alignItems: layout.alignItems };
 }
 
-function buildStackStyle(layout: CustomSectionLayout): CSSProperties {
-  return {
-    display: "flex",
-    flexDirection: "column",
-    gap: layout.gap,
-  };
+function buildStackStyle(): CSSProperties {
+  return { display: "flex", flexDirection: "column", gap: 24 };
 }
 
 function buildContainerStyle(layout: CustomSectionLayout): CSSProperties {
   switch (layout.mode) {
-    case "grid":
-      return buildGridStyle(layout);
-    case "flex":
-      return buildFlexStyle(layout);
-    default:
-      return buildStackStyle(layout);
+    case "grid": return buildGridStyle(layout);
+    case "flex": return buildFlexStyle(layout);
+    default: return buildStackStyle();
   }
 }
 
 function buildBlockStyle(block: Block, layoutMode: string, columns: number, gap: number): CSSProperties {
   const bl = block.layout ?? DEFAULT_BLOCK_LAYOUT;
   const style: CSSProperties = {};
-
   if (layoutMode === "grid") {
     style.gridColumn = bl.columnSpan > 1 ? `span ${bl.columnSpan}` : undefined;
     style.gridRow = bl.rowSpan > 1 ? `span ${bl.rowSpan}` : undefined;
@@ -64,157 +82,90 @@ function buildBlockStyle(block: Block, layoutMode: string, columns: number, gap:
     style.flex = bl.columnSpan > 1 ? `0 0 calc((100% * ${bl.columnSpan} / ${columns}) - ${(bl.columnSpan - 1) * gap}px)` : undefined;
     style.order = bl.order || undefined;
   }
-
   if (bl.alignSelf !== "auto") {
     style.alignSelf = bl.alignSelf as CSSProperties["alignSelf"];
   }
-
   return style;
 }
 
-function resolveLayoutForDevice(layout: CustomSectionLayout, device: EditorDevice): CustomSectionLayout {
-  if (device === "desktop") return layout;
-  const override = layout.responsive?.[device];
-  if (!override) return layout;
-  return {
-    ...layout,
-    ...override,
-  };
-}
+// ─── Section container responsive layout CSS ─────────────────────
 
-function containerDeclarations(layout: CustomSectionLayout): string {
-  if (layout.mode === "grid") {
-    const ratios = layout.columnRatios;
-    const hasRatios = Array.isArray(ratios) && ratios.length === layout.columns;
-    const template = hasRatios ? ratios.map((r) => `${r}fr`).join(" ") : `repeat(${layout.columns}, 1fr)`;
-    return [
-      "display: grid !important;",
-      `grid-template-columns: ${template} !important;`,
-      `gap: ${layout.gap}px !important;`,
-      `align-items: ${layout.alignItems} !important;`,
-      `justify-items: ${layout.justifyContent} !important;`,
-    ].join(" ");
-  }
+function sectionContainerLayoutCSS(sectionId: string, layout: CustomSectionLayout): string {
+  const sel = `[data-custom-layout-id="${sectionId}"]`;
+  const tablet = resolveLayoutForDevice(layout, "tablet");
+  const mobile = resolveLayoutForDevice(layout, "mobile");
+  const rules: string[] = [];
 
-  if (layout.mode === "flex") {
-    const dir = layout.flexDirection === "row-wrap" || layout.flexDirection === "column-wrap"
-      ? layout.flexDirection === "row-wrap" ? "row" : "column"
-      : layout.flexDirection;
-    const wrap = layout.flexDirection === "row-wrap" || layout.flexDirection === "column-wrap" ? "wrap" : "nowrap";
-    return [
-      "display: flex !important;",
-      `flex-direction: ${dir} !important;`,
-      `flex-wrap: ${wrap} !important;`,
-      `gap: ${layout.gap}px !important;`,
-      `justify-content: ${layout.justifyContent} !important;`,
-      `align-items: ${layout.alignItems} !important;`,
-    ].join(" ");
-  }
-
-  return [
-    "display: flex !important;",
-    "flex-direction: column !important;",
-    `gap: ${layout.gap}px !important;`,
-  ].join(" ");
-}
-
-function blockDeclarations(block: Block, layout: CustomSectionLayout): string {
-  const bl = block.layout ?? DEFAULT_BLOCK_LAYOUT;
-  const declarations: string[] = [];
-
-  if (layout.mode === "grid") {
-    if (bl.columnSpan > 1) declarations.push(`grid-column: span ${bl.columnSpan} !important;`);
-    if (bl.rowSpan > 1) declarations.push(`grid-row: span ${bl.rowSpan} !important;`);
-  }
-
-  if (layout.mode === "flex") {
-    if (bl.columnSpan > 1) {
-      declarations.push(`flex: 0 0 calc((100% * ${bl.columnSpan} / ${layout.columns}) - ${(bl.columnSpan - 1) * layout.gap}px) !important;`);
+  function decl(l: CustomSectionLayout): string {
+    if (l.mode === "grid") {
+      const ratios = l.columnRatios;
+      const hasRatios = Array.isArray(ratios) && ratios.length === l.columns;
+      const template = hasRatios ? ratios.map((r) => `${r}fr`).join(" ") : `repeat(${l.columns}, 1fr)`;
+      return `display:grid !important;grid-template-columns:${template} !important;gap:${l.gap}px !important;align-items:${l.alignItems} !important;justify-items:${l.justifyContent} !important;`;
     }
-    if (bl.order) declarations.push(`order: ${bl.order} !important;`);
+    if (l.mode === "flex") {
+      const dir = l.flexDirection === "row-wrap" || l.flexDirection === "column-wrap" ? (l.flexDirection === "row-wrap" ? "row" : "column") : l.flexDirection;
+      const wrap = l.flexDirection === "row-wrap" || l.flexDirection === "column-wrap" ? "wrap" : "nowrap";
+      return `display:flex !important;flex-direction:${dir} !important;flex-wrap:${wrap} !important;gap:${l.gap}px !important;justify-content:${l.justifyContent} !important;align-items:${l.alignItems} !important;`;
+    }
+    return `display:flex !important;flex-direction:column !important;gap:${l.gap}px !important;`;
   }
 
-  if (bl.alignSelf !== "auto") {
-    declarations.push(`align-self: ${bl.alignSelf} !important;`);
+  if (JSON.stringify(tablet) !== JSON.stringify(layout)) {
+    rules.push(`@media (max-width:1024px){${sel}{${decl(tablet)}}}`);
   }
-
-  return declarations.join(" ");
+  if (JSON.stringify(mobile) !== JSON.stringify(layout)) {
+    rules.push(`@media (max-width:768px){${sel}{${decl(mobile)}}}`);
+  }
+  return rules.join("\n");
 }
 
-function generateResponsiveLayoutCSS(sectionId: string, layout: CustomSectionLayout, blocks: Block[]): string {
-  const selector = `[data-custom-layout-id="${sectionId}"]`;
-  const tabletLayout = resolveLayoutForDevice(layout, "tablet");
-  const mobileLayout = resolveLayoutForDevice(layout, "mobile");
+// ─── Device variant show/hide CSS ────────────────────────────────
 
-  const tabletContainer = containerDeclarations(tabletLayout);
-  const mobileContainer = containerDeclarations(mobileLayout);
-
-  const responsiveBlocks = (items: Block[], parentSelector: string, currentLayout: CustomSectionLayout): string => items
-    .map((block) => {
-      const css = blockDeclarations(block, currentLayout);
-      const ownCSS = css ? `${parentSelector} [data-block-id="${block.id}"] { ${css} }` : "";
-      if (block.type !== "container") return ownCSS;
-      const children = (block as Block<"container">).settings.blocks || [];
-      return [
-        ownCSS,
-        responsiveBlocks(children, `${parentSelector} [data-block-id="${block.id}"]`, currentLayout),
-      ].filter(Boolean).join("\n");
-    })
-    .filter(Boolean)
-    .join("\n");
-
-  const tabletBlocks = responsiveBlocks(blocks, selector, tabletLayout);
-  const mobileBlocks = responsiveBlocks(blocks, selector, mobileLayout);
-
-  const responsiveContainers = (items: Block[], parentSelector: string): string[] => items.flatMap((block) => {
-    if (block.type !== "container") return [];
-    const containerSelector = `${parentSelector} [data-block-id="${block.id}"] > [data-container-content-id="${block.id}"]`;
-    const containerLayout = (block as Block<"container">).settings.layout ?? DEFAULT_CUSTOM_LAYOUT;
-    const tabletContainerLayout = resolveLayoutForDevice(containerLayout, "tablet");
-    const mobileContainerLayout = resolveLayoutForDevice(containerLayout, "mobile");
-    return [
-      `tablet:${containerSelector} { ${containerDeclarations(tabletContainerLayout)} }`,
-      `mobile:${containerSelector} { ${containerDeclarations(mobileContainerLayout)} }`,
-      ...responsiveContainers((block as Block<"container">).settings.blocks || [], `${parentSelector} [data-block-id="${block.id}"]`),
-    ];
-  });
-  const containerRules = responsiveContainers(blocks, selector);
-  const tabletContainerRules = containerRules.filter((rule) => rule.startsWith("tablet:")).map((rule) => rule.slice(8)).join("\n");
-  const mobileContainerRules = containerRules.filter((rule) => rule.startsWith("mobile:")).map((rule) => rule.slice(7)).join("\n");
-
-  return [
-    `@media (max-width: 1024px) { ${selector} { ${tabletContainer} } ${tabletBlocks} ${tabletContainerRules} }`,
-    `@media (max-width: 768px) { ${selector} { ${mobileContainer} } ${mobileBlocks} ${mobileContainerRules} }`,
-  ].join("\n");
+const DEVICE_VARIANT_CSS = `
+@media (min-width: 1025px) {
+  [data-device-variant="tablet"], [data-device-variant="mobile"] { display: none !important; }
 }
+@media (min-width: 769px) and (max-width: 1024px) {
+  [data-device-variant="desktop"], [data-device-variant="mobile"] { display: none !important; }
+}
+@media (max-width: 768px) {
+  [data-device-variant="desktop"], [data-device-variant="tablet"] { display: none !important; }
+}
+`;
 
-function renderBlock(block: Block, catalog: CatalogData | undefined, layoutStyle: CSSProperties): React.ReactNode {
-  const customAttrs = parseCustomAttributes(block.advanced?.customAttributes);
-  const Component = BLOCK_REGISTRY[block.type] as ComponentType<{ block: Block; catalog?: CatalogData }> | undefined;
+// ─── Block rendering ────────────────────────────────────────────
+
+function renderResolvedBlock(
+  resolved: Block,
+  catalog: CatalogData | undefined,
+  layoutStyle: CSSProperties,
+  device: EditorDevice = "desktop",
+): React.ReactNode {
+  const customAttrs = parseCustomAttributes(resolved.advanced?.customAttributes);
+  const Component = BLOCK_REGISTRY[resolved.type] as ComponentType<{ block: Block; catalog?: CatalogData }> | undefined;
   if (!Component) return null;
+  const inlineStyle = blockStyleToInlineEditor(resolved.responsiveStyles, "light", device);
 
-  if (block.type === "container") {
-    const container = block as Block<"container">;
-    const layout = container.settings.layout ?? DEFAULT_CUSTOM_LAYOUT;
-    const children = [...(container.settings.blocks || [])].sort((a, b) => a.order - b.order);
+  if (resolved.type === "container") {
+    const container = resolved as Block<"container">;
+    const layout = getContainerLayoutForDevice(container, "light", device);
+    const children = [...getContainerChildrenForDevice(container, "light", device)].sort((a, b) => a.order - b.order);
     return (
       <div
-        key={block.id}
-        id={block.advanced?.cssId || undefined}
-        className={block.advanced?.cssClasses || undefined}
-        data-block-id={block.id}
-        data-block-type={block.type}
-        style={{ position: "relative", overflow: "visible", ...layoutStyle, ...blockStyleToInline(block.style, "desktop") }}
+        key={resolved.id}
+        id={resolved.advanced?.cssId || undefined}
+        className={resolved.advanced?.cssClasses || undefined}
+        data-block-id={resolved.id}
+        data-block-type={resolved.type}
+        style={{ position: "relative", overflow: "visible", ...layoutStyle, ...inlineStyle }}
         {...customAttrs}
       >
-        <div style={buildContainerStyle(layout)} data-container-content-id={block.id}>
-          {children.map((child) => (
-            renderBlock(
-              child,
-              catalog,
-              buildBlockStyle(child, layout.mode, layout.columns, layout.gap)
-            )
-          ))}
+        <div style={buildContainerStyle(layout)} data-container-content-id={resolved.id}>
+          {children.map((child) => {
+            const childResolved = resolveBlockForDevice(child, "light", device);
+            return renderResolvedBlock(childResolved, catalog, buildBlockStyle(childResolved, layout.mode, layout.columns, layout.gap), device);
+          })}
         </div>
       </div>
     );
@@ -222,70 +173,86 @@ function renderBlock(block: Block, catalog: CatalogData | undefined, layoutStyle
 
   return (
     <div
-      key={block.id}
-      id={block.advanced?.cssId || undefined}
-      className={block.advanced?.cssClasses || undefined}
-      data-block-id={block.id}
-      data-block-type={block.type}
-      style={{ ...layoutStyle, ...blockStyleToInline(block.style, "desktop") }}
+      key={resolved.id}
+      id={resolved.advanced?.cssId || undefined}
+      className={resolved.advanced?.cssClasses || undefined}
+      data-block-id={resolved.id}
+      data-block-type={resolved.type}
+      style={{ ...layoutStyle, ...inlineStyle }}
       {...customAttrs}
     >
-      <Component block={block} catalog={catalog} />
+      <Component block={resolved} catalog={catalog} />
     </div>
+  );
+}
+
+function renderDeviceVariant(
+  rawBlock: Block,
+  catalog: CatalogData | undefined,
+  sectionLayout: CustomSectionLayout,
+  device: EditorDevice,
+): React.ReactNode {
+  const deviceLayout = resolveLayoutForDevice(sectionLayout, device);
+  const resolved = resolveBlockForDevice(rawBlock, "light", device);
+  return (
+    <div key={`${rawBlock.id}-${device}`} data-device-variant={device}>
+      {renderResolvedBlock(resolved, catalog, buildBlockStyle(resolved, deviceLayout.mode, deviceLayout.columns, deviceLayout.gap), device)}
+    </div>
+  );
+}
+
+// ─── Main component ─────────────────────────────────────────────
+
+export function CustomSectionRenderer({ section, catalog }: { section: CustomSection; catalog?: CatalogData }) {
+  const blocks = [...section.blocks].sort((a, b) => a.order - b.order);
+  const layout = section.settings.layout ?? DEFAULT_CUSTOM_LAYOUT;
+  const resolvedSectionStyle = resolveSectionStyle(section.style, section.responsiveStyles, "light", "desktop");
+
+  const allBlocks = flattenBlockTree(blocks);
+  const blockCSS = generateSectionCSS(allBlocks.map((b) => ({
+    id: b.id,
+    style: b.style,
+    advanced: b.advanced,
+    responsiveStyles: b.responsiveStyles,
+    responsiveAdvanced: b.responsiveAdvanced,
+    responsiveLayout: b.responsiveLayout,
+  })));
+  const sectionCSS = generateResponsiveSectionCSS(section.id, section.style, section.responsiveStyles);
+  const sectionLayoutCSS = sectionContainerLayoutCSS(section.id, layout);
+  const css = `${sectionCSS}\n${blockCSS}\n${sectionLayoutCSS}\n${DEVICE_VARIANT_CSS}`;
+
+  const containerStyle: CSSProperties = (() => {
+    switch (layout.mode) {
+      case "grid": return buildGridStyle(layout);
+      case "flex": return buildFlexStyle(layout);
+      default: return buildStackStyle();
+    }
+  })();
+  if (layout.mode === "grid") {
+    (containerStyle as Record<string, unknown>)["--grid-cols"] = layout.columns;
+  }
+
+  return (
+    <SectionWrapper style={resolvedSectionStyle} dataCustomSectionId={section.id} disableVisibilityClasses>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: css }} />
+      <div style={containerStyle} data-custom-layout-id={section.id}>
+        {blocks.map((block) => DEVICES.map((device) => renderDeviceVariant(block, catalog, layout, device)))}
+      </div>
+    </SectionWrapper>
   );
 }
 
 function flattenBlockTree(blocks: Block[]): Block[] {
   const result: Block[] = [];
   for (const block of blocks) {
-    result.push(block);
-    if (block.type === "container") {
-      const children = (block as Block<"container">).settings.blocks;
-      if (children?.length) {
+    const resolved = resolveBlockForPublic(block);
+    result.push(resolved);
+    if (resolved.type === "container") {
+      const children = getContainerChildrenForDevice(resolved as Block<"container">, "light", "desktop");
+      if (children.length) {
         result.push(...flattenBlockTree(children));
       }
     }
   }
   return result;
-}
-
-export function CustomSectionRenderer({
-  section,
-  catalog,
-}: {
-  section: CustomSection;
-  catalog?: CatalogData;
-}) {
-  const blocks = [...section.blocks].sort((a, b) => a.order - b.order);
-  const layout = section.settings.layout ?? DEFAULT_CUSTOM_LAYOUT;
-  const allBlocks = flattenBlockTree(blocks);
-  const blockCSS = generateSectionCSS(allBlocks.map((b) => ({ id: b.id, style: b.style, advanced: b.advanced })));
-  const responsiveLayoutCSS = generateResponsiveLayoutCSS(section.id, layout, blocks);
-  const css = `${blockCSS}\n${responsiveLayoutCSS}`;
-
-  const containerStyle: CSSProperties = (() => {
-    switch (layout.mode) {
-      case "grid":
-        return buildGridStyle(layout);
-      case "flex":
-        return buildFlexStyle(layout);
-      default:
-        return buildStackStyle(layout);
-    }
-  })();
-
-  if (layout.mode === "grid") {
-    (containerStyle as Record<string, unknown>)["--grid-cols"] = layout.columns;
-  }
-
-  return (
-    <SectionWrapper style={section.style}>
-      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: css }} />
-      <div style={containerStyle} data-custom-layout-id={section.id}>
-        {blocks.map((block) => {
-          return renderBlock(block, catalog, buildBlockStyle(block, layout.mode, layout.columns, layout.gap));
-        })}
-      </div>
-    </SectionWrapper>
-  );
 }

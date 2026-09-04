@@ -1,0 +1,22 @@
+/*
+  design-tokens.css
+  Add these custom properties wherever your global theme variables already
+  live (e.g. globals.css :root). If Prosumer Lens BD already defines
+  brass/titanium tokens under different names, skip this file and instead
+  update the var(--...) references in the components to match your existing
+  names — search for "--brass-" and "--titanium-" and "--surface-".
+*/
+
+:root {
+  --brass-500: #b8874a;
+
+  --titanium-100: #f2f0eb;
+  --titanium-200: #e2dfd8;
+  --titanium-300: #c9c5bc;
+  --titanium-400: #a9a49a;
+  --titanium-500: #8a8579;
+  --titanium-700: #4d4a43;
+  --titanium-800: #322f2a;
+
+  --surface-800: #1a1917;
+}

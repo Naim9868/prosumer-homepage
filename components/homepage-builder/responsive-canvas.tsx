@@ -5,13 +5,46 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-
 import { useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Trash2, Copy, ChevronUp, ChevronDown, Settings2, Plus } from "lucide-react";
-import type { Block, BlockType, EditorDevice, CustomSectionLayout, SectionStyle } from "@/types/homepage";
+import type { Block, BlockType, BlockSettingsMap, EditorDevice, CustomSectionLayout, SectionStyle, SectionTheme } from "@/types/homepage";
 import type { CatalogData } from "@/types/catalog";
 import { BLOCK_REGISTRY } from "@/registry/block-registry";
 import { BLOCK_TYPE_META } from "@/types/homepage";
-import { useEditorDevice } from "@/components/homepage-builder/editor-context";
-import { blockStyleToInline, generateSectionCSS, parseCustomAttributes } from "@/lib/style-utils";
+import { useEditorDevice, useEditorTheme } from "@/components/homepage-builder/editor-context";
+import { blockStyleToInlineEditor, generateSectionEditorCSS, parseCustomAttributes } from "@/lib/style-utils";
 import { DEFAULT_CUSTOM_LAYOUT, DEFAULT_BLOCK_LAYOUT } from "@/types/homepage";
+
+/** Resolve a block's effective layout for the current device+theme. */
+function resolveBlockLayout(block: Block, theme: SectionTheme, device: EditorDevice) {
+  return block.responsiveLayout?.[theme]?.[device] ?? block.layout ?? DEFAULT_BLOCK_LAYOUT;
+}
+
+/** Resolve a block's effective advanced settings for the current device+theme. */
+function resolveBlockAdvanced(block: Block, theme: SectionTheme, device: EditorDevice) {
+  const base = block.advanced ?? {};
+  const responsive = block.responsiveAdvanced?.[theme]?.[device];
+  if (!responsive) return base;
+  return { ...base, ...responsive };
+}
+
+/** Resolve a block's effective settings for the current device+theme. */
+function resolveBlockSettings(block: Block, theme: SectionTheme, device: EditorDevice) {
+  const responsive = block.responsiveSettings?.[theme]?.[device];
+  if (!responsive) return block.settings;
+  return { ...block.settings, ...responsive } as typeof block.settings;
+}
+
+/** Create a block with resolved settings for the current device+theme. */
+function resolveBlockForDevice(block: Block, theme: SectionTheme, device: EditorDevice): Block {
+  const resolvedSettings = resolveBlockSettings(block, theme, device);
+  const resolvedLayout = resolveBlockLayout(block, theme, device);
+  const resolvedAdvanced = resolveBlockAdvanced(block, theme, device);
+  return {
+    ...block,
+    settings: resolvedSettings,
+    layout: resolvedLayout,
+    advanced: resolvedAdvanced,
+  };
+}
 
 const DEVICE_WIDTHS: Record<EditorDevice, string> = {
   desktop: "100%",
@@ -25,11 +58,12 @@ const DEVICE_LABELS: Record<EditorDevice, string> = {
   mobile: "Mobile (375px)",
 };
 
-function BlockRenderer({ block, catalog }: { block: Block; catalog?: CatalogData }) {
+function BlockRenderer({ block, catalog, resolvedBlock }: { block: Block; catalog?: CatalogData; resolvedBlock?: Block }) {
+  const renderBlock = resolvedBlock ?? block;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const Component = BLOCK_REGISTRY[block.type] as any;
+  const Component = BLOCK_REGISTRY[renderBlock.type] as any;
   if (!Component) return null;
-  return <Component block={block} catalog={catalog} />;
+  return <Component block={renderBlock} catalog={catalog} />;
 }
 
 export interface CanvasBlockActions {
@@ -86,8 +120,8 @@ function resolveLayoutForDevice(layout: CustomSectionLayout, device: EditorDevic
   return { ...layout, ...override };
 }
 
-function buildPreviewBlockStyle(block: Block, layoutMode: string, columns: number, gap?: number): React.CSSProperties {
-  const bl = block.layout ?? DEFAULT_BLOCK_LAYOUT;
+function buildPreviewBlockStyle(block: Block, layoutMode: string, columns: number, gap?: number, theme?: SectionTheme, device?: EditorDevice): React.CSSProperties {
+  const bl = theme && device ? resolveBlockLayout(block, theme, device) : (block.layout ?? DEFAULT_BLOCK_LAYOUT);
   const style: React.CSSProperties = {};
 
   if (layoutMode === "grid") {
@@ -134,9 +168,25 @@ function NestedContainerContent({
   parentPath: string[];
 }) {
   const { device } = useEditorDevice();
-  const baseLayout = block.settings.layout ?? DEFAULT_CUSTOM_LAYOUT;
+  const { resolvedTheme } = useEditorTheme();
+  const theme = resolvedTheme as SectionTheme;
+  
+  // Safely resolve settings with proper fallbacks
+  const resolvedSettings = useMemo(() => {
+    const responsive = block.responsiveSettings?.[theme]?.[device];
+    if (responsive && typeof responsive === 'object') {
+      return { ...block.settings, ...responsive } as BlockSettingsMap["container"];
+    }
+    return block.settings as BlockSettingsMap["container"];
+  }, [block.settings, block.responsiveSettings, theme, device]);
+  
+  const baseLayout = resolvedSettings.layout ?? DEFAULT_CUSTOM_LAYOUT;
   const layout = resolveLayoutForDevice(baseLayout, device);
-  const children = [...(block.settings.blocks || [])].sort((a, b) => a.order - b.order);
+  const children = useMemo(() => {
+    const blocks = resolvedSettings.blocks || block.settings.blocks || [];
+    return Array.isArray(blocks) ? [...blocks].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)) : [];
+  }, [resolvedSettings.blocks, block.settings.blocks]);
+  
   const childIds = useMemo(() => children.map((c) => `${block.id}--${c.id}`), [children, block.id]);
   const containerLayoutStyle = buildContainerLayoutStyle(layout);
 
@@ -159,37 +209,50 @@ function NestedContainerContent({
         </div>
       )}
 
-      <SortableContext items={childIds} strategy={verticalListSortingStrategy}>
-        <div style={containerLayoutStyle}>
-          {children.map((child) => (
-            <SortableBlock
-              key={child.id}
-              block={child}
-              catalog={catalog}
-              isSelected={selectedBlockId === child.id}
-              actions={actions}
-              blockStyle={buildPreviewBlockStyle(child, layout.mode, layout.columns, layout.gap)}
-              userStyles={{}}
-              parentPath={[...parentPath, block.id]}
-              selectedBlockId={selectedBlockId}
-            />
-          ))}
-        </div>
-      </SortableContext>
+      {children.length > 0 && (
+        <SortableContext items={childIds} strategy={verticalListSortingStrategy}>
+          <div style={containerLayoutStyle}>
+            {children.map((child) => {
+              if (!child?.id) return null;
+              return (
+                <SortableBlock
+                  key={child.id}
+                  block={child}
+                  catalog={catalog}
+                  isSelected={selectedBlockId === child.id}
+                  actions={actions}
+                  blockStyle={buildPreviewBlockStyle(child, layout.mode, layout.columns, layout.gap, theme, device)}
+                  userStyles={blockStyleToInlineEditor(child.responsiveStyles, theme, device)}
+                  parentPath={[...parentPath, block.id]}
+                  selectedBlockId={selectedBlockId}
+                  theme={theme}
+                  device={device}
+                />
+              );
+            })}
+          </div>
+        </SortableContext>
+      )}
 
-      {/* Mini palette for adding children */}
+      {/* Mini palette for adding children - always visible */}
       <div className="mt-2 flex flex-wrap gap-1 border-t pt-2" style={{ borderColor: "var(--editor-border)" }}>
         {CONTAINER_PALETTE_TYPES.map((type) => {
           const meta = BLOCK_TYPE_META[type];
+          if (!meta) return null;
           return (
             <button
               key={type}
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                actions.onAddToContainer?.(block.id, type);
+                e.preventDefault();
+                try {
+                  actions.onAddToContainer?.(block.id, type);
+                } catch (err) {
+                  console.error(`Failed to add ${type} to container:`, err);
+                }
               }}
-              className="rounded border px-1.5 py-0.5 text-[9px] font-semibold transition-colors hover:opacity-80"
+              className="rounded border px-1.5 py-0.5 text-[9px] font-semibold transition-colors hover:opacity-80 active:opacity-60"
               style={{ borderColor: "var(--editor-border)", color: "var(--editor-accent)", background: "var(--editor-surface)" }}
               title={`Add ${meta.label}`}
             >
@@ -211,6 +274,8 @@ function SortableBlock({
   userStyles,
   parentPath = [],
   selectedBlockId,
+  theme,
+  device,
 }: {
   block: Block;
   catalog?: CatalogData;
@@ -220,8 +285,16 @@ function SortableBlock({
   userStyles: React.CSSProperties;
   parentPath?: string[];
   selectedBlockId?: string;
+  theme?: SectionTheme;
+  device?: EditorDevice;
 }) {
-  const sortId = parentPath.length > 0 ? `${parentPath[parentPath.length - 1]}--${block.id}` : block.id;
+  // Safety check for block data
+  if (!block?.id) {
+    console.warn('SortableBlock: Block missing required id', block);
+    return null;
+  }
+  
+  const sortId = parentPath?.length > 0 ? `${parentPath[parentPath.length - 1]}--${block.id}` : block.id;
 
   const {
     attributes,
@@ -232,8 +305,11 @@ function SortableBlock({
     isDragging,
   } = useSortable({ id: sortId });
 
-  const customAttrs = parseCustomAttributes(block.advanced?.customAttributes);
-  const blockClasses = ["group relative", isDragging ? "z-50" : "", block.advanced?.cssClasses || ""]
+  const resolvedAdvanced = theme && device ? resolveBlockAdvanced(block, theme, device) : (block.advanced ?? {});
+  const resolvedBlock = theme && device ? resolveBlockForDevice(block, theme, device) : block;
+
+  const customAttrs = parseCustomAttributes(resolvedAdvanced.customAttributes);
+  const blockClasses = ["group relative", isDragging ? "z-50" : "", resolvedAdvanced.cssClasses || ""]
     .filter(Boolean)
     .join(" ");
   const isContainer = block.type === "container";
@@ -254,7 +330,7 @@ function SortableBlock({
       style={wrapperStyle}
       data-block-id={block.id}
       data-block-type={block.type}
-      id={block.advanced?.cssId || undefined}
+      id={resolvedAdvanced.cssId || undefined}
       className={blockClasses}
       {...customAttrs}
     >
@@ -378,7 +454,7 @@ function SortableBlock({
             parentPath={parentPath}
           />
         ) : (
-          <BlockRenderer block={block} catalog={catalog} />
+          <BlockRenderer block={block} catalog={catalog} resolvedBlock={resolvedBlock} />
         )}
       </div>
     </div>
@@ -399,20 +475,13 @@ function isContainerBlock(block: Block): block is Block<"container"> {
   return block.type === "container";
 }
 
-/** Recursively collect all block IDs including nested container children. */
-function collectAllBlockIds(blocks: Block[], parentPath: string[] = []): string[] {
-  const ids: string[] = [];
-  for (const block of blocks) {
-    const sortId = parentPath.length > 0 ? `${parentPath[parentPath.length - 1]}--${block.id}` : block.id;
-    ids.push(sortId);
-    if (isContainerBlock(block)) {
-      const children = block.settings.blocks;
-      if (children?.length) {
-        ids.push(...collectAllBlockIds(children, [...parentPath, block.id]));
-      }
-    }
-  }
-  return ids;
+/**
+ * Collect only top-level block IDs for the root SortableContext.
+ * Nested container children have their own SortableContext inside NestedContainerContent.
+ * Mixing all IDs into the root SortableContext causes @dnd-kit conflicts.
+ */
+function collectTopLevelBlockIds(blocks: Block[]): string[] {
+  return blocks.map((b) => b.id);
 }
 
 export function ResponsiveCanvasRenderer({
@@ -431,26 +500,36 @@ export function ResponsiveCanvasRenderer({
   sectionStyle?: SectionStyle;
 }) {
   const { device } = useEditorDevice();
+  const { resolvedTheme } = useEditorTheme();
+  const theme = resolvedTheme as SectionTheme;
   const baseLayout = layout ?? DEFAULT_CUSTOM_LAYOUT;
   const effectiveLayout = useMemo(() => resolveLayoutForDevice(baseLayout, device), [baseLayout, device]);
 
   const css = useMemo(() => {
     const allBlocks = flattenBlockTree(blocks);
-    return generateSectionCSS(
-      allBlocks.map((b) => ({ id: b.id, style: b.style, advanced: b.advanced }))
+    return generateSectionEditorCSS(
+      allBlocks.map((b) => ({
+        id: b.id,
+        advanced: b.responsiveAdvanced?.[theme]?.[device] ?? b.advanced,
+        responsiveStyles: b.responsiveStyles,
+        responsiveAdvanced: b.responsiveAdvanced,
+      })),
+      theme,
+      device
     );
-  }, [blocks]);
+  }, [blocks, theme, device]);
 
   const visibleBlocks = useMemo(() => {
     return blocks.filter((block) => {
-      const vis = block.advanced?.visibility;
+      const resolved = resolveBlockForDevice(block, theme, device);
+      const vis = resolved.advanced?.visibility;
       if (!vis) return true;
       if (device === "desktop" && vis.desktop === false) return false;
       if (device === "tablet" && vis.tablet === false) return false;
       if (device === "mobile" && vis.mobile === false) return false;
       return true;
     });
-  }, [blocks, device]);
+  }, [blocks, device, theme]);
 
   const containerStyle: React.CSSProperties = (() => {
     switch (effectiveLayout.mode) {
@@ -463,7 +542,7 @@ export function ResponsiveCanvasRenderer({
     }
   })();
 
-  const blockIds = useMemo(() => collectAllBlockIds(visibleBlocks), [visibleBlocks]);
+  const blockIds = useMemo(() => collectTopLevelBlockIds(visibleBlocks), [visibleBlocks]);
   const deviceWidth = DEVICE_WIDTHS[device];
 
   return (
@@ -499,6 +578,9 @@ export function ResponsiveCanvasRenderer({
             marginTop: sectionStyle?.marginTop,
             marginBottom: sectionStyle?.marginBottom,
             borderRadius: sectionStyle?.borderRadius,
+            display: (device === "desktop" && sectionStyle?.hideOnDesktop) || (device === "mobile" && sectionStyle?.hideOnMobile)
+              ? "none"
+              : undefined,
           }}>
 
           <div
@@ -523,8 +605,8 @@ export function ResponsiveCanvasRenderer({
             <SortableContext items={blockIds} strategy={verticalListSortingStrategy}>
               <div style={containerStyle}>
                 {visibleBlocks.map((block) => {
-                  const layoutStyle = buildPreviewBlockStyle(block, effectiveLayout.mode, effectiveLayout.columns, effectiveLayout.gap);
-                  const userStyles = blockStyleToInline(block.style, device);
+                  const layoutStyle = buildPreviewBlockStyle(block, effectiveLayout.mode, effectiveLayout.columns, effectiveLayout.gap, theme, device);
+                  const userStyles = blockStyleToInlineEditor(block.responsiveStyles, theme, device);
                   return (
                     <SortableBlock
                       key={block.id}
@@ -534,6 +616,8 @@ export function ResponsiveCanvasRenderer({
                       actions={actions}
                       blockStyle={layoutStyle}
                       userStyles={userStyles}
+                      theme={theme}
+                      device={device}
                       selectedBlockId={selectedBlockId}
                     />
                   );

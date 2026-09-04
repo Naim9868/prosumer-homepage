@@ -61,43 +61,75 @@ export function ContainerBlock({
   block: Block<"container">;
   catalog?: CatalogData;
 }) {
-  const layout = block.settings.layout ?? DEFAULT_CUSTOM_LAYOUT;
-  const children = [...(block.settings.blocks || [])].sort((a, b) => a.order - b.order);
-  const containerStyle = buildContainerStyle(layout);
+  try {
+    const layout = block.settings.layout ?? DEFAULT_CUSTOM_LAYOUT;
+    const responsiveChildren = block.responsiveSettings?.light?.desktop;
+    const hasResponsiveBlocks = responsiveChildren && typeof responsiveChildren === "object" && "blocks" in responsiveChildren && Array.isArray((responsiveChildren as Record<string, unknown>).blocks);
+    const sourceBlocks = hasResponsiveBlocks ? ((responsiveChildren as Record<string, unknown>).blocks as Block[]) : block.settings.blocks;
+    const children = sourceBlocks
+      ? [...sourceBlocks]
+          .filter((b) => b != null)
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      : [];
+    const containerStyle = buildContainerStyle(layout);
 
-  if (children.length === 0) {
+    if (children.length === 0) {
+      return (
+        <div
+          className="rounded-lg border-2 border-dashed p-6 text-center text-sm"
+          style={{
+            borderColor: "var(--editor-border, #e2e8f0)",
+            background: "var(--editor-card, #f8fafc)",
+            color: "var(--editor-text-muted, #94a3b8)",
+          }}
+        >
+          <p className="font-semibold" style={{ color: "var(--editor-text, #1e293b)" }}>
+            {block.settings.name || "Container"}
+          </p>
+          <p className="mt-1">Drop widgets here</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="relative" data-block-id={block.id} data-block-type="container">
+        {block.settings.name && (
+          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider opacity-50">
+            {block.settings.name}
+          </div>
+        )}
+        <div style={containerStyle}>
+          {children.map((child) => {
+            if (!child?.id || !child?.type) return null;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const Component = BLOCK_REGISTRY[child.type] as any;
+            if (!Component) {
+              console.warn(`Block type ${child.type} not found in registry`);
+              return null;
+            }
+            return (
+              <div key={child.id} data-block-id={child.id} data-block-type={child.type}>
+                <Component block={child} catalog={catalog} />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  } catch (err) {
+    console.error("ContainerBlock render error:", err);
     return (
       <div
         className="rounded-lg border-2 border-dashed p-6 text-center text-sm"
-        style={{ borderColor: "var(--editor-border, #e2e8f0)", background: "var(--editor-card, #f8fafc)", color: "var(--editor-text-muted, #94a3b8)" }}
+        style={{
+          borderColor: "#ef4444",
+          background: "#fee2e2",
+          color: "#7f1d1d",
+        }}
       >
-        <p className="font-semibold" style={{ color: "var(--editor-text, #1e293b)" }}>
-          {block.settings.name || "Container"}
-        </p>
-        <p className="mt-1">Drop widgets here</p>
+        <p className="font-semibold">Container Error</p>
+        <p className="mt-1 text-xs">Failed to render container</p>
       </div>
     );
   }
-
-  return (
-    <div className="relative" data-block-id={block.id} data-block-type="container">
-      {block.settings.name && (
-        <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider opacity-50">
-          {block.settings.name}
-        </div>
-      )}
-      <div style={containerStyle}>
-        {children.map((child) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const Component = BLOCK_REGISTRY[child.type] as any;
-          if (!Component) return null;
-          return (
-            <div key={child.id} data-block-id={child.id} data-block-type={child.type}>
-              <Component block={child} catalog={catalog} />
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
 }

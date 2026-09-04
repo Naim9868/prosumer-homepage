@@ -21,6 +21,19 @@ const sectionStyleSchema = z.object({
   hideOnMobile: z.boolean().optional(),
 });
 
+const responsiveSectionStylesSchema = z.object({
+  light: z.object({
+    desktop: sectionStyleSchema.partial().optional(),
+    tablet: sectionStyleSchema.partial().optional(),
+    mobile: sectionStyleSchema.partial().optional(),
+  }).partial().optional(),
+  dark: z.object({
+    desktop: sectionStyleSchema.partial().optional(),
+    tablet: sectionStyleSchema.partial().optional(),
+    mobile: sectionStyleSchema.partial().optional(),
+  }).partial().optional(),
+}).partial().optional();
+
 const pageSettingsSchema = z.object({
   containerWidth: z.number().min(960).max(2560),
   sidePadding: z.number().min(0).max(200),
@@ -36,6 +49,21 @@ const pageSettingsSchema = z.object({
     paddingTop: z.number().min(0).max(200),
   }),
 });
+
+const blockBreakpointStyleSchema = z.record(z.string(), z.unknown());
+
+const responsiveBlockStylesSchema = z.object({
+  light: z.object({
+    desktop: blockBreakpointStyleSchema.optional(),
+    tablet: blockBreakpointStyleSchema.optional(),
+    mobile: blockBreakpointStyleSchema.optional(),
+  }).partial().optional(),
+  dark: z.object({
+    desktop: blockBreakpointStyleSchema.optional(),
+    tablet: blockBreakpointStyleSchema.optional(),
+    mobile: blockBreakpointStyleSchema.optional(),
+  }).partial().optional(),
+}).partial().optional();
 
 const blockStyleSchema = z.object({
   desktop: z.record(z.string(), z.unknown()).optional(),
@@ -68,14 +96,57 @@ const blockAdvancedSchema = z.object({
   }).optional(),
 });
 
+const responsiveBlockLayoutSchema = z.object({
+  light: z.object({
+    desktop: blockLayoutSchema.optional(),
+    tablet: blockLayoutSchema.optional(),
+    mobile: blockLayoutSchema.optional(),
+  }).partial().optional(),
+  dark: z.object({
+    desktop: blockLayoutSchema.optional(),
+    tablet: blockLayoutSchema.optional(),
+    mobile: blockLayoutSchema.optional(),
+  }).partial().optional(),
+}).partial().optional();
+
+const responsiveBlockSettingsSchema = z.object({
+  light: z.object({
+    desktop: z.record(z.string(), z.unknown()).optional(),
+    tablet: z.record(z.string(), z.unknown()).optional(),
+    mobile: z.record(z.string(), z.unknown()).optional(),
+  }).partial().optional(),
+  dark: z.object({
+    desktop: z.record(z.string(), z.unknown()).optional(),
+    tablet: z.record(z.string(), z.unknown()).optional(),
+    mobile: z.record(z.string(), z.unknown()).optional(),
+  }).partial().optional(),
+}).partial().optional();
+
+const responsiveBlockAdvancedSchema = z.object({
+  light: z.object({
+    desktop: blockAdvancedSchema.optional(),
+    tablet: blockAdvancedSchema.optional(),
+    mobile: blockAdvancedSchema.optional(),
+  }).partial().optional(),
+  dark: z.object({
+    desktop: blockAdvancedSchema.optional(),
+    tablet: blockAdvancedSchema.optional(),
+    mobile: blockAdvancedSchema.optional(),
+  }).partial().optional(),
+}).partial().optional();
+
 const blockSchema = z.object({
   id: z.string().min(1),
   type: z.enum(BLOCK_TYPES),
   order: z.number(),
   settings: z.record(z.string(), z.unknown()),
   style: blockStyleSchema.optional(),
+  responsiveStyles: responsiveBlockStylesSchema.optional(),
   layout: blockLayoutSchema.optional(),
+  responsiveLayout: responsiveBlockLayoutSchema.optional(),
   advanced: blockAdvancedSchema.optional(),
+  responsiveAdvanced: responsiveBlockAdvancedSchema.optional(),
+  responsiveSettings: responsiveBlockSettingsSchema.optional(),
 }).passthrough();
 
 const sectionTypeSchema = z.union([z.enum(PREDEFINED_SECTION_TYPES), z.literal("custom")]);
@@ -86,6 +157,7 @@ const sectionSchema = z.object({
   enabled: z.boolean(),
   order: z.number(),
   style: sectionStyleSchema,
+  responsiveStyles: responsiveSectionStylesSchema,
   settings: z.record(z.string(), z.unknown()),
   blocks: z.array(blockSchema).optional(),
 });

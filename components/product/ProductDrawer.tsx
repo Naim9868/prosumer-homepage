@@ -34,8 +34,8 @@ export default function ProductDrawer() {
   const attributeTypes = useMemo(() => {
     if (!productVariants?.length) return [];
     const map = new Map<string, Set<string>>();
-    productVariants.forEach((v) => {
-      v.attributes?.forEach((a) => {
+    productVariants.forEach((v: { attributes?: { key: string; value: string }[] }) => {
+      v.attributes?.forEach((a: { key: string; value: string }) => {
         if (!map.has(a.key)) map.set(a.key, new Set());
         map.get(a.key)!.add(a.value);
       });
@@ -48,23 +48,22 @@ export default function ProductDrawer() {
   }, [productVariants]);
 
   const currentPrice = selectedVariant?.price || product?.lowestPrice || 0;
-  const compareAtPrice = selectedVariant?.compareAtPrice || (compareAtPriceDefault());
-  const hasDiscount = compareAtPrice && compareAtPrice > currentPrice;
-  const discountPercent = hasDiscount ? Math.round(((compareAtPrice! - currentPrice) / compareAtPrice!) * 100) : 0;
-
-  function compareAtPriceDefault() {
+  const compareAtPriceDefault = useMemo(() => {
     if (!product) return 0;
     if (product.variants?.length) {
       const def = product.variants.find((v) => v.isDefault) || product.variants[0];
       return def?.compareAtPrice || 0;
     }
     return 0;
-  }
+  }, [product]);
+  const compareAtPrice = selectedVariant?.compareAtPrice || compareAtPriceDefault;
+  const hasDiscount = compareAtPrice && compareAtPrice > currentPrice;
+  const discountPercent = hasDiscount ? Math.round(((compareAtPrice! - currentPrice) / compareAtPrice!) * 100) : 0;
 
   const currentStock = useMemo(() => {
     if (selectedVariant) return selectedVariant.inventory - (selectedVariant.reserved || 0);
     if (product?.variants?.length) {
-      return product.variants.reduce((sum, v) => sum + (v.inventory || 0), 0);
+      return product.variants.reduce((sum: number, v: { inventory?: number }) => sum + (v.inventory || 0), 0);
     }
     return product?.totalInventory || product?.inventorySummary?.available || 0;
   }, [selectedVariant, product]);
@@ -75,7 +74,7 @@ export default function ProductDrawer() {
     if (!product) return [];
     if (selectedVariant?.images?.length) return selectedVariant.images;
     const images: string[] = [];
-    product.imageGroups?.forEach((g) => g.images?.forEach((img) => images.push(img.url)));
+    product.imageGroups?.forEach((g: { images?: { url: string }[] }) => g.images?.forEach((img: { url: string }) => images.push(img.url)));
     if (images.length === 0 && product.thumbnail) images.push(product.thumbnail);
     return images;
   }, [product, selectedVariant]);
@@ -98,7 +97,7 @@ export default function ProductDrawer() {
       const def = drawerProduct.variants?.find((v) => v.isDefault) || drawerProduct.variants?.[0];
       if (def) {
         const attrs: Record<string, string> = {};
-        def.attributes?.forEach((a) => {
+        def.attributes?.forEach((a: { key: string; value: string }) => {
           attrs[a.key] = a.value;
         });
         setSelectedAttributes(attrs);
@@ -111,7 +110,7 @@ export default function ProductDrawer() {
 
   const matchedVariant = useMemo(() => {
     if (!product?.variants?.length || !Object.keys(selectedAttributes).length) return undefined;
-    return product.variants.find((v) => v.attributes?.every((a) => selectedAttributes[a.key] === a.value));
+    return product.variants.find((v: { attributes?: { key: string; value: string }[]; variantKey?: string }) => v.attributes?.every((a: { key: string; value: string }) => selectedAttributes[a.key] === a.value));
   }, [product, selectedAttributes]);
 
   if (matchedVariant && matchedVariant.variantKey !== selectedVariant?.variantKey) {
@@ -276,7 +275,7 @@ export default function ProductDrawer() {
                     </div>
                     {allImages.length > 1 && (
                       <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
-                        {allImages.map((img, i) => (
+                        {allImages.map((img: string, i: number) => (
                           <button
                             type="button"
                             key={i}

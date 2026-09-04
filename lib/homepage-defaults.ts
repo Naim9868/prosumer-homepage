@@ -11,6 +11,7 @@ import {
   DEFAULT_CUSTOM_LAYOUT,
   DEFAULT_BLOCK_LAYOUT,
 } from "@/types/homepage";
+import { createResponsiveSectionStyles } from "@/lib/style-utils";
 import { createDefaultHeroSettings } from "@/lib/hero";
 import { whyUs as whyUsSeed } from "@/lib/data";
 
@@ -194,6 +195,7 @@ export function createDefaultSection<T extends PredefinedSectionType>(type: T, o
     enabled: true,
     order,
     style: { ...DEFAULT_SECTION_STYLE },
+    responsiveStyles: createResponsiveSectionStyles(DEFAULT_SECTION_STYLE),
     settings: defaultSectionSettings[type],
   } as Extract<Section, { type: T }>;
 }
@@ -217,6 +219,9 @@ export function createDefaultBlock(type: BlockType, order: number): Block {
     order,
     settings: defaultBlockSettings[type],
     layout: { ...DEFAULT_BLOCK_LAYOUT },
+    responsiveLayout: {},
+    responsiveSettings: {},
+    responsiveAdvanced: {},
   } as Block;
 }
 

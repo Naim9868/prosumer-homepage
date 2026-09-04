@@ -1,9 +1,11 @@
 "use client";
-import type { CustomSection, CustomSectionLayout, EditorDevice } from "@/types/homepage";
+import type { CustomSection, CustomSectionLayout, EditorDevice, SectionDevice, SectionTheme } from "@/types/homepage";
 import { DEFAULT_CUSTOM_LAYOUT } from "@/types/homepage";
 import { SectionHeader } from "@/components/homepage-builder/editor-controls/SectionHeader";
 import { StyleControls } from "@/components/homepage-builder/style-controls";
 import { useEditorDevice } from "@/components/homepage-builder/editor-context";
+import { useEditorTheme } from "@/components/homepage-builder/editor-context";
+import { computeStyleDelta, resolveSectionStyle } from "@/lib/style-utils";
 import { Field, FieldGrid, TextInput, Select } from "@/components/homepage-builder/fields";
 
 function parseColumnRatios(input: string): number[] | undefined {
@@ -274,7 +276,25 @@ export function SectionSettingsPanel({
   onChange: (next: CustomSection) => void;
 }) {
   const { device } = useEditorDevice();
+  const { resolvedTheme } = useEditorTheme();
   const layout = section.settings.layout ?? DEFAULT_CUSTOM_LAYOUT;
+  const styleDevice = device as SectionDevice;
+  const styleTheme = resolvedTheme as SectionTheme;
+  const activeStyle = resolveSectionStyle(section.style, section.responsiveStyles, styleTheme, styleDevice);
+
+  const updateStyle = (style: typeof activeStyle) => {
+    const delta = computeStyleDelta(section.style, style);
+    onChange({
+      ...section,
+      responsiveStyles: {
+        ...(section.responsiveStyles || {}),
+        [styleTheme]: {
+          ...(section.responsiveStyles?.[styleTheme] || {}),
+          [styleDevice]: delta,
+        },
+      },
+    });
+  };
 
   return (
     <div className="space-y-0">
@@ -304,7 +324,7 @@ export function SectionSettingsPanel({
         />
       </SectionHeader>
       <SectionHeader title="Section Styling" defaultOpen={false}>
-        <StyleControls style={section.style} onChange={(style) => onChange({ ...section, style })} />
+        <StyleControls style={activeStyle} onChange={updateStyle} />
       </SectionHeader>
     </div>
   );

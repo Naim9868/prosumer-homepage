@@ -1,6 +1,6 @@
 import type { OrderItem, ProductVariant } from "@/types/checkout";
 import type { CatalogProduct } from "@/types/catalog";
-import type { IProduct, IProductVariant } from "@/types/product";
+import type { IProduct, IProductVariant, ImageGroupType } from "@/types/product";
 
 export function catalogToIProduct(product: CatalogProduct): IProduct {
   const inventory = product.stock === "in-stock" ? 99 : product.stock === "low-stock" ? 5 : 0;
@@ -32,7 +32,7 @@ export function catalogToIProduct(product: CatalogProduct): IProduct {
     ],
     imageGroups: [
       {
-        type: "image",
+        type: "product" as ImageGroupType,
         title: "default",
         images: (product.images?.length ? product.images : [product.image]).filter(Boolean).map((url) => ({ url })),
       },
@@ -69,10 +69,10 @@ export function getProductName(product: CartProductInput): string {
 }
 
 export function getProductImage(product: CartProductInput): string {
-  if ((product as IProduct).thumbnail) return (product as IProduct).thumbnail;
-  if ((product as IProduct).imageGroups?.length > 0) {
-    const firstGroup = (product as IProduct).imageGroups[0];
-    if (firstGroup.images?.length > 0) {
+  if ((product as IProduct).thumbnail) return (product as IProduct).thumbnail!;
+  if ((product as IProduct).imageGroups && (product as IProduct).imageGroups!.length > 0) {
+    const firstGroup = (product as IProduct).imageGroups![0];
+    if (firstGroup.images && firstGroup.images.length > 0) {
       return firstGroup.images[0].url;
     }
   }
@@ -92,11 +92,11 @@ export function getProductGradient(product: CartProductInput): string {
 export function toProductVariant(variant?: IProductVariant): ProductVariant | undefined {
   if (!variant) return undefined;
   const attributes: Record<string, string> = {};
-  (variant.attributes || []).forEach((a) => {
+  (variant.attributes || []).forEach((a: { key: string; value: string }) => {
     attributes[a.key] = a.value;
   });
   return {
-    variantKey: variant.variantKey,
+    variantKey: variant.variantKey || "",
     sku: variant.sku,
     price: variant.price,
     compareAtPrice: variant.compareAtPrice,
@@ -126,22 +126,22 @@ export function buildCartItem(
     const v = variant as IProductVariant;
     const hasAttributes = Array.isArray(v.attributes);
     const pv: ProductVariant = {
-      variantKey: v.variantKey,
+      variantKey: v.variantKey || "",
       sku: v.sku,
       price: v.price,
       compareAtPrice: v.compareAtPrice,
       inventory: v.inventory - (v.reserved || 0),
       attributes: hasAttributes
-        ? v.attributes.reduce((acc, a) => ({ ...acc, [a.key]: a.value }), {} as Record<string, string>)
+        ? v.attributes.reduce((acc: Record<string, string>, a: { key: string; value: string }) => ({ ...acc, [a.key]: a.value }), {} as Record<string, string>)
         : (v as unknown as ProductVariant).attributes || {},
       images: Array.isArray(v.images) ? v.images : (v as unknown as ProductVariant).images || [],
       isDefault: v.isDefault,
     };
     salePrice = v.price;
     originalPrice = v.compareAtPrice || v.price;
-    variantKey = v.variantKey;
+    variantKey = v.variantKey || "";
     sku = v.sku || "";
-    variantName = hasAttributes ? v.attributes.map((a) => a.value).join(" - ") : "";
+    variantName = hasAttributes ? v.attributes.map((a: { key: string; value: string }) => a.value).join(" - ") : "";
     attributes = pv.attributes;
   } else {
     const flat = product as CatalogProduct;

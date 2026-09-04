@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Heart, Eye, Zap, AlertCircle, CheckCircle, ShoppingCart, Package, Star } from "lucide-react";
-import type { IProduct, IProductVariant } from "@/types/product";
+import type { IProduct, IProductVariant, ProductBadge } from "@/types/product";
 import type { CatalogProduct } from "@/types/catalog";
 import type { CartProductInput } from "@/lib/cart-item";
 import { catalogToIProduct, getProductId, getProductName, getProductSlug, getProductImage } from "@/lib/cart-item";
@@ -47,7 +47,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
 
   const defaultVariant = useMemo<IProductVariant | undefined>(() => {
     if (!richProduct.variants?.length) return undefined;
-    return richProduct.variants.find((v) => v.isDefault === true) || richProduct.variants[0];
+    return richProduct.variants.find((v: IProductVariant) => v.isDefault === true) || richProduct.variants[0];
   }, [richProduct.variants]);
 
   const availableStock = useMemo(() => {
@@ -58,7 +58,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
       return richProduct.totalInventory;
     }
     if (richProduct.variants && richProduct.variants.length > 0) {
-      const totalStock = richProduct.variants.reduce((sum, variant) => sum + (variant.inventory !== undefined ? variant.inventory : 0), 0);
+      const totalStock = richProduct.variants.reduce((sum: number, variant: IProductVariant) => sum + (variant.inventory !== undefined ? variant.inventory : 0), 0);
       if (totalStock > 0) return totalStock;
     }
     return 0;
@@ -186,8 +186,9 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
   const variantCount = richProduct.variants?.length || 0;
 
   const renderStars = useCallback(() => {
-    const fullStars = Math.floor(richProduct.ratingAverage);
-    const hasHalfStar = richProduct.ratingAverage % 1 >= 0.5;
+    const avg = richProduct.ratingAverage ?? 0;
+    const fullStars = Math.floor(avg);
+    const hasHalfStar = avg % 1 >= 0.5;
     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
     return (
       <div className="flex items-center gap-0.5">
@@ -205,7 +206,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
         {[...Array(emptyStars)].map((_, i) => (
           <Star key={`empty-${i}`} className="h-3 w-3 text-muted" />
         ))}
-        {richProduct.ratingCount > 0 && (
+        {(richProduct.ratingCount ?? 0) > 0 && (
           <span className="ml-1 text-xs text-foreground-muted">({richProduct.ratingCount})</span>
         )}
       </div>
@@ -344,7 +345,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
             {richProduct.ratingAverage && richProduct.ratingAverage > 0 ? renderStars() : <span />}
           </div>
 
-          <Link href={`/products/${slug}`} onClick={(e) => e.stopPropagation()} className="block group/title">
+          <Link href={`/product/${slug}`} onClick={(e) => e.stopPropagation()} className="block group/title">
             <h3 className="line-clamp-2 font-heading text-[13px] font-semibold leading-snug text-foreground transition-colors group-hover/title:text-primary md:text-sm">
               {name}
             </h3>
@@ -365,10 +366,10 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
             <div className="flex items-center gap-1 text-[10px] text-foreground-muted">
               <Zap size={10} className="text-primary" />
               <span>{variantCount} variants</span>
-              {richProduct.highestPrice && richProduct.highestPrice > richProduct.lowestPrice && (
+              {richProduct.highestPrice && richProduct.lowestPrice != null && richProduct.highestPrice > richProduct.lowestPrice && (
                 <>
                   <span className="mx-1">•</span>
-                  <span>From {formatCurrency(richProduct.lowestPrice)}</span>
+                  <span>From {formatCurrency(richProduct.lowestPrice!)}</span>
                 </>
               )}
             </div>
@@ -377,7 +378,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
           <div className="flex items-center justify-between pt-1">
             {richProduct.badges && richProduct.badges.length > 0 && (
               <div className="flex flex-wrap gap-1.5 pt-1">
-                {richProduct.badges.slice(0, 2).map((badge, badgeIndex) => (
+                {richProduct.badges.slice(0, 2).map((badge: ProductBadge, badgeIndex: number) => (
                   <span
                     key={badge.id || badgeIndex}
                     className="inline-flex items-center rounded-full bg-primary/15 px-2 py-0.5 text-[9px] font-medium text-primary"

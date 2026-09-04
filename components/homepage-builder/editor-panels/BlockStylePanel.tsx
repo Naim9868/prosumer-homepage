@@ -1,25 +1,53 @@
 "use client";
 import { useState } from "react";
 import { Paintbrush, Settings2, ChevronLeft, LayoutGrid, FileText } from "lucide-react";
-import type { Block, BlockType, BlockStyle, BlockAdvanced, BlockLayout, BlockSettingsMap } from "@/types/homepage";
+import type { Block, BlockType, BlockStyle, BlockAdvanced, BlockLayout, BlockSettingsMap, ResponsiveBlockStyles, ResponsiveBlockLayout, ResponsiveBlockAdvanced, ResponsiveBlockSettings, SectionTheme } from "@/types/homepage";
 import { BLOCK_TYPE_META, DEFAULT_BLOCK_LAYOUT } from "@/types/homepage";
 import { BLOCK_EDITOR_REGISTRY } from "@/components/homepage-builder/block-editor-registry";
 import { cn } from "@/lib/utils";
-import { StylePanel } from "./StylePanel";
+import { StylePanel, type BlockStyleUpdate } from "./StylePanel";
 import { AdvancedPanel } from "./AdvancedPanel";
 import { Field, FieldGrid, TextInput, Select } from "@/components/homepage-builder/fields";
+import { useEditorDevice, useEditorTheme } from "@/components/homepage-builder/editor-context";
 
 type Tab = "content" | "style" | "layout" | "advanced";
 
-function ContentTab({ block, onUpdate }: { block: Block; onUpdate: (settings: BlockSettingsMap[BlockType]) => void }) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+function ContentTab({
+  block,
+  onUpdate,
+  onResponsiveUpdate,
+}: {
+  block: Block;
+  onUpdate: (settings: BlockSettingsMap[BlockType]) => void;
+  onResponsiveUpdate?: (update: { responsiveSettings?: ResponsiveBlockSettings }) => void;
+}) {
+  const { device } = useEditorDevice();
+  const { resolvedTheme } = useEditorTheme();
+  const theme = resolvedTheme as SectionTheme;
+
+  const currentSettings = (block.responsiveSettings?.[theme]?.[device] ?? block.settings) as BlockSettingsMap[BlockType];
   const Editor = BLOCK_EDITOR_REGISTRY[block.type] as any;
   if (!Editor) return null;
+
   return (
     <div className="p-3">
       <Editor
-        settings={block.settings}
-        onChange={(next: BlockSettingsMap[BlockType]) => onUpdate(next)}
+        settings={currentSettings}
+        onChange={(next: BlockSettingsMap[BlockType]) => {
+          if (onResponsiveUpdate) {
+            onResponsiveUpdate({
+              responsiveSettings: {
+                ...block.responsiveSettings,
+                [theme]: {
+                  ...block.responsiveSettings?.[theme],
+                  [device]: next as unknown as Record<string, unknown>,
+                },
+              },
+            });
+          } else {
+            onUpdate(next);
+          }
+        }}
       />
     </div>
   );
@@ -28,11 +56,30 @@ function ContentTab({ block, onUpdate }: { block: Block; onUpdate: (settings: Bl
 function LayoutTab({
   block,
   onLayoutUpdate,
+  onResponsiveLayoutUpdate,
 }: {
   block: Block;
   onLayoutUpdate: (layout: BlockLayout) => void;
+  onResponsiveLayoutUpdate: (update: { responsiveLayout?: ResponsiveBlockLayout }) => void;
 }) {
-  const layout = block.layout ?? DEFAULT_BLOCK_LAYOUT;
+  const { device } = useEditorDevice();
+  const { resolvedTheme } = useEditorTheme();
+  const theme = resolvedTheme as SectionTheme;
+
+  const layout = block.responsiveLayout?.[theme]?.[device] ?? block.layout ?? DEFAULT_BLOCK_LAYOUT;
+
+  const handleLayoutChange = (patch: Partial<BlockLayout>) => {
+    const updated = { ...layout, ...patch };
+    onResponsiveLayoutUpdate({
+      responsiveLayout: {
+        ...block.responsiveLayout,
+        [theme]: {
+          ...block.responsiveLayout?.[theme],
+          [device]: updated,
+        },
+      },
+    });
+  };
 
   return (
     <div className="space-y-4 p-3">
@@ -43,14 +90,14 @@ function LayoutTab({
         <Field label="Column Span">
           <Select
             value={String(layout.columnSpan)}
-            onChange={(v) => onLayoutUpdate({ ...layout, columnSpan: Number(v) as BlockLayout["columnSpan"] })}
+            onChange={(v) => handleLayoutChange({ columnSpan: Number(v) as BlockLayout["columnSpan"] })}
             options={Array.from({ length: 12 }, (_, i) => ({ label: `${i + 1}`, value: String(i + 1) }))}
           />
         </Field>
         <Field label="Row Span">
           <Select
             value={String(layout.rowSpan)}
-            onChange={(v) => onLayoutUpdate({ ...layout, rowSpan: Number(v) as BlockLayout["rowSpan"] })}
+            onChange={(v) => handleLayoutChange({ rowSpan: Number(v) as BlockLayout["rowSpan"] })}
             options={Array.from({ length: 6 }, (_, i) => ({ label: `${i + 1}`, value: String(i + 1) }))}
           />
         </Field>
@@ -62,13 +109,13 @@ function LayoutTab({
             min={0}
             max={100}
             value={layout.order}
-            onChange={(e) => onLayoutUpdate({ ...layout, order: Number(e.target.value) })}
+            onChange={(e) => handleLayoutChange({ order: Number(e.target.value) })}
           />
         </Field>
         <Field label="Align Self">
           <Select
             value={layout.alignSelf}
-            onChange={(v) => onLayoutUpdate({ ...layout, alignSelf: v })}
+            onChange={(v) => handleLayoutChange({ alignSelf: v })}
             options={[
               { label: "Auto", value: "auto" },
               { label: "Stretch", value: "stretch" },
@@ -92,13 +139,19 @@ export function BlockStylePanel({
   onStyleUpdate,
   onAdvancedUpdate,
   onLayoutUpdate,
+  onResponsiveLayoutUpdate,
+  onResponsiveSettingsUpdate,
+  onResponsiveAdvancedUpdate,
   onBack,
 }: {
   block: Block;
   onSettingsUpdate: (settings: BlockSettingsMap[BlockType]) => void;
-  onStyleUpdate: (style: BlockStyle) => void;
+  onStyleUpdate: (update: BlockStyleUpdate) => void;
   onAdvancedUpdate: (advanced: BlockAdvanced) => void;
   onLayoutUpdate?: (layout: BlockLayout) => void;
+  onResponsiveLayoutUpdate?: (update: { responsiveLayout?: ResponsiveBlockLayout }) => void;
+  onResponsiveSettingsUpdate?: (update: { responsiveSettings?: ResponsiveBlockSettings }) => void;
+  onResponsiveAdvancedUpdate?: (update: { responsiveAdvanced?: ResponsiveBlockAdvanced }) => void;
   onBack: () => void;
 }) {
   const [tab, setTab] = useState<Tab>("content");
@@ -107,7 +160,7 @@ export function BlockStylePanel({
   const tabs: { value: Tab; label: string; icon: typeof Paintbrush }[] = [
     { value: "content", label: "Content", icon: FileText },
     { value: "style", label: "Style", icon: Paintbrush },
-    ...(onLayoutUpdate ? [{ value: "layout" as Tab, label: "Layout", icon: LayoutGrid }] : []),
+    ...(onLayoutUpdate || onResponsiveLayoutUpdate ? [{ value: "layout" as Tab, label: "Layout", icon: LayoutGrid }] : []),
     { value: "advanced", label: "Advanced", icon: Settings2 },
   ];
 
@@ -157,13 +210,27 @@ export function BlockStylePanel({
       {/* Content */}
       <div className="min-h-0 flex-1 overflow-y-auto">
         {tab === "content" && (
-          <ContentTab block={block} onUpdate={onSettingsUpdate} />
+          <ContentTab
+            block={block}
+            onUpdate={onSettingsUpdate}
+            onResponsiveUpdate={onResponsiveSettingsUpdate}
+          />
         )}
         {tab === "style" && <StylePanel block={block} onUpdate={onStyleUpdate} />}
-        {tab === "layout" && onLayoutUpdate && (
-          <LayoutTab block={block} onLayoutUpdate={onLayoutUpdate} />
+        {tab === "layout" && (onLayoutUpdate || onResponsiveLayoutUpdate) && (
+          <LayoutTab
+            block={block}
+            onLayoutUpdate={onLayoutUpdate || (() => {})}
+            onResponsiveLayoutUpdate={onResponsiveLayoutUpdate || (() => {})}
+          />
         )}
-        {tab === "advanced" && <AdvancedPanel block={block} onUpdate={onAdvancedUpdate} />}
+        {tab === "advanced" && (
+          <AdvancedPanel
+            block={block}
+            onUpdate={onAdvancedUpdate}
+            onResponsiveUpdate={onResponsiveAdvancedUpdate}
+          />
+        )}
       </div>
     </div>
   );

@@ -56,14 +56,14 @@ export function StyleControls({
         </Field>
 
         <Field label="Padding Top (px)">
-          <TextInput type="number" min={0} max={400} value={style.paddingTop ?? 80} onChange={(e) => set("paddingTop", Number(e.target.value))} />
+          <TextInput type="number" min={0} max={400} step={1} value={style.paddingTop ?? 80} onChange={(e) => set("paddingTop", e.target.value === "" ? 0 : Number(e.target.value))} />
         </Field>
         <Field label="Padding Bottom (px)">
-          <TextInput type="number" min={0} max={400} value={style.paddingBottom ?? 80} onChange={(e) => set("paddingBottom", Number(e.target.value))} />
+          <TextInput type="number" min={0} max={400} step={1} value={style.paddingBottom ?? 80} onChange={(e) => set("paddingBottom", e.target.value === "" ? 0 : Number(e.target.value))} />
         </Field>
 
         <Field label="Border Radius (px)">
-          <TextInput type="number" min={0} max={64} value={style.borderRadius ?? 0} onChange={(e) => set("borderRadius", Number(e.target.value))} />
+          <TextInput type="number" min={0} max={64} step={1} value={style.borderRadius ?? 0} onChange={(e) => set("borderRadius", e.target.value === "" ? 0 : Number(e.target.value))} />
         </Field>
       </FieldGrid>
 
