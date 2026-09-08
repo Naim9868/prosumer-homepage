@@ -34,7 +34,18 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     videos: Array.isArray(p.videos) ? (p.videos as Product["videos"]) : undefined,
     tags: Array.isArray(p.tags) ? (p.tags as string[]) : undefined,
     inventorySummary: p.inventorySummary as Product["inventorySummary"],
-    relatedProducts: Array.isArray(p.relatedProducts) ? (p.relatedProducts as Product["relatedProducts"]) : undefined,
+    relatedProducts: Array.isArray(p.relatedProducts)
+      ? (p.relatedProducts as unknown as Array<Record<string, unknown>>).map((rp) => ({
+          _id: String(rp._id),
+          slug: String(rp.slug || ""),
+          name: String(rp.name || ""),
+          thumbnail: String(rp.thumbnail || ""),
+          lowestPrice: typeof rp.lowestPrice === "number" ? rp.lowestPrice : undefined,
+          highestPrice: typeof rp.highestPrice === "number" ? rp.highestPrice : undefined,
+          ratingAverage: typeof rp.ratingAverage === "number" ? rp.ratingAverage : undefined,
+          ratingCount: typeof rp.ratingCount === "number" ? rp.ratingCount : undefined,
+        }))
+      : undefined,
     featured: Boolean(p.featured),
     badges: Array.isArray(p.badges) ? (p.badges as Product["badges"]) : undefined,
     ratingAverage: typeof p.ratingAverage === "number" ? p.ratingAverage : undefined,

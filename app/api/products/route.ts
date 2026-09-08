@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getProducts } from "@/lib/products";
+import { getProducts, getProductsByIds } from "@/lib/products";
 import type { IProductFilters } from "@/types/product";
 
 export async function GET(req: NextRequest) {
   try {
     const sp = req.nextUrl.searchParams;
+
+    const ids = sp.get("ids");
+    if (ids) {
+      const idList = ids.split(",").filter(Boolean);
+      const products = await getProductsByIds(idList);
+      return NextResponse.json({ success: true, products });
+    }
 
     const filters: IProductFilters = {
       page: sp.get("page") ? Number(sp.get("page")) : 1,

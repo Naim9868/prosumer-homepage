@@ -68,7 +68,7 @@ export function SearchRibbon({ isOpen, onClose, className }: SearchRibbonProps) 
     onClose();
     setSearchQuery("");
     setSearchResults([]);
-    router.push(`/product/${slug}`);
+    router.push(`/products/${slug}`);
   };
 
   const goToShop = () => {

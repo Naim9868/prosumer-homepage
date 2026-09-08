@@ -45,11 +45,15 @@ export function ProductGallery({
           aria-label={`View ${active.alt ?? productName} full size`}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={active.url}
-            alt={active.alt || productName}
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-          />
+          {active.url ? (
+            <img
+              src={active.url}
+              alt={active.alt || productName}
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            />
+          ) : (
+            <div className="absolute inset-0 h-full w-full bg-[color:var(--surface-800)]" />
+          )}
         </button>
 
         {images.length > 1 && (
@@ -75,7 +79,11 @@ export function ProductGallery({
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={img.url} alt="" className="h-full w-full object-cover" loading="lazy" />
+              {img.url ? (
+                <img src={img.url} alt="" className="h-full w-full object-cover" loading="lazy" />
+              ) : (
+                <div className="h-full w-full bg-[color:var(--surface-800)]" />
+              )}
             </button>
           ))}
         </div>
@@ -161,11 +169,15 @@ function Lightbox({
       </button>
       <div className="relative h-full max-h-[85vh] w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={active.url}
-          alt={active.alt || productName}
-          className="h-full w-full object-contain"
-        />
+        {active.url ? (
+          <img
+            src={active.url}
+            alt={active.alt || productName}
+            className="h-full w-full object-contain"
+          />
+        ) : (
+          <div className="h-full w-full bg-[color:var(--surface-800)]" />
+        )}
       </div>
     </div>
   );

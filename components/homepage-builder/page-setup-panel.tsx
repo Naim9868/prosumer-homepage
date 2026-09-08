@@ -1,8 +1,8 @@
 "use client";
 
-import type { PageSettings } from "@/types/homepage";
+import type { PageSettings, TrustBadge } from "@/types/homepage";
 import { Field, FieldGrid, TextInput, Toggle, ColorField, Select } from "@/components/homepage-builder/fields";
-import { X } from "lucide-react";
+import { X, Plus, Trash2 } from "lucide-react";
 
 const FONT_OPTIONS = [
   { label: "Theme default (Inter)", value: "" },
@@ -31,6 +31,21 @@ export function PageSetupPanel({
   const set = <K extends keyof PageSettings>(key: K, value: PageSettings[K]) => onChange({ ...page, [key]: value });
   const setNavbar = (patch: Partial<PageSettings["navbar"]>) => onChange({ ...page, navbar: { ...page.navbar, ...patch } });
   const setFooter = (patch: Partial<PageSettings["footer"]>) => onChange({ ...page, footer: { ...page.footer, ...patch } });
+  const setTrustBadges = (patch: Partial<PageSettings["trustBadges"]>) => onChange({ ...page, trustBadges: { ...page.trustBadges, ...patch } });
+
+  const updateBadge = (index: number, patch: Partial<TrustBadge>) => {
+    const badges = [...page.trustBadges.badges];
+    badges[index] = { ...badges[index], ...patch };
+    setTrustBadges({ badges });
+  };
+
+  const addBadge = () => {
+    setTrustBadges({ badges: [...page.trustBadges.badges, { icon: "Shield", title: "", subtitle: "" }] });
+  };
+
+  const removeBadge = (index: number) => {
+    setTrustBadges({ badges: page.trustBadges.badges.filter((_, i) => i !== index) });
+  };
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -71,6 +86,15 @@ export function PageSetupPanel({
                   max={200}
                   value={page.sidePadding}
                   onChange={(e) => set("sidePadding", Number(e.target.value))}
+                />
+              </Field>
+              <Field label="Products Per Page" hint="Number of products on /products listing.">
+                <TextInput
+                  type="number"
+                  min={4}
+                  max={100}
+                  value={page.productsPerPage}
+                  onChange={(e) => set("productsPerPage", Number(e.target.value))}
                 />
               </Field>
             </FieldGrid>
@@ -193,6 +217,71 @@ export function PageSetupPanel({
                 />
               </Field>
             </FieldGrid>
+          </section>
+
+          <section className="space-y-4 rounded-[var(--radius-md)] border border-border bg-muted/40 p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Trust Badges</p>
+            <div className="flex flex-wrap gap-6">
+              <label className="flex items-center gap-2 text-[13px] font-medium text-foreground">
+                <Toggle checked={page.trustBadges.enabled} onChange={(v) => setTrustBadges({ enabled: v })} label="Show trust badges" />
+                Show trust badges
+              </label>
+            </div>
+            {page.trustBadges.enabled && (
+              <div className="space-y-3">
+                {page.trustBadges.badges.map((badge, idx) => (
+                  <div key={idx} className="flex items-start gap-2 rounded-lg border border-border bg-background p-3">
+                    <div className="flex-1 space-y-2">
+                      <Field label="Icon">
+                        <Select
+                          value={badge.icon}
+                          onChange={(v) => updateBadge(idx, { icon: v })}
+                          options={[
+                            { label: "Truck", value: "Truck" },
+                            { label: "Shield", value: "Shield" },
+                            { label: "RotateCcw", value: "RotateCcw" },
+                            { label: "Package", value: "Package" },
+                            { label: "Clock", value: "Clock" },
+                            { label: "Star", value: "Star" },
+                            { label: "Award", value: "Award" },
+                            { label: "Zap", value: "Zap" },
+                            { label: "CheckCircle", value: "CheckCircle" },
+                          ]}
+                        />
+                      </Field>
+                      <Field label="Title">
+                        <TextInput
+                          value={badge.title}
+                          onChange={(e) => updateBadge(idx, { title: e.target.value })}
+                          placeholder="e.g. Free Shipping"
+                        />
+                      </Field>
+                      <Field label="Subtitle">
+                        <TextInput
+                          value={badge.subtitle}
+                          onChange={(e) => updateBadge(idx, { subtitle: e.target.value })}
+                          placeholder="e.g. On orders ৳1500+"
+                        />
+                      </Field>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeBadge(idx)}
+                      className="mt-6 rounded p-1 text-foreground-muted hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={addBadge}
+                  className="flex items-center gap-1.5 rounded-lg border border-dashed border-border px-3 py-2 text-[12px] font-medium text-foreground-muted hover:border-primary/50 hover:text-primary"
+                >
+                  <Plus size={14} /> Add Badge
+                </button>
+              </div>
+            )}
           </section>
         </div>
 

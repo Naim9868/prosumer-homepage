@@ -3,16 +3,23 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Minus, Plus, ShoppingBag, Truck, Shield, RotateCcw, Heart, ChevronDown, ChevronUp, CheckCircle } from "lucide-react";
+import { X, Minus, Plus, ShoppingBag, Truck, Shield, RotateCcw, Heart, ChevronDown, ChevronUp, CheckCircle, Package, Clock, Star, Award, Zap } from "lucide-react";
 import { useProductDrawer } from "@/app/context/ProductDrawerContext";
 import { useCartContext } from "@/app/context/CartContext";
 import { useWishlistContext } from "@/app/context/WishlistContext";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import { useGuestInfo } from "@/app/context/GuestInfoContext";
 import GuestInfoModal from "@/components/GuestInfoModal";
-import type { IProductVariant } from "@/types/product";
+import type { IProduct, IProductVariant } from "@/types/product";
+import type { TrustBadge } from "@/types/homepage";
+import { DEFAULT_PAGE_SETTINGS } from "@/types/homepage";
 import { formatCurrency } from "@/lib/utils";
 import { ApertureMark } from "@/components/shared/layout-primitives";
+import { ProductSpecifications } from "./sections/ProductSpecifications";
+
+const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+  Truck, Shield, RotateCcw, Package, Clock, Star, Award, Zap, CheckCircle,
+};
 
 export default function ProductDrawer() {
   const { product, isOpen, closeDrawer } = useProductDrawer();
@@ -29,6 +36,41 @@ export default function ProductDrawer() {
   const [showGuestModal, setShowGuestModal] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [pendingAction, setPendingAction] = useState<"addToCart" | "buyNow" | null>(null);
+  const [fullProduct, setFullProduct] = useState<IProduct | null>(null);
+  const [trustBadges, setTrustBadges] = useState<TrustBadge[]>(DEFAULT_PAGE_SETTINGS.trustBadges.badges);
+
+  useEffect(() => {
+    if (!isOpen || !product?.slug) {
+      setFullProduct(null);
+      return;
+    }
+    let cancelled = false;
+    fetch(`/api/products/${product.slug}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled && data.success && data.product) {
+          setFullProduct(data.product);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [isOpen, product?.slug]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    fetch("/api/homepage")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled && data?.page?.trustBadges?.badges?.length) {
+          setTrustBadges(data.page.trustBadges.badges);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [isOpen]);
+
+  const displayProduct = fullProduct || product;
 
   const productVariants = product?.variants;
   const attributeTypes = useMemo(() => {
@@ -72,9 +114,9 @@ export default function ProductDrawer() {
 
   const allImages = useMemo(() => {
     if (!product) return [];
-    if (selectedVariant?.images?.length) return selectedVariant.images;
+    if (selectedVariant?.images?.length) return selectedVariant.images.filter(Boolean);
     const images: string[] = [];
-    product.imageGroups?.forEach((g: { images?: { url: string }[] }) => g.images?.forEach((img: { url: string }) => images.push(img.url)));
+    product.imageGroups?.forEach((g: { images?: { url: string }[] }) => g.images?.forEach((img: { url: string }) => { if (img.url) images.push(img.url); }));
     if (images.length === 0 && product.thumbnail) images.push(product.thumbnail);
     return images;
   }, [product, selectedVariant]);
@@ -406,20 +448,19 @@ export default function ProductDrawer() {
                   </div>
 
                   <div className="flex justify-around border-y border-border py-4">
-                    {[
-                      { icon: Truck, label: "Free Shipping", desc: "On orders ৳1500+" },
-                      { icon: RotateCcw, label: "Easy Returns", desc: "30 days return" },
-                      { icon: Shield, label: "Secure Checkout", desc: "100% secure" },
-                    ].map((item, idx) => (
-                      <div key={idx} className="text-center">
-                        <item.icon size={20} className="mx-auto mb-1 text-foreground-muted" />
-                        <p className="text-xs font-medium text-foreground">{item.label}</p>
-                        <p className="text-xs text-foreground-muted">{item.desc}</p>
-                      </div>
-                    ))}
+                    {trustBadges.map((badge, idx) => {
+                      const Icon = ICON_MAP[badge.icon] || Shield;
+                      return (
+                        <div key={idx} className="text-center">
+                          <Icon size={20} className="mx-auto mb-1 text-foreground-muted" />
+                          <p className="text-xs font-medium text-foreground">{badge.title}</p>
+                          <p className="text-xs text-foreground-muted">{badge.subtitle}</p>
+                        </div>
+                      );
+                    })}
                   </div>
 
-                  {product.description && (
+                  {displayProduct?.description && (
                     <div>
                       <button
                         type="button"
@@ -431,19 +472,38 @@ export default function ProductDrawer() {
                       </button>
                       {showFullDescription && (
                         <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-foreground-muted">
-                          {product.description}
+                          {displayProduct.description}
                         </p>
                       )}
                     </div>
                   )}
 
-                  <Link
-                    href={`/products/${product.slug}`}
-                    onClick={closeDrawer}
-                    className="block pt-2 text-center text-sm font-medium text-primary hover:text-primary/80"
-                  >
-                    View Full Details →
-                  </Link>
+                  {displayProduct && (
+                    <ProductSpecifications product={displayProduct} />
+                  )}
+
+                  {displayProduct?.tags && displayProduct.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {displayProduct.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-full bg-muted px-3 py-1 text-xs text-foreground-muted"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {displayProduct && (
+                    <Link
+                      href={`/products/${displayProduct.slug}`}
+                      onClick={closeDrawer}
+                      className="block pt-2 text-center text-sm font-medium text-primary hover:text-primary/80"
+                    >
+                      View Full Details →
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>

@@ -16,14 +16,16 @@ export function ShotOnGallery({ product }: { product: Product }) {
       </h2>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         {images.map((img, i) => (
-          <div key={img.url + i} className="relative aspect-[4/5] overflow-hidden rounded-xl bg-[color:var(--surface-800)]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={img.url}
-              alt={img.alt || `${product.name} sample photo ${i + 1}`}
-              loading="lazy"
-              className="h-full w-full object-cover"
-            />
+          <div key={`${i}`} className="relative aspect-[4/5] overflow-hidden rounded-xl bg-[color:var(--surface-800)]">
+            {img.url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={img.url}
+                alt={img.alt || `${product.name} sample photo ${i + 1}`}
+                loading="lazy"
+                className="h-full w-full object-cover"
+              />
+            ) : null}
           </div>
         ))}
       </div>

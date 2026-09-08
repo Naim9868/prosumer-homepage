@@ -95,6 +95,17 @@ export interface PageFooterSettings {
   paddingTop: number; // px
 }
 
+export interface TrustBadge {
+  icon: string;
+  title: string;
+  subtitle: string;
+}
+
+export interface TrustBadgeSettings {
+  enabled: boolean;
+  badges: TrustBadge[];
+}
+
 export interface PageSettings {
   /** Max width of the page container in px. */
   containerWidth: number;
@@ -102,6 +113,9 @@ export interface PageSettings {
   sidePadding: number;
   navbar: PageNavbarSettings;
   footer: PageFooterSettings;
+  trustBadges: TrustBadgeSettings;
+  /** Number of products per page on /products listing. */
+  productsPerPage: number;
 }
 
 export const DEFAULT_PAGE_SETTINGS: PageSettings = {
@@ -125,6 +139,15 @@ export const DEFAULT_PAGE_SETTINGS: PageSettings = {
     fontWeight: 0,
   },
   footer: { enabled: true, backgroundColor: "", paddingTop: 64 },
+  trustBadges: {
+    enabled: true,
+    badges: [
+      { icon: "Truck", title: "Free Shipping", subtitle: "On orders ৳1500+" },
+      { icon: "RotateCcw", title: "Easy Returns", subtitle: "30 days return" },
+      { icon: "Shield", title: "Secure Checkout", subtitle: "100% secure" },
+    ],
+  },
+  productsPerPage: 20,
 };
 
 // ---------------------------------------------------------------

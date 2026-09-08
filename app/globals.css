@@ -307,3 +307,65 @@ h1, h2, h3, h4, h5, h6 {
   from { transform: translateY(-100%); }
   to { transform: translateY(0); }
 }
+
+/* ShopApexel-style hover fill sweep button */
+.hover-fill-btn {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  border: 2px solid;
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.hover-fill-btn .btn-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 0;
+}
+.hover-fill-btn .btn-text {
+  position: relative;
+  z-index: 1;
+}
+.hover-fill-btn:hover .btn-fill {
+  transform: scaleX(1);
+}
+
+/* Primary variant */
+.hover-fill-btn--primary {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.hover-fill-btn--primary .btn-fill {
+  background-color: var(--primary);
+}
+.hover-fill-btn--primary:hover {
+  color: var(--primary-foreground);
+}
+
+/* Secondary variant */
+.hover-fill-btn--secondary {
+  border-color: var(--secondary);
+  color: var(--secondary);
+}
+.hover-fill-btn--secondary .btn-fill {
+  background-color: var(--secondary);
+}
+.hover-fill-btn--secondary:hover {
+  color: var(--secondary-foreground);
+}
+
+/* Hide scrollbar for carousel */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

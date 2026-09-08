@@ -58,17 +58,19 @@ export function PurchaseActions({
           type="button"
           disabled={disabled}
           onClick={() => onAddToCart?.(payload)}
-          className="flex-1 rounded-lg border border-[color:var(--brass-500)] px-5 py-3 text-sm font-semibold text-[color:var(--brass-500)] transition-all duration-200 hover:scale-[1.03] hover:bg-[color:var(--brass-500)]/10 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40"
+          className="hover-fill-btn hover-fill-btn--primary flex-1 px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Add to cart
+          <span className="btn-fill" />
+          <span className="btn-text">Add to cart</span>
         </button>
         <button
           type="button"
           disabled={disabled}
           onClick={() => onBuyNow?.(payload)}
-          className="flex-1 rounded-lg bg-[color:var(--brass-500)] px-5 py-3 text-sm font-semibold text-black transition-all duration-200 hover:scale-[1.03] hover:brightness-110 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40"
+          className="hover-fill-btn hover-fill-btn--secondary flex-1 px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Buy now
+          <span className="btn-fill" />
+          <span className="btn-text">Buy now</span>
         </button>
       </div>
     </div>

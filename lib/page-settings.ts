@@ -41,6 +41,22 @@ export function normalizePageSettings(input: unknown): PageSettings {
       backgroundColor: typeof footer.backgroundColor === "string" ? footer.backgroundColor : DEFAULT_PAGE_SETTINGS.footer.backgroundColor,
       paddingTop: pickNumber(footer.paddingTop, DEFAULT_PAGE_SETTINGS.footer.paddingTop),
     },
+    trustBadges: (() => {
+      const rawTb = raw.trustBadges && typeof raw.trustBadges === "object" ? raw.trustBadges as Record<string, unknown> : {};
+      const rawBadges = Array.isArray(rawTb.badges) ? rawTb.badges : [];
+      const badges = rawBadges
+        .filter((b): b is Record<string, unknown> => b !== null && typeof b === "object")
+        .map((b) => ({
+          icon: typeof b.icon === "string" ? b.icon : "",
+          title: typeof b.title === "string" ? b.title : "",
+          subtitle: typeof b.subtitle === "string" ? b.subtitle : "",
+        }));
+      return {
+        enabled: pickBool(rawTb.enabled, DEFAULT_PAGE_SETTINGS.trustBadges.enabled),
+        badges: badges.length > 0 ? badges : DEFAULT_PAGE_SETTINGS.trustBadges.badges,
+      };
+    })(),
+    productsPerPage: pickNumber(raw.productsPerPage, DEFAULT_PAGE_SETTINGS.productsPerPage),
   };
 }
 

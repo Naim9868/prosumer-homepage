@@ -49,6 +49,8 @@ interface ProductDoc {
   tags?: string[];
   badges?: unknown[];
   imageGroups?: unknown[];
+  relatedProducts?: { _id: unknown; slug?: string; name?: string; thumbnail?: string; lowestPrice?: number; highestPrice?: number; ratingAverage?: number; ratingCount?: number }[];
+  specificationGroups?: { groupName?: string; displayOrder?: number; specifications?: { key?: string; label?: string; value?: string; unit?: string; type?: string }[] }[];
   featured?: boolean;
   inventorySummary?: { available?: number; reserved?: number; incoming?: number; lowStockThreshold?: number };
   totalInventory?: number;
@@ -128,6 +130,21 @@ function serializeProduct(p: ProductDoc, categoryMap: Map<string, CategoryDoc>, 
     tags: Array.isArray(p.tags) ? p.tags : [],
     badges: Array.isArray(p.badges) ? (p.badges as IProduct["badges"]) : [],
     featured: !!p.featured,
+    relatedProducts: Array.isArray(p.relatedProducts)
+      ? p.relatedProducts.map((rp) => ({
+          _id: String(rp._id),
+          slug: rp.slug || "",
+          name: rp.name || "",
+          thumbnail: rp.thumbnail || "",
+          lowestPrice: typeof rp.lowestPrice === "number" ? rp.lowestPrice : undefined,
+          highestPrice: typeof rp.highestPrice === "number" ? rp.highestPrice : undefined,
+          ratingAverage: typeof rp.ratingAverage === "number" ? rp.ratingAverage : undefined,
+          ratingCount: typeof rp.ratingCount === "number" ? rp.ratingCount : undefined,
+        }))
+      : undefined,
+    specificationGroups: Array.isArray(p.specificationGroups)
+      ? (p.specificationGroups as IProduct["specificationGroups"])
+      : undefined,
     inventorySummary: {
       available: typeof inventorySummary.available === "number" ? inventorySummary.available : totalInventory,
       reserved: typeof inventorySummary.reserved === "number" ? inventorySummary.reserved : 0,
@@ -249,4 +266,43 @@ export async function getProducts(filters: IProductFilters = {}): Promise<IProdu
 export async function getProductBySlug(slug: string): Promise<IProduct | null> {
   const result = await getProducts({ query: slug, limit: 20 });
   return result.products.find((p) => p.slug === slug) || null;
+}
+
+export async function getProductsByIds(ids: string[]): Promise<IProduct[]> {
+  await connectDB();
+
+  const objectIds = ids.map((id) => {
+    try { return new Types.ObjectId(id); } catch { return null; }
+  }).filter(Boolean);
+
+  if (objectIds.length === 0) return [];
+
+  const docs = await ProductModel.find({
+    _id: { $in: objectIds },
+    deletedAt: null,
+    status: { $ne: "archived" },
+  }).lean().exec();
+
+  if (docs.length === 0) return [];
+
+  const categoryIds = new Set<string>();
+  const brandIds = new Set<string>();
+  for (const doc of docs) {
+    const p = JSON.parse(JSON.stringify(doc)) as Record<string, unknown>;
+    if (p.categoryId) categoryIds.add(String(p.categoryId));
+    if (p.brandId) brandIds.add(String(p.brandId));
+  }
+
+  const [categoryDocs, brandDocs] = await Promise.all([
+    categoryIds.size > 0 ? CategoryModel.find({ _id: { $in: [...categoryIds] } }).lean().exec() : [],
+    brandIds.size > 0 ? BrandModel.find({ _id: { $in: [...brandIds] } }).lean().exec() : [],
+  ]);
+
+  const categoryMap = new Map(categoryDocs.map((c) => [String(c._id), c as unknown as CategoryDoc]));
+  const brandMap = new Map(brandDocs.map((b) => [String(b._id), b as unknown as BrandDoc]));
+
+  return docs.map((doc) => {
+    const plain = JSON.parse(JSON.stringify(doc)) as ProductDoc;
+    return serializeProduct(plain, categoryMap, brandMap);
+  });
 }

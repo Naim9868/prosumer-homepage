@@ -6,7 +6,7 @@
 // inventory, purchase actions) lives below this component so a variant
 // change never triggers a full page reload or refetch.
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { Product } from "@/types/product";
 import {
   getDefaultVariant,
@@ -24,6 +24,12 @@ import { PurchaseActions } from "./PurchaseActions";
 import { PriceDisplay } from "./ui/PriceDisplay";
 import { StockPill } from "./ui/BadgesAndStock";
 import { ProductInfoHeader } from "./ProductInfoHeader";
+import { useCartContext } from "@/app/context/CartContext";
+import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
+import { useModal } from "@/app/context/OrderModalContext";
+import { useGuestInfo } from "@/app/context/GuestInfoContext";
+import GuestInfoModal from "@/components/GuestInfoModal";
+import { buildCartItem } from "@/lib/cart-item";
 
 export function ProductExperience({ product }: { product: Product }) {
   const mode = getVariantMode(product);
@@ -31,6 +37,13 @@ export function ProductExperience({ product }: { product: Product }) {
   const [selection, setSelection] = useState(() =>
     selectedVariant ? variantToSelection(selectedVariant) : {}
   );
+  const [showGuestModal, setShowGuestModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"cart" | "buy" | null>(null);
+
+  const { addToCart } = useCartContext();
+  const { openCartModal } = useCartModalContext();
+  const { openOrderModal } = useModal();
+  const { hasGuestInfo } = useGuestInfo();
 
   const images = useMemo(
     () => resolveGalleryImages(product, selectedVariant),
@@ -38,6 +51,69 @@ export function ProductExperience({ product }: { product: Product }) {
   );
   const price = resolvePriceDisplay(product, selectedVariant);
   const stock = resolveStockStatus(product, selectedVariant);
+
+  const findVariant = useCallback(
+    (sku?: string) => {
+      if (!sku) return selectedVariant;
+      return product.variants.find((v) => v.sku === sku) || selectedVariant;
+    },
+    [product.variants, selectedVariant]
+  );
+
+  const doAddToCart = useCallback(
+    async (sku?: string, quantity = 1) => {
+      const variant = findVariant(sku);
+      const success = await addToCart(product, variant, quantity);
+      if (success) openCartModal();
+    },
+    [findVariant, addToCart, product, openCartModal]
+  );
+
+  const doBuyNow = useCallback(
+    async (sku?: string, quantity = 1) => {
+      const variant = findVariant(sku);
+      const success = await addToCart(product, variant, quantity);
+      if (success) {
+        const item = buildCartItem(product, variant, quantity);
+        openOrderModal([item]);
+      }
+    },
+    [findVariant, addToCart, product, openOrderModal]
+  );
+
+  const handleAddToCart = useCallback(
+    (payload: { productId: string; sku?: string; quantity: number }) => {
+      if (!hasGuestInfo) {
+        setPendingAction("cart");
+        setShowGuestModal(true);
+        return;
+      }
+      doAddToCart(payload.sku, payload.quantity);
+    },
+    [hasGuestInfo, doAddToCart]
+  );
+
+  const handleBuyNow = useCallback(
+    (payload: { productId: string; sku?: string; quantity: number }) => {
+      if (!hasGuestInfo) {
+        setPendingAction("buy");
+        setShowGuestModal(true);
+        return;
+      }
+      doBuyNow(payload.sku, payload.quantity);
+    },
+    [hasGuestInfo, doBuyNow]
+  );
+
+  const handleGuestConfirm = useCallback(async () => {
+    setShowGuestModal(false);
+    if (pendingAction === "cart") {
+      await doAddToCart();
+    } else if (pendingAction === "buy") {
+      await doBuyNow();
+    }
+    setPendingAction(null);
+  }, [pendingAction, doAddToCart, doBuyNow]);
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
@@ -52,8 +128,6 @@ export function ProductExperience({ product }: { product: Product }) {
 
         {mode === "multiple" && (
           getVariantDimensionCount(product.variants) === 1 ? (
-            // Single attribute dimension (e.g. just "mount") — shopapexel-style
-            // full-variant cards with thumbnail, label, and price.
             <VariantCardSelector
               product={product}
               variants={product.variants}
@@ -64,7 +138,6 @@ export function ProductExperience({ product }: { product: Product }) {
               }}
             />
           ) : (
-            // Multiple dimensions (e.g. color + storage) — per-attribute swatches.
             <VariantSelector
               variants={product.variants}
               selection={selection}
@@ -76,8 +149,24 @@ export function ProductExperience({ product }: { product: Product }) {
           )
         )}
 
-        <PurchaseActions product={product} selectedVariant={selectedVariant} stock={stock} />
+        <PurchaseActions
+          product={product}
+          selectedVariant={selectedVariant}
+          stock={stock}
+          onAddToCart={handleAddToCart}
+          onBuyNow={handleBuyNow}
+        />
       </div>
+
+      {showGuestModal && (
+        <GuestInfoModal
+          onClose={() => {
+            setShowGuestModal(false);
+            setPendingAction(null);
+          }}
+          onConfirm={handleGuestConfirm}
+        />
+      )}
     </div>
   );
 }

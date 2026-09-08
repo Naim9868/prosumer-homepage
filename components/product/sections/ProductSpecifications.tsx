@@ -1,12 +1,15 @@
 // components/product/sections/ProductSpecifications.tsx
 import type { Product } from "@/types/product";
-import { getSortedSpecGroups, isComparisonData } from "@/lib/product-helpers";
+import { getSortedSpecGroups } from "@/lib/product-helpers";
 
 export function ProductSpecifications({ product }: { product: Product }) {
-  // Comparison-shaped data is rendered by ComparisonSection instead.
-  if (isComparisonData(product)) return null;
+  const groups = getSortedSpecGroups(product)
+    .map((g) => ({
+      ...g,
+      specifications: g.specifications.filter((s) => s.unit !== "comparison"),
+    }))
+    .filter((g) => g.specifications.length > 0);
 
-  const groups = getSortedSpecGroups(product);
   if (!groups.length) return null;
 
   return (
@@ -27,7 +30,7 @@ export function ProductSpecifications({ product }: { product: Product }) {
                   <dt className="text-[color:var(--titanium-400)]">{spec.label}</dt>
                   <dd className="text-right font-medium text-[color:var(--titanium-100)]">
                     {spec.value}
-                    {spec.unit ? ` ${spec.unit}` : ""}
+                    {spec.unit && spec.unit !== "comparison" ? ` ${spec.unit}` : ""}
                   </dd>
                 </div>
               ))}

@@ -45,16 +45,18 @@ export function ImageGroupSection({
       >
         {group.images.map((img, i) => (
           <div
-            key={img.url + i}
+            key={`${group.title}-${i}`}
             className="relative aspect-square overflow-hidden rounded-xl bg-[color:var(--surface-800)]"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={img.url}
-              alt={img.alt || `${productName} – ${group.title}`}
-              loading="lazy"
-              className="h-full w-full object-cover"
-            />
+            {img.url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={img.url}
+                alt={img.alt || `${productName} – ${group.title}`}
+                loading="lazy"
+                className="h-full w-full object-cover"
+              />
+            ) : null}
           </div>
         ))}
       </div>

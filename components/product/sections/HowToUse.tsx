@@ -21,15 +21,17 @@ export function HowToUse({ product }: { product: Product }) {
           )}
           <ol className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
             {group.images.map((img, i) => (
-              <li key={img.url + i} className="flex flex-col gap-2">
+              <li key={`${groupIndex}-${i}`} className="flex flex-col gap-2">
                 <div className="relative aspect-square overflow-hidden rounded-xl bg-[color:var(--surface-800)]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={img.url}
-                    alt={img.alt || `${product.name} – step ${i + 1}`}
-                    loading="lazy"
-                    className="h-full w-full object-cover"
-                  />
+                  {img.url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={img.url}
+                      alt={img.alt || `${product.name} – step ${i + 1}`}
+                      loading="lazy"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : null}
                   <span className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[color:var(--brass-500)] text-xs font-semibold text-black">
                     {i + 1}
                   </span>

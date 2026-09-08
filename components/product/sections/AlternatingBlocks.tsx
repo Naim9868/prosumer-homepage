@@ -29,13 +29,15 @@ export function AlternatingBlocks({ product }: { product: Product }) {
             }`}
           >
             <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-[color:var(--surface-800)]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={image.url}
-                alt={image.alt || `${product.name} – ${group.title}`}
-                loading="lazy"
-                className="h-full w-full object-cover"
-              />
+              {image.url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={image.url}
+                  alt={image.alt || `${product.name} – ${group.title}`}
+                  loading="lazy"
+                  className="h-full w-full object-cover"
+                />
+              ) : null}
             </div>
             <div className="flex flex-col gap-3">
               <h3 className="text-xl font-medium text-[color:var(--titanium-100)]">{group.title}</h3>

@@ -3,7 +3,9 @@ import type { Product } from "@/types/product";
 import { buildComparisonRows, getSortedSpecGroups } from "@/lib/product-helpers";
 
 export function ComparisonSection({ product }: { product: Product }) {
-  const groups = getSortedSpecGroups(product);
+  const groups = getSortedSpecGroups(product).filter((g) =>
+    g.specifications.some((s) => s.unit === "comparison")
+  );
   if (groups.length < 2) return null;
 
   const rows = buildComparisonRows(product);
@@ -19,11 +21,11 @@ export function ComparisonSection({ product }: { product: Product }) {
         <table className="w-full min-w-[480px] border-collapse text-left text-sm">
           <thead>
             <tr>
-              <th className="border-b border-[color:var(--titanium-800)] py-3 pr-4 font-medium text-[color:var(--titanium-500)]" />
+              <th className="border-b border-t border-[color:var(--titanium-800)] py-3 pr-4 font-medium text-[color:var(--titanium-500)]" />
               {groups.map((g) => (
                 <th
                   key={g.groupName}
-                  className="border-b border-[color:var(--titanium-800)] py-3 pr-4 font-medium text-[color:var(--titanium-100)]"
+                  className="border-b border-t border-[color:var(--titanium-800)] py-3 pr-4 font-medium text-[color:var(--titanium-100)]"
                 >
                   {g.groupName}
                 </th>
@@ -44,7 +46,7 @@ export function ComparisonSection({ product }: { product: Product }) {
                     key={i}
                     className="border-b border-[color:var(--titanium-800)]/60 py-3 pr-4 text-[color:var(--titanium-200)]"
                   >
-                    {spec ? `${spec.value}${spec.unit ? ` ${spec.unit}` : ""}` : "—"}
+                    {spec ? spec.value : "—"}
                   </td>
                 ))}
               </tr>

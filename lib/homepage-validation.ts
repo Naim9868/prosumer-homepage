@@ -37,6 +37,7 @@ const responsiveSectionStylesSchema = z.object({
 const pageSettingsSchema = z.object({
   containerWidth: z.number().min(960).max(2560),
   sidePadding: z.number().min(0).max(200),
+  productsPerPage: z.number().min(4).max(100),
   navbar: z.object({
     enabled: z.boolean(),
     fixed: z.boolean(),
@@ -48,6 +49,14 @@ const pageSettingsSchema = z.object({
     backgroundColor: z.string(),
     paddingTop: z.number().min(0).max(200),
   }),
+  trustBadges: z.object({
+    enabled: z.boolean(),
+    badges: z.array(z.object({
+      icon: z.string(),
+      title: z.string(),
+      subtitle: z.string(),
+    })),
+  }).optional(),
 });
 
 const blockBreakpointStyleSchema = z.record(z.string(), z.unknown());

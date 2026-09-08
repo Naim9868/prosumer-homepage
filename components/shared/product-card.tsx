@@ -345,7 +345,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
             {richProduct.ratingAverage && richProduct.ratingAverage > 0 ? renderStars() : <span />}
           </div>
 
-          <Link href={`/product/${slug}`} onClick={(e) => e.stopPropagation()} className="block group/title">
+          <Link href={`/products/${slug}`} onClick={(e) => e.stopPropagation()} className="block group/title">
             <h3 className="line-clamp-2 font-heading text-[13px] font-semibold leading-snug text-foreground transition-colors group-hover/title:text-primary md:text-sm">
               {name}
             </h3>

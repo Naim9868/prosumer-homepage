@@ -308,14 +308,18 @@ export function resolveStockStatus(
 export function isComparisonData(product: Product): boolean {
   const groups = product.specificationGroups ?? [];
   if (groups.length < 2) return false;
-  const keySets = groups.map((g) => new Set(g.specifications.map((s) => s.key)));
-  const [first, ...rest] = keySets;
-  return rest.some((s) => [...s].some((k) => first.has(k)));
+  return groups.some((g) => g.specifications.some((s) => s.unit === "comparison"));
 }
 
-/** Builds aligned comparison rows across groups, matched by spec `key`, not position. */
+/** Builds aligned comparison rows across groups, matched by spec `key`, not position.
+ *  Only includes groups that have comparison specs, and only specs with unit === "comparison". */
 export function buildComparisonRows(product: Product) {
-  const groups = product.specificationGroups ?? [];
+  const groups = (product.specificationGroups ?? [])
+    .map((g) => ({
+      ...g,
+      specifications: g.specifications.filter((s) => s.unit === "comparison"),
+    }))
+    .filter((g) => g.specifications.length > 0);
   const allKeys: string[] = [];
   const seen = new Set<string>();
   for (const g of groups) {

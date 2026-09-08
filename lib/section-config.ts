@@ -71,7 +71,8 @@ export function getPresentSections(product: Product): Array<{ id: string; label:
   }
   if (getContentsGroups(product).length) sections.push({ id: "in-the-box", label: "In the box" });
   if (product.videos?.length) sections.push({ id: "videos", label: "Videos" });
-  if (product.relatedProducts?.length) sections.push({ id: "related", label: "Related" });
+  sections.push({ id: "related", label: "Related" });
+  if (product.ratingCount && product.ratingCount > 0) sections.push({ id: "reviews", label: "Reviews" });
 
   return sections;
 }
