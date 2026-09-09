@@ -12,7 +12,7 @@ export function ProductDescription({ product }: { product: Product }) {
   if (!product.description?.trim()) return null;
 
   return (
-    <section id="description" aria-labelledby="section-description" className="flex flex-col gap-3">
+    <section id="description" aria-labelledby="section-description" className="flex border-2 flex-col gap-3">
       <h2 id="section-description" className="text-xl font-medium text-[color:var(--titanium-100)]">
         Description
       </h2>

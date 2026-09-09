@@ -56,9 +56,9 @@ export default async function Page({ params }: Props) {
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <Navbar settings={{ ...DEFAULT_PAGE_SETTINGS.navbar, fixed: false }} />
-      <main className="flex-1 pt-32">
+      <main className="flex-1 pt-8">
         <Container className="py-10 lg:py-16">
-          <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-sm text-[color:var(--titanium-400)]">
+          <nav aria-label="Breadcrumb" className="-mb-10 flex items-center gap-2 text-sm text-[color:var(--titanium-400)]">
             <Link href="/" className="transition hover:text-[color:var(--brass-500)]">Home</Link>
             <span>/</span>
             <Link href="/products" className="transition hover:text-[color:var(--brass-500)]">Products</Link>
