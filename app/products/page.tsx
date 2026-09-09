@@ -73,7 +73,7 @@ export default async function ProductsPage({
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <Navbar settings={{ ...DEFAULT_PAGE_SETTINGS.navbar, fixed: false }} />
       <main className="flex-1 pt-32">
-        <Container className="-mt-2">
+        <Container className="-mt-5 pb-10 lg:pb-16">
           <div className="mb-8">
             <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
               {query ? `Results for "${query}"` : "All Products"}

@@ -7,6 +7,7 @@ import type {
   ProductImage,
   ProductImageGroup,
   ImageGroupType,
+  ProductVideo,
   Specification,
 } from "@/types/product";
 
@@ -158,56 +159,74 @@ export function getContentImageSections(product: Product): ProductImageGroup[] {
 
 export interface GalleryImage extends ProductImage {
   source: "variant" | "variant-group" | "product" | "thumbnail";
+  type?: "image" | "video";
+  videoProvider?: ProductVideo["provider"];
+  videoUrl?: string;
 }
 
 /**
  * Resolves the image set for the main gallery, respecting the priority order:
  * selected variant images -> matching "variant" image groups -> general product
  * images (primary/cover/gallery/product) -> thumbnail as a last resort.
- * Never returns an empty array unless the product truly has no imagery.
+ * Videos from product.videos[] are always appended after images.
  */
 export function resolveGalleryImages(
   product: Product,
   selectedVariant?: ProductVariant
 ): GalleryImage[] {
+  let base: GalleryImage[] = [];
+
   // Priority 1: selected variant's own images.
   if (selectedVariant?.images?.length) {
-    return selectedVariant.images.map((url, i) => ({
+    base = selectedVariant.images.map((url, i) => ({
       url,
       alt: `${product.name}`,
       sortOrder: i,
-      source: "variant",
+      source: "variant" as const,
     }));
   }
 
   // Priority 2: "variant" image groups whose title/description references the SKU.
-  if (selectedVariant) {
+  if (!base.length && selectedVariant) {
     const variantGroups = getGroupsByType(product, "variant").filter((g) =>
       [g.title, g.description].some((s) =>
         s?.toLowerCase().includes(selectedVariant.sku.toLowerCase())
       )
     );
     if (variantGroups.length) {
-      return variantGroups
+      base = variantGroups
         .flatMap((g) => g.images)
         .map((img, i) => ({ ...img, sortOrder: img.sortOrder ?? i, source: "variant-group" as const }));
     }
   }
 
   // Priority 3: general product gallery (primary, cover, gallery, product), deduped.
-  const generalTypes: ImageGroupType[] = ["primary", "cover", "gallery", "product"];
-  const seen = new Set<string>();
-  const general: GalleryImage[] = [];
-  for (const type of generalTypes) {
-    for (const group of getGroupsByType(product, type)) {
-      for (const img of group.images) {
-        if (seen.has(img.url)) continue;
-        seen.add(img.url);
-        general.push({ ...img, source: "product" });
+  if (!base.length) {
+    const generalTypes: ImageGroupType[] = ["primary", "cover", "gallery", "product"];
+    const seen = new Set<string>();
+    for (const type of generalTypes) {
+      for (const group of getGroupsByType(product, type)) {
+        for (const img of group.images) {
+          if (seen.has(img.url)) continue;
+          seen.add(img.url);
+          base.push({ ...img, source: "product" });
+        }
       }
     }
   }
-  if (general.length) return general;
+
+  // Always append videos after images so they appear in the gallery.
+  const videos: GalleryImage[] = (product.videos ?? []).map((v, i) => ({
+    url: v.thumbnail || v.url,
+    alt: v.title || product.name,
+    sortOrder: (base.length || 0) + i,
+    source: "product" as const,
+    type: "video" as const,
+    videoProvider: v.provider,
+    videoUrl: v.url,
+  }));
+
+  if (base.length || videos.length) return [...base, ...videos];
 
   // Priority 4: thumbnail fallback.
   if (product.thumbnail) {

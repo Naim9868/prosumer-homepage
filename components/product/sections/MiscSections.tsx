@@ -12,7 +12,7 @@ export function ProductDescription({ product }: { product: Product }) {
   if (!product.description?.trim()) return null;
 
   return (
-    <section id="description" aria-labelledby="section-description" className="flex border-2 flex-col gap-3">
+    <section id="description" aria-labelledby="section-description" className="flex flex-col gap-3">
       <h2 id="section-description" className="text-xl font-medium text-[color:var(--titanium-100)]">
         Description
       </h2>
@@ -40,16 +40,46 @@ export function ProductTags({ product }: { product: Product }) {
   );
 }
 
-function embedUrl(video: NonNullable<Product["videos"]>[number]) {
-  if (video.provider === "youtube") {
-    const id = video.url.match(/(?:v=|youtu\.be\/)([\w-]+)/)?.[1];
-    return id ? `https://www.youtube.com/embed/${id}` : video.url;
+function normalizeProvider(provider?: string): string {
+  return (provider ?? "").toLowerCase().trim();
+}
+
+function isEmbedProvider(provider?: string): boolean {
+  const p = normalizeProvider(provider);
+  return p === "youtube" || p === "vimeo";
+}
+
+function detectProvider(url: string): "youtube" | "vimeo" | null {
+  if (/youtube\.com|youtu\.be/.test(url)) return "youtube";
+  if (/vimeo\.com/.test(url)) return "vimeo";
+  return null;
+}
+
+function extractYouTubeId(url: string): string | null {
+  const m = url.match(
+    /(?:youtube\.com\/(?:watch\?.*?v=|embed\/|live\/|shorts\/)|youtu\.be\/)([\w-]+)/
+  );
+  return m?.[1] ?? null;
+}
+
+function embedUrl(url: string, provider?: string): string {
+  const p = normalizeProvider(provider);
+  const resolved = p || detectProvider(url);
+  if (resolved === "youtube") {
+    const id = extractYouTubeId(url);
+    return id ? `https://www.youtube.com/embed/${id}` : url;
   }
-  if (video.provider === "vimeo") {
-    const id = video.url.match(/vimeo\.com\/(\d+)/)?.[1];
-    return id ? `https://player.vimeo.com/video/${id}` : video.url;
+  if (resolved === "vimeo") {
+    const id = url.match(/vimeo\.com\/(\d+)/)?.[1];
+    return id ? `https://player.vimeo.com/video/${id}` : url;
   }
-  return video.url;
+  return url;
+}
+
+function shouldEmbed(provider?: string, url?: string): boolean {
+  if (isEmbedProvider(provider)) return true;
+  if (url) return detectProvider(url) !== null;
+  return false;
 }
 
 export function ProductVideos({ product }: { product: Product }) {
@@ -63,9 +93,9 @@ export function ProductVideos({ product }: { product: Product }) {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {product.videos.map((video, i) => (
           <div key={i} className="aspect-video overflow-hidden rounded-xl bg-[color:var(--surface-800)]">
-            {video.provider === "youtube" || video.provider === "vimeo" ? (
+            {shouldEmbed(video.provider, video.url) ? (
               <iframe
-                src={embedUrl(video)}
+                src={embedUrl(video.url, video.provider)}
                 title={video.title || `${product.name} video ${i + 1}`}
                 className="h-full w-full"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
