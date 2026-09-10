@@ -3,6 +3,7 @@ import { Container } from "@/components/shared/layout-primitives";
 import { getProducts } from "@/lib/products";
 import { getCatalogData } from "@/lib/catalog";
 import { readHomepageConfig } from "@/lib/homepage-store";
+import { normalizePageSettings } from "@/lib/page-settings";
 import type { IProduct } from "@/types/product";
 import { Navbar } from "@/components/home/navbar/navbar";
 import { Footer } from "@/components/home/footer/footer";
@@ -25,9 +26,12 @@ export default async function ProductsPage({
   const page = Math.max(1, Number(params.page) || 1);
 
   let perPage = DEFAULT_PAGE_SETTINGS.productsPerPage;
+  let productGrid = DEFAULT_PAGE_SETTINGS.productGrid;
   try {
     const config = await readHomepageConfig();
-    perPage = config.page?.productsPerPage || perPage;
+    const pageSettings = normalizePageSettings(config.page);
+    perPage = pageSettings.productsPerPage;
+    productGrid = pageSettings.productGrid;
   } catch {}
 
   let products: IProduct[] = [];
@@ -96,6 +100,7 @@ export default async function ProductsPage({
             totalPages={totalPages}
             totalCount={totalCount}
             perPage={perPage}
+            productGrid={productGrid}
           />
         </Container>
       </main>

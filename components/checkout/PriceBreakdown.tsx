@@ -22,7 +22,7 @@ export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({
   const isFreeDelivery = freeShipping || freeDelivery || (showFreeDelivery && totals.subtotal >= MIN_ORDER_FOR_FREE_DELIVERY);
 
   return (
-    <div className="space-y-2 text-sm">
+    <div className="space-y-1.5 text-xs sm:text-sm">
       <div className="flex justify-between">
         <span className="text-foreground-muted">Subtotal</span>
         <span className="text-foreground">{formatCurrency(totals.subtotal)}</span>
@@ -53,18 +53,18 @@ export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({
       </div>
 
       {freeDelivery && !freeShipping && (
-        <div className="rounded-lg border border-success/40 bg-success/10 p-2">
-          <p className="flex items-center gap-2 text-xs text-success">
-            <Truck size={12} />
+        <div className="rounded-md border border-success/40 bg-success/10 p-1.5">
+          <p className="flex items-center gap-1.5 text-[11px] text-success">
+            <Truck size={10} />
             Free delivery applied!
           </p>
         </div>
       )}
 
       {freeShipping && (
-        <div className="rounded-lg border border-success/40 bg-success/10 p-2">
-          <p className="flex items-center gap-2 text-xs text-success">
-            <Truck size={12} />
+        <div className="rounded-md border border-success/40 bg-success/10 p-1.5">
+          <p className="flex items-center gap-1.5 text-[11px] text-success">
+            <Truck size={10} />
             Free shipping via coupon!
           </p>
         </div>
@@ -72,7 +72,7 @@ export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({
 
       <hr className="border-border" />
 
-      <div className="flex justify-between text-lg font-bold">
+      <div className="flex justify-between text-base font-bold">
         <span className="text-foreground">Total</span>
         <span className="text-primary">{formatCurrency(totals.total)}</span>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import type { HeroFloatingBadge, HeroImageWidthMode, HeroMedia } from "@/types/homepage";
+import type { HeroFloatingBadge, HeroImageWidthMode, HeroMedia, HeroBorderRadius } from "@/types/homepage";
 import { Field, FieldGrid, TextInput, Select, Toggle } from "@/components/homepage-builder/fields";
 import { CatalogPicker, type CatalogPickerItem } from "@/components/homepage-builder/catalog-picker";
 import { ImagePositionControls } from "@/components/homepage-builder/hero/image-position-controls";
@@ -29,6 +29,12 @@ export function MediaEditor({ media, onChange, advanced }: { media: HeroMedia; o
   const set = <K extends keyof HeroMedia>(key: K, value: HeroMedia[K]) => onChange({ ...media, [key]: value });
   const setFloating = (patch: Partial<HeroFloatingBadge>) => onChange({ ...media, floatingBadge: { ...media.floatingBadge, ...patch } });
   const productItems = useProductItems();
+
+  // Guard: ensure borderRadius is always an object (legacy data may have a number)
+  const br = (media.borderRadius && typeof media.borderRadius === "object"
+    ? media.borderRadius
+    : { topLeft: 40, topRight: 40, bottomLeft: 40, bottomRight: 40 });
+  const setBorderRadius = (patch: Partial<typeof br>) => set("borderRadius", { ...br, ...patch });
 
   return (
     <div className="space-y-4">
@@ -120,6 +126,57 @@ export function MediaEditor({ media, onChange, advanced }: { media: HeroMedia; o
                 />
               </Field>
             )}
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">
+              Border Radius (px)
+            </p>
+            <FieldGrid>
+              <Field label="Top Left">
+                <TextInput
+                  type="number"
+                  min={0}
+                  max={200}
+                  value={br.topLeft}
+                  onChange={(e) =>
+                    setBorderRadius({ topLeft: Math.max(0, Math.min(200, Number(e.target.value))) })
+                  }
+                />
+              </Field>
+              <Field label="Top Right">
+                <TextInput
+                  type="number"
+                  min={0}
+                  max={200}
+                  value={br.topRight}
+                  onChange={(e) =>
+                    setBorderRadius({ topRight: Math.max(0, Math.min(200, Number(e.target.value))) })
+                  }
+                />
+              </Field>
+            </FieldGrid>
+            <FieldGrid>
+              <Field label="Bottom Left">
+                <TextInput
+                  type="number"
+                  min={0}
+                  max={200}
+                  value={br.bottomLeft}
+                  onChange={(e) =>
+                    setBorderRadius({ bottomLeft: Math.max(0, Math.min(200, Number(e.target.value))) })
+                  }
+                />
+              </Field>
+              <Field label="Bottom Right">
+                <TextInput
+                  type="number"
+                  min={0}
+                  max={200}
+                  value={br.bottomRight}
+                  onChange={(e) =>
+                    setBorderRadius({ bottomRight: Math.max(0, Math.min(200, Number(e.target.value))) })
+                  }
+                />
+              </Field>
+            </FieldGrid>
             <p className="text-[11px] text-foreground-muted/70">
               Auto mode keeps the image width consistent and responsive across all devices.
               Manual mode sets a fixed pixel width.

@@ -61,6 +61,8 @@ export interface PageNavbarSettings {
   fixed: boolean;
   transparent: boolean;
   height: number; // px
+  /** Background opacity 0–1; 1 = fully opaque, 0 = fully transparent. */
+  opacity: number;
 
   // Colors — empty string means "use the theme default".
   /** Solid navbar background; empty = theme glass / transparent behavior. */
@@ -106,6 +108,16 @@ export interface TrustBadgeSettings {
   badges: TrustBadge[];
 }
 
+export interface ProductGridDeviceSettings {
+  columns: number;
+  gap: number; // px
+}
+
+export interface ProductGridSettings {
+  desktop: ProductGridDeviceSettings;
+  tablet: ProductGridDeviceSettings;
+}
+
 export interface PageSettings {
   /** Max width of the page container in px. */
   containerWidth: number;
@@ -116,6 +128,8 @@ export interface PageSettings {
   trustBadges: TrustBadgeSettings;
   /** Number of products per page on /products listing. */
   productsPerPage: number;
+  /** Product grid layout on /products listing. */
+  productGrid: ProductGridSettings;
 }
 
 export const DEFAULT_PAGE_SETTINGS: PageSettings = {
@@ -126,6 +140,7 @@ export const DEFAULT_PAGE_SETTINGS: PageSettings = {
     fixed: true,
     transparent: true,
     height: 72,
+    opacity: 0.72,
     backgroundColor: "",
     textColor: "",
     mutedTextColor: "",
@@ -148,6 +163,10 @@ export const DEFAULT_PAGE_SETTINGS: PageSettings = {
     ],
   },
   productsPerPage: 20,
+  productGrid: {
+    desktop: { columns: 4, gap: 24 },
+    tablet: { columns: 3, gap: 20 },
+  },
 };
 
 // ---------------------------------------------------------------
@@ -269,6 +288,13 @@ export interface HeroBackgroundPosition {
 
 export type HeroImageWidthMode = "auto" | "manual";
 
+export interface HeroBorderRadius {
+  topLeft: number;
+  topRight: number;
+  bottomLeft: number;
+  bottomRight: number;
+}
+
 export interface HeroMedia {
   source: HeroMediaSource;
   desktopImage: string;
@@ -285,6 +311,8 @@ export interface HeroMedia {
   imageWidthMode: HeroImageWidthMode;
   /** Fixed width in px when imageWidthMode is "manual". */
   imageWidth: number;
+  /** Border radius of the image card (per-corner in px). */
+  borderRadius: HeroBorderRadius;
 }
 
 /** Button sizing overrides (px); 0/0 means "auto" for the given dimension. */
@@ -521,20 +549,32 @@ export type CatResponsiveThemeStyle = Partial<Record<EditorDevice, Partial<Recor
 
 export type CatDeviceLayout = Partial<Record<EditorDevice, { columns: 1 | 2 | 3 | 4 | 5 | 6; gridGap: number; limit?: number }>>;
 
+export type CatDeviceCardStyle = Partial<Record<EditorDevice, {
+  textPosition?: CardTextPosition;
+  textOffsetX?: number;
+  textOffsetY?: number;
+  showDescription?: boolean;
+  borderRadius?: number;
+  height?: number;
+  width?: number;
+  shadow?: boolean;
+  shadowIntensity?: number;
+  showArrowIcon?: boolean;
+}>>;
+
 export interface CategoriesSettings {
   eyebrow?: string;
   title: string;
   subtitle: string;
   categoryIds: string[];
-  cardTextPosition?: CardTextPosition;
-  cardTextOffsetX?: number;
-  cardTextOffsetY?: number;
   layout?: CatDeviceLayout;
   eyebrowStyle?: CatResponsiveThemeStyle;
   titleStyle?: CatResponsiveThemeStyle;
   subtitleStyle?: CatResponsiveThemeStyle;
   cardNameStyle?: CatResponsiveThemeStyle;
   cardDescriptionStyle?: CatResponsiveThemeStyle;
+  /** Per-device card settings: text position, design, shadow, etc. */
+  cardStyle?: CatDeviceCardStyle;
 }
 
 export interface BrandsSettings {

@@ -179,6 +179,7 @@ export function defaultHeroMedia(theme: HeroTheme = "dark"): HeroMedia {
     },
     imageWidthMode: "auto",
     imageWidth: 480,
+    borderRadius: { topLeft: 40, topRight: 40, bottomLeft: 40, bottomRight: 40 },
   };
 }
 
@@ -663,6 +664,17 @@ function mergeBreakpointData(defaults: HeroBreakpointData, input: HeroBreakpoint
       floatingBadge: { ...defaults.media.floatingBadge, ...v.media?.floatingBadge },
       imageWidthMode: v.media?.imageWidthMode ?? defaults.media.imageWidthMode ?? "auto",
       imageWidth: v.media?.imageWidth ?? defaults.media.imageWidth ?? 480,
+      borderRadius: (() => {
+        const raw = v.media?.borderRadius;
+        if (raw && typeof raw === "object") {
+          return { ...defaults.media.borderRadius, ...raw };
+        }
+        // Legacy: single number applied to all corners
+        if (typeof raw === "number") {
+          return { topLeft: raw, topRight: raw, bottomLeft: raw, bottomRight: raw };
+        }
+        return defaults.media.borderRadius;
+      })(),
     },
     styling: mergeBreakpointStyling(defaults.styling, v.styling),
   };

@@ -79,7 +79,7 @@ export interface ProductVideo {
   thumbnail?: string;
 }
 
-export interface InventorySummary {
+export interface InventorySummary { 
   available: number;
   reserved?: number;
   lowStockThreshold?: number;

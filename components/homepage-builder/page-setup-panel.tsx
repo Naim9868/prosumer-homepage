@@ -32,6 +32,14 @@ export function PageSetupPanel({
   const setNavbar = (patch: Partial<PageSettings["navbar"]>) => onChange({ ...page, navbar: { ...page.navbar, ...patch } });
   const setFooter = (patch: Partial<PageSettings["footer"]>) => onChange({ ...page, footer: { ...page.footer, ...patch } });
   const setTrustBadges = (patch: Partial<PageSettings["trustBadges"]>) => onChange({ ...page, trustBadges: { ...page.trustBadges, ...patch } });
+  const setProductGrid = (device: "desktop" | "tablet", patch: Partial<{ columns: number; gap: number }>) =>
+    onChange({
+      ...page,
+      productGrid: {
+        ...page.productGrid,
+        [device]: { ...page.productGrid[device], ...patch },
+      },
+    });
 
   const updateBadge = (index: number, patch: Partial<TrustBadge>) => {
     const badges = [...page.trustBadges.badges];
@@ -101,6 +109,58 @@ export function PageSetupPanel({
           </section>
 
           <section className="space-y-4 rounded-[var(--radius-md)] border border-border bg-muted/40 p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Product Grid (/products)</p>
+            <div className="space-y-3">
+              <div className="rounded-lg border border-border bg-background p-3">
+                <p className="mb-2 text-[11px] font-semibold text-foreground-muted">Desktop (≥1024px)</p>
+                <FieldGrid>
+                  <Field label="Columns" hint="Cards per row (2–6).">
+                    <TextInput
+                      type="number"
+                      min={2}
+                      max={6}
+                      value={page.productGrid.desktop.columns}
+                      onChange={(e) => setProductGrid("desktop", { columns: Math.max(2, Math.min(6, Number(e.target.value) || 2)) })}
+                    />
+                  </Field>
+                  <Field label="Gap (px)" hint="Space between cards.">
+                    <TextInput
+                      type="number"
+                      min={0}
+                      max={60}
+                      value={page.productGrid.desktop.gap}
+                      onChange={(e) => setProductGrid("desktop", { gap: Math.max(0, Math.min(60, Number(e.target.value) || 0)) })}
+                    />
+                  </Field>
+                </FieldGrid>
+              </div>
+              <div className="rounded-lg border border-border bg-background p-3">
+                <p className="mb-2 text-[11px] font-semibold text-foreground-muted">Tablet (640px–1023px)</p>
+                <FieldGrid>
+                  <Field label="Columns" hint="Cards per row (2–6).">
+                    <TextInput
+                      type="number"
+                      min={2}
+                      max={6}
+                      value={page.productGrid.tablet.columns}
+                      onChange={(e) => setProductGrid("tablet", { columns: Math.max(2, Math.min(6, Number(e.target.value) || 2)) })}
+                    />
+                  </Field>
+                  <Field label="Gap (px)" hint="Space between cards.">
+                    <TextInput
+                      type="number"
+                      min={0}
+                      max={60}
+                      value={page.productGrid.tablet.gap}
+                      onChange={(e) => setProductGrid("tablet", { gap: Math.max(0, Math.min(60, Number(e.target.value) || 0)) })}
+                    />
+                  </Field>
+                </FieldGrid>
+              </div>
+            </div>
+          </section>
+
+          <section className="space-y-4 rounded-[var(--radius-md)] border border-border bg-muted/40 p-4">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Navbar</p>
             <div className="flex flex-wrap gap-6">
               <label className="flex items-center gap-2 text-[13px] font-medium text-foreground">
@@ -128,6 +188,22 @@ export function PageSetupPanel({
                 value={page.navbar.height}
                 onChange={(e) => setNavbar({ height: Number(e.target.value) })}
               />
+            </Field>
+            <Field label="Background Opacity" hint="Only applies when Background Color is set.">
+              <div className="flex items-center gap-3">
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={page.navbar.opacity ?? 0.72}
+                  onChange={(e) => setNavbar({ opacity: Number(e.target.value) })}
+                  className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-border accent-primary [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary"
+                />
+                <span className="w-10 text-right text-[12px] font-medium text-foreground-muted tabular-nums">
+                  {Math.round((page.navbar.opacity ?? 0.72) * 100)}%
+                </span>
+              </div>
             </Field>
 
             <p className="pt-2 text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Colors</p>

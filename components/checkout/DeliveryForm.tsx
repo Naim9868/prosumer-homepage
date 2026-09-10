@@ -41,22 +41,22 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({
 
   const inputClass = (hasError?: string) =>
     cn(
-      "w-full rounded-xl border bg-background-elevated px-4 py-2.5 text-foreground outline-none transition focus:ring-2 focus:ring-primary focus:border-transparent sm:py-3",
+      "w-full rounded-lg border bg-background-elevated px-3 py-2 text-sm text-foreground outline-none transition focus:ring-2 focus:ring-primary focus:border-transparent",
       hasError ? "border-destructive" : "border-border"
     );
 
   return (
-    <div className="space-y-4">
-      <h3 className="flex items-center gap-2 font-semibold text-foreground">
-        <Truck className="h-4 w-4 text-primary" /> Delivery Information
+    <div className="space-y-3">
+      <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+        <Truck className="h-3.5 w-3.5 text-primary" /> Delivery Information
       </h3>
 
-      <div className="flex flex-col gap-3 sm:flex-row">
+      <div className="flex flex-col gap-2 sm:flex-row">
         {deliveryTypes.map((type) => (
           <label
             key={type}
             className={cn(
-              "flex flex-1 cursor-pointer items-center gap-2 rounded-xl border-2 p-3 transition sm:p-4",
+              "flex flex-1 cursor-pointer items-center gap-2 rounded-lg border-2 px-3 py-2 transition",
               deliveryType === type
                 ? "border-primary bg-primary/10"
                 : "border-border hover:border-primary/50"
@@ -70,14 +70,14 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({
               onChange={(e) => onDeliveryTypeChange(e.target.value as DeliveryType)}
               className="text-primary"
             />
-            <span className="text-sm font-medium text-foreground">{DELIVERY_LABELS[type]}</span>
+            <span className="text-xs font-medium text-foreground sm:text-sm">{DELIVERY_LABELS[type]}</span>
           </label>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
         <div>
-          <label className="text-sm font-medium text-foreground">Address *</label>
+          <label className="text-xs font-medium text-foreground">Address *</label>
           <input
             type="text"
             value={address}
@@ -85,11 +85,11 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({
             className={inputClass(errors.address)}
             placeholder="House #, Street"
           />
-          {errors.address && <p className="mt-1 text-xs text-destructive">{errors.address}</p>}
+          {errors.address && <p className="mt-0.5 text-xs text-destructive">{errors.address}</p>}
         </div>
 
         <div>
-          <label className="text-sm font-medium text-foreground">Area *</label>
+          <label className="text-xs font-medium text-foreground">Area *</label>
           <input
             type="text"
             value={area}
@@ -97,13 +97,13 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({
             className={inputClass(errors.area)}
             placeholder="Mirpur, Gulshan"
           />
-          {errors.area && <p className="mt-1 text-xs text-destructive">{errors.area}</p>}
+          {errors.area && <p className="mt-0.5 text-xs text-destructive">{errors.area}</p>}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
         <div>
-          <label className="text-sm font-medium text-foreground">City *</label>
+          <label className="text-xs font-medium text-foreground">City *</label>
           <input
             type="text"
             value={city}
@@ -111,11 +111,11 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({
             className={inputClass(errors.city)}
             placeholder="Dhaka"
           />
-          {errors.city && <p className="mt-1 text-xs text-destructive">{errors.city}</p>}
+          {errors.city && <p className="mt-0.5 text-xs text-destructive">{errors.city}</p>}
         </div>
 
         <div>
-          <label className="text-sm font-medium text-foreground">Division</label>
+          <label className="text-xs font-medium text-foreground">Division</label>
           <input
             type="text"
             value={division}
@@ -127,12 +127,12 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({
       </div>
 
       <div>
-        <label className="text-sm font-medium text-foreground">Order Notes (Optional)</label>
+        <label className="text-xs font-medium text-foreground">Order Notes (Optional)</label>
         <textarea
           value={notes}
           onChange={(e) => onNotesChange(e.target.value)}
           className={cn(inputClass(), "mt-1")}
-          rows={3}
+          rows={2}
           placeholder="Any special instructions..."
         />
       </div>

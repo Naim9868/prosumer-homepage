@@ -24,6 +24,7 @@ export function normalizePageSettings(input: unknown): PageSettings {
       fixed: pickBool(navbar.fixed, DEFAULT_PAGE_SETTINGS.navbar.fixed),
       transparent: pickBool(navbar.transparent, DEFAULT_PAGE_SETTINGS.navbar.transparent),
       height: pickNumber(navbar.height, DEFAULT_PAGE_SETTINGS.navbar.height),
+      opacity: pickNumber(navbar.opacity, DEFAULT_PAGE_SETTINGS.navbar.opacity),
       backgroundColor: typeof navbar.backgroundColor === "string" ? navbar.backgroundColor : DEFAULT_PAGE_SETTINGS.navbar.backgroundColor,
       textColor: typeof navbar.textColor === "string" ? navbar.textColor : DEFAULT_PAGE_SETTINGS.navbar.textColor,
       mutedTextColor: typeof navbar.mutedTextColor === "string" ? navbar.mutedTextColor : DEFAULT_PAGE_SETTINGS.navbar.mutedTextColor,
@@ -57,6 +58,21 @@ export function normalizePageSettings(input: unknown): PageSettings {
       };
     })(),
     productsPerPage: pickNumber(raw.productsPerPage, DEFAULT_PAGE_SETTINGS.productsPerPage),
+    productGrid: (() => {
+      const rawPg = raw.productGrid && typeof raw.productGrid === "object" ? raw.productGrid as Record<string, unknown> : {};
+      const pickDevice = (key: string) => {
+        const d = rawPg[key] && typeof rawPg[key] === "object" ? rawPg[key] as Record<string, unknown> : {};
+        const defaults = DEFAULT_PAGE_SETTINGS.productGrid[key as "desktop" | "tablet"];
+        return {
+          columns: pickNumber(d.columns, defaults.columns),
+          gap: pickNumber(d.gap, defaults.gap),
+        };
+      };
+      return {
+        desktop: pickDevice("desktop"),
+        tablet: pickDevice("tablet"),
+      };
+    })(),
   };
 }
 
@@ -66,5 +82,9 @@ export function pageCssVars(page?: PageSettings | null): CSSProperties {
   return {
     "--page-max-width": `${s.containerWidth}px`,
     "--page-padding": `${s.sidePadding}px`,
+    "--product-grid-desktop-cols": s.productGrid.desktop.columns,
+    "--product-grid-desktop-gap": `${s.productGrid.desktop.gap}px`,
+    "--product-grid-tablet-cols": s.productGrid.tablet.columns,
+    "--product-grid-tablet-gap": `${s.productGrid.tablet.gap}px`,
   } as CSSProperties;
 }

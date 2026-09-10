@@ -19,11 +19,11 @@ export default function GuestInfoModal({ onClose, onConfirm, actionType = "addTo
 
   const validate = () => {
     const newErrors: { email?: string; phone?: string } = {};
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Valid email is required";
-    }
     if (!phone.trim() || !/^01[3-9]\d{8}$/.test(phone)) {
       newErrors.phone = "Valid Bangladeshi phone number is required";
+    }
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Please enter a valid email address";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -83,23 +83,6 @@ export default function GuestInfoModal({ onClose, onConfirm, actionType = "addTo
             <form onSubmit={handleSubmit} className="space-y-4 p-5">
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <Mail className="h-4 w-4 text-foreground-muted" /> Email Address *
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  autoFocus
-                  className={`w-full rounded-[var(--radius-md)] border bg-background-elevated px-4 py-3 text-foreground outline-none transition focus:ring-2 focus:ring-primary focus:border-transparent ${
-                    errors.email ? "border-destructive" : "border-border"
-                  }`}
-                />
-                {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-foreground">
                   <Phone className="h-4 w-4 text-foreground-muted" /> Phone Number *
                 </label>
                 <input
@@ -107,11 +90,28 @@ export default function GuestInfoModal({ onClose, onConfirm, actionType = "addTo
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="017XXXXXXXX"
+                  autoFocus
                   className={`w-full rounded-[var(--radius-md)] border bg-background-elevated px-4 py-3 text-foreground outline-none transition focus:ring-2 focus:ring-primary focus:border-transparent ${
                     errors.phone ? "border-destructive" : "border-border"
                   }`}
                 />
                 {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-foreground">
+                  <Mail className="h-4 w-4 text-foreground-muted" /> Email Address
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com (optional)"
+                  className={`w-full rounded-[var(--radius-md)] border bg-background-elevated px-4 py-3 text-foreground outline-none transition focus:ring-2 focus:ring-primary focus:border-transparent ${
+                    errors.email ? "border-destructive" : "border-border"
+                  }`}
+                />
+                {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
               </div>
 
               <button

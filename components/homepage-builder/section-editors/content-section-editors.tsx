@@ -7,13 +7,15 @@ import type {
   CategoriesTextStyle,
   CatResponsiveThemeStyle,
   CatDeviceLayout,
+  CatDeviceCardStyle,
   CatTheme,
   EditorDevice,
   SectionStyle,
   BrandsSettings,
   GallerySettings,
+  CardTextPosition,
 } from "@/types/homepage";
-import { Field, FieldGrid, TextInput, Select, ColorField } from "@/components/homepage-builder/fields";
+import { Field, FieldGrid, TextInput, Select, ColorField, Toggle } from "@/components/homepage-builder/fields";
 import { CatalogPicker, type CatalogPickerItem } from "@/components/homepage-builder/catalog-picker";
 import { ImageUploader } from "@/components/homepage-builder/image-uploader";
 import { useCatalog } from "@/components/shared/catalog-context";
@@ -61,6 +63,13 @@ function getLayout(
   device: EditorDevice,
 ): { columns: 1 | 2 | 3 | 4 | 5 | 6; gridGap: number } {
   return layout?.[device] ?? { columns: 2, gridGap: 16 };
+}
+
+function getCardStyle(
+  cardStyle: CatDeviceCardStyle | undefined,
+  device: EditorDevice,
+) {
+  return cardStyle?.[device] ?? {};
 }
 
 // ── collapsible ──────────────────────────────────────────────────
@@ -443,6 +452,7 @@ function CategoriesEditorInner({
   ) => onChange({ ...settings, [key]: value });
 
   const layout = getLayout(settings.layout, device);
+  const cardStyle = getCardStyle(settings.cardStyle, device);
 
   const DEVBtns: { id: EditorDevice; icon: typeof Monitor; label: string }[] = [
     { id: "desktop", icon: Monitor, label: "Desktop" },
@@ -616,48 +626,179 @@ function CategoriesEditorInner({
             onMapChange={(m) => set("cardDescriptionStyle", m)}
           />
 
-          {/* Card text position (shared) */}
-          <CollapsibleSection title="Card text position" defaultOpen={false}>
-            <Field label="Position">
-              <Select
-                value={settings.cardTextPosition ?? "inside"}
-                onChange={(v) =>
-                  set(
-                    "cardTextPosition",
-                    v as CategoriesSettings["cardTextPosition"],
-                  )
-                }
-                options={[
-                  { label: "Inside image", value: "inside" },
-                  { label: "Outside — top", value: "outside-top" },
-                  { label: "Outside — bottom", value: "outside-bottom" },
-                ]}
-              />
-            </Field>
-            <FieldGrid>
-              <TextInput
-                type="number"
-                value={settings.cardTextOffsetX ?? ""}
-                onChange={(e) =>
-                  set(
-                    "cardTextOffsetX",
-                    e.target.value ? Number(e.target.value) : undefined,
-                  )
-                }
-                placeholder="Offset X (px)"
-              />
-              <TextInput
-                type="number"
-                value={settings.cardTextOffsetY ?? ""}
-                onChange={(e) =>
-                  set(
-                    "cardTextOffsetY",
-                    e.target.value ? Number(e.target.value) : undefined,
-                  )
-                }
-                placeholder="Offset Y (px)"
-              />
-            </FieldGrid>
+          {/* Per-device card settings */}
+          <CollapsibleSection
+            title={`Card Settings — ${device}`}
+            defaultOpen={true}
+          >
+            <div className="space-y-3">
+              {/* Text position */}
+              <Field label="Text Position">
+                <Select
+                  value={cardStyle.textPosition ?? "inside"}
+                  onChange={(v) =>
+                    set("cardStyle", {
+                      ...settings.cardStyle,
+                      [device]: { ...cardStyle, textPosition: v as CardTextPosition },
+                    })
+                  }
+                  options={[
+                    { label: "Inside image", value: "inside" },
+                    { label: "Outside — top", value: "outside-top" },
+                    { label: "Outside — bottom", value: "outside-bottom" },
+                  ]}
+                />
+              </Field>
+              <FieldGrid>
+                  <TextInput
+                    type="number"
+                    value={cardStyle.textOffsetX ?? ""}
+                    onChange={(e) =>
+                      set("cardStyle", {
+                        ...settings.cardStyle,
+                        [device]: {
+                          ...cardStyle,
+                          textOffsetX: e.target.value ? Number(e.target.value) : undefined,
+                        },
+                      })
+                    }
+                    placeholder="Offset X (px)"
+                  />
+                  <TextInput
+                    type="number"
+                    value={cardStyle.textOffsetY ?? ""}
+                    onChange={(e) =>
+                      set("cardStyle", {
+                        ...settings.cardStyle,
+                        [device]: {
+                          ...cardStyle,
+                          textOffsetY: e.target.value ? Number(e.target.value) : undefined,
+                        },
+                      })
+                    }
+                    placeholder="Offset Y (px)"
+                  />
+                </FieldGrid>
+
+              {/* Toggles */}
+              <label className="flex items-center gap-2 text-[13px] font-medium text-foreground">
+                <Toggle
+                  checked={cardStyle.showDescription !== false}
+                  onChange={(v) =>
+                    set("cardStyle", {
+                      ...settings.cardStyle,
+                      [device]: { ...cardStyle, showDescription: v },
+                    })
+                  }
+                  label="Show description"
+                />
+                Show description
+              </label>
+              <label className="flex items-center gap-2 text-[13px] font-medium text-foreground">
+                <Toggle
+                  checked={cardStyle.shadow !== false}
+                  onChange={(v) =>
+                    set("cardStyle", {
+                      ...settings.cardStyle,
+                      [device]: { ...cardStyle, shadow: v },
+                    })
+                  }
+                  label="Card shadow"
+                />
+                Card shadow
+              </label>
+              {cardStyle.shadow !== false && (
+                <Field label="Shadow Intensity (px)" hint="Controls shadow blur/spread.">
+                  <TextInput
+                    type="number"
+                    min={0}
+                    max={80}
+                    value={cardStyle.shadowIntensity ?? ""}
+                    onChange={(e) =>
+                      set("cardStyle", {
+                        ...settings.cardStyle,
+                        [device]: {
+                          ...cardStyle,
+                          shadowIntensity: e.target.value ? Math.max(0, Math.min(80, Number(e.target.value))) : undefined,
+                        },
+                      })
+                    }
+                    placeholder="20"
+                  />
+                </Field>
+              )}
+              <label className="flex items-center gap-2 text-[13px] font-medium text-foreground">
+                <Toggle
+                  checked={cardStyle.showArrowIcon !== false}
+                  onChange={(v) =>
+                    set("cardStyle", {
+                      ...settings.cardStyle,
+                      [device]: { ...cardStyle, showArrowIcon: v },
+                    })
+                  }
+                  label="Arrow icon"
+                />
+                Arrow icon on hover
+              </label>
+
+              {/* Dimensions */}
+              <FieldGrid>
+                <Field label="Border Radius (px)" hint="0 = sharp, 200+ = pill, 500 = circle.">
+                  <TextInput
+                    type="number"
+                    min={0}
+                    max={500}
+                    value={cardStyle.borderRadius ?? ""}
+                    onChange={(e) =>
+                      set("cardStyle", {
+                        ...settings.cardStyle,
+                        [device]: {
+                          ...cardStyle,
+                          borderRadius: e.target.value ? Math.max(0, Math.min(500, Number(e.target.value))) : undefined,
+                        },
+                      })
+                    }
+                    placeholder="12"
+                  />
+                </Field>
+                <Field label="Height (px)" hint="0 = default 300px.">
+                  <TextInput
+                    type="number"
+                    min={0}
+                    max={600}
+                    value={cardStyle.height ?? ""}
+                    onChange={(e) =>
+                      set("cardStyle", {
+                        ...settings.cardStyle,
+                        [device]: {
+                          ...cardStyle,
+                          height: e.target.value ? Math.max(0, Math.min(600, Number(e.target.value))) : undefined,
+                        },
+                      })
+                    }
+                    placeholder="300"
+                  />
+                </Field>
+              </FieldGrid>
+              <Field label="Width (px)" hint="0 = auto fill grid cell.">
+                <TextInput
+                  type="number"
+                  min={0}
+                  max={800}
+                  value={cardStyle.width ?? ""}
+                  onChange={(e) =>
+                    set("cardStyle", {
+                      ...settings.cardStyle,
+                      [device]: {
+                        ...cardStyle,
+                        width: e.target.value ? Math.max(0, Math.min(800, Number(e.target.value))) : undefined,
+                      },
+                    })
+                  }
+                  placeholder="auto"
+                />
+              </Field>
+            </div>
           </CollapsibleSection>
 
           {/* Categories picker (shared) */}

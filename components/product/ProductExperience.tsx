@@ -26,10 +26,8 @@ import { StockPill } from "./ui/BadgesAndStock";
 import { ProductInfoHeader } from "./ProductInfoHeader";
 import { useCartContext } from "@/app/context/CartContext";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
-import { useModal } from "@/app/context/OrderModalContext";
 import { useGuestInfo } from "@/app/context/GuestInfoContext";
 import GuestInfoModal from "@/components/GuestInfoModal";
-import { buildCartItem } from "@/lib/cart-item";
 
 export function ProductExperience({ product }: { product: Product }) {
   const mode = getVariantMode(product);
@@ -42,7 +40,6 @@ export function ProductExperience({ product }: { product: Product }) {
 
   const { addToCart } = useCartContext();
   const { openCartModal } = useCartModalContext();
-  const { openOrderModal } = useModal();
   const { hasGuestInfo } = useGuestInfo();
 
   const images = useMemo(
@@ -74,11 +71,10 @@ export function ProductExperience({ product }: { product: Product }) {
       const variant = findVariant(sku);
       const success = await addToCart(product, variant, quantity);
       if (success) {
-        const item = buildCartItem(product, variant, quantity);
-        openOrderModal([item]);
+        window.location.href = "/checkout";
       }
     },
-    [findVariant, addToCart, product, openOrderModal]
+    [findVariant, addToCart, product]
   );
 
   const handleAddToCart = useCallback(
@@ -95,25 +91,18 @@ export function ProductExperience({ product }: { product: Product }) {
 
   const handleBuyNow = useCallback(
     (payload: { productId: string; sku?: string; quantity: number }) => {
-      if (!hasGuestInfo) {
-        setPendingAction("buy");
-        setShowGuestModal(true);
-        return;
-      }
       doBuyNow(payload.sku, payload.quantity);
     },
-    [hasGuestInfo, doBuyNow]
+    [doBuyNow]
   );
 
   const handleGuestConfirm = useCallback(async () => {
     setShowGuestModal(false);
     if (pendingAction === "cart") {
       await doAddToCart();
-    } else if (pendingAction === "buy") {
-      await doBuyNow();
     }
     setPendingAction(null);
-  }, [pendingAction, doAddToCart, doBuyNow]);
+  }, [pendingAction, doAddToCart]);
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">

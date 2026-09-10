@@ -20,9 +20,9 @@ export const ValidationAlert: React.FC<ValidationAlertProps> = ({ error, type = 
   };
 
   return (
-    <div className={cn("rounded-xl border p-3", styles[type], className)}>
-      <p className="flex items-center gap-2 text-xs">
-        <AlertCircle size={14} />
+    <div className={cn("rounded-lg border p-2", styles[type], className)}>
+      <p className="flex items-center gap-1.5 text-[11px] sm:text-xs">
+        <AlertCircle size={12} />
         {error}
       </p>
     </div>

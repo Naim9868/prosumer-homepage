@@ -57,6 +57,16 @@ const pageSettingsSchema = z.object({
       subtitle: z.string(),
     })),
   }).optional(),
+  productGrid: z.object({
+    desktop: z.object({
+      columns: z.number().min(2).max(6),
+      gap: z.number().min(0).max(60),
+    }),
+    tablet: z.object({
+      columns: z.number().min(2).max(6),
+      gap: z.number().min(0).max(60),
+    }),
+  }).optional(),
 });
 
 const blockBreakpointStyleSchema = z.record(z.string(), z.unknown());

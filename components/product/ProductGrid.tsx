@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { ProductCard } from "@/components/shared/product-card";
 import type { IProduct } from "@/types/product";
+import type { ProductGridSettings } from "@/types/homepage";
 import { getProducts } from "@/lib/storefront-api";
 import { ProductFilters, type FilterState } from "./ProductFilters";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -33,6 +34,7 @@ interface ProductGridProps {
   totalPages?: number;
   totalCount?: number;
   perPage?: number;
+  productGrid?: ProductGridSettings;
 }
 
 export function ProductGrid({
@@ -49,6 +51,7 @@ export function ProductGrid({
   totalPages = 1,
   totalCount = 0,
   perPage = 20,
+  productGrid = { desktop: { columns: 4, gap: 24 }, tablet: { columns: 3, gap: 20 } },
 }: ProductGridProps) {
   const [products, setProducts] = useState<IProduct[]>(initialProducts);
   const [loading, setLoading] = useState(initialProducts.length === 0);
@@ -171,7 +174,15 @@ export function ProductGrid({
           </div>
         ) : (
           <>
-            <div className="-mx-2 grid grid-cols-2 gap-2 sm:mx-0 sm:grid-cols-3 sm:gap-5 sm:px-0 lg:grid-cols-4 lg:gap-6">
+            <style>{`
+              @media (min-width: 640px) {
+                .product-grid-admin { gap: ${productGrid.tablet.gap}px !important; grid-template-columns: repeat(${productGrid.tablet.columns}, 1fr) !important; }
+              }
+              @media (min-width: 1024px) {
+                .product-grid-admin { gap: ${productGrid.desktop.gap}px !important; grid-template-columns: repeat(${productGrid.desktop.columns}, 1fr) !important; }
+              }
+            `}</style>
+            <div className="product-grid-admin -mx-2 grid grid-cols-2 gap-2 sm:mx-0 sm:px-0">
               {products.map((product, i) => (
                 <ProductCard key={product._id} product={product} index={i} />
               ))}

@@ -24,6 +24,10 @@ export function HeroMedia({ className }: { className?: string }) {
   const imageWidthStyle: CSSProperties =
     media.imageWidthMode === "manual" ? { width: media.imageWidth } : {};
 
+  const br = media.borderRadius && typeof media.borderRadius === "object"
+    ? media.borderRadius
+    : { topLeft: 40, topRight: 40, bottomLeft: 40, bottomRight: 40 };
+
   return (
     <motion.div
       variants={container}
@@ -34,10 +38,11 @@ export function HeroMedia({ className }: { className?: string }) {
       <Entrance variants={mediaVariants} className="relative">
         <div
           className={cn(
-            "relative aspect-[4/5] overflow-hidden rounded-[var(--radius-xl)] border",
+            "relative aspect-[4/5] overflow-hidden border",
             media.imageWidthMode === "auto" && "w-full"
           )}
           style={{
+            borderRadius: `${br.topLeft}px ${br.topRight}px ${br.bottomRight}px ${br.bottomLeft}px`,
             borderColor: "var(--hero-border)",
             boxShadow: "0 30px 80px rgba(0,0,0,0.35)",
             ...imageWidthStyle,

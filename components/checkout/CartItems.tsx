@@ -17,10 +17,10 @@ export const CartItems: React.FC<CartItemsProps> = ({
   onQuantityChange,
   onVariantChange,
   onRemove,
-  maxHeight = "max-h-[400px] sm:max-h-[500px]",
+  maxHeight = "max-h-[300px] sm:max-h-[400px]",
 }) => {
   return (
-    <div className={`space-y-3 ${maxHeight} overflow-y-auto pr-1`}>
+    <div className={`space-y-2 ${maxHeight} overflow-y-auto pr-1`}>
       {items.map((item, index) => (
         <CartItem
           key={`${item.id}-${index}`}

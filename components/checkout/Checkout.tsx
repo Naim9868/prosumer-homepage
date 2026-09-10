@@ -196,17 +196,17 @@ export const Checkout: React.FC<OrderFormProps> = ({
   }
 
   return (
-    <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+    <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
       <div className="order-2 flex-1 lg:order-1">
         <form
           onSubmit={(e) => {
             e.preventDefault();
             submitOrder();
           }}
-          className="space-y-6 rounded-[var(--radius-lg)] bg-card p-4 shadow-lg sm:p-6"
+          className="space-y-4 rounded-[var(--radius-lg)] bg-card p-3 shadow-lg sm:p-4"
         >
-          <h2 className="flex items-center gap-2 text-xl font-bold sm:text-2xl">
-            <ShoppingBag className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
+          <h2 className="flex items-center gap-2 text-lg font-bold sm:text-xl">
+            <ShoppingBag className="h-4 w-4 text-primary sm:h-5 sm:w-5" />
             <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               Place Your Order
             </span>

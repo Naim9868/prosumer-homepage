@@ -11,8 +11,10 @@ import type {
   CategoriesTextStyle,
   CatResponsiveThemeStyle,
   CatDeviceLayout,
+  CatDeviceCardStyle,
   CatTheme,
   EditorDevice,
+  CardTextPosition,
 } from "@/types/homepage";
 import { cn } from "@/lib/utils";
 
@@ -42,6 +44,25 @@ export function catLayoutFor(
     return { columns: (layout as unknown as { columns: number }).columns ?? 2, gridGap: (layout as unknown as { gridGap: number }).gridGap ?? 16 };
   }
   return { columns: 2, gridGap: 16 };
+}
+
+export function catCardStyleFor(
+  cardStyle: CatDeviceCardStyle | undefined,
+  device: EditorDevice,
+) {
+  const s = cardStyle?.[device] ?? {};
+  return {
+    textPosition: s.textPosition ?? "inside" as CardTextPosition,
+    textOffsetX: s.textOffsetX ?? 0,
+    textOffsetY: s.textOffsetY ?? 0,
+    showDescription: s.showDescription !== false,
+    borderRadius: s.borderRadius ?? 12,
+    height: s.height ?? 300,
+    width: s.width ?? 0,
+    shadow: s.shadow !== false,
+    shadowIntensity: s.shadowIntensity ?? 20,
+    showArrowIcon: s.showArrowIcon !== false,
+  };
 }
 
 function textStyleToInline(s?: CategoriesTextStyle): React.CSSProperties {
@@ -124,15 +145,13 @@ export function CategoriesSection({
     title,
     subtitle,
     categoryIds,
-    cardTextPosition,
-    cardTextOffsetX,
-    cardTextOffsetY,
     layout,
     eyebrowStyle,
     titleStyle,
     subtitleStyle,
     cardNameStyle,
     cardDescriptionStyle,
+    cardStyle,
   } = section.settings;
 
   const items = categoryIds.length
@@ -142,6 +161,18 @@ export function CategoriesSection({
   if (items.length === 0) return null;
 
   const { columns, gridGap } = catLayoutFor(layout, device);
+  const cs = catCardStyleFor(cardStyle, device);
+
+  const cardTextPosition = cs.textPosition;
+  const cardTextOffsetX = cs.textOffsetX;
+  const cardTextOffsetY = cs.textOffsetY;
+  const showDescription = cs.showDescription;
+  const borderRadius = cs.borderRadius;
+  const cardHeight = cs.height;
+  const cardWidth = cs.width;
+  const cardShadow = cs.shadow;
+  const shadowIntensity = cs.shadowIntensity;
+  const showArrowIcon = cs.showArrowIcon;
 
   const eStyle = catStyleFor(eyebrowStyle, device, theme);
   const tStyle = catStyleFor(titleStyle, device, theme);
@@ -219,6 +250,13 @@ export function CategoriesSection({
             nameStyle={nameStyle}
             descStyle={descStyle}
             isMobile={isMobile}
+            showDescription={showDescription}
+            cardBorderRadius={borderRadius}
+            cardShadow={cardShadow}
+            shadowIntensity={shadowIntensity}
+            cardHeight={cardHeight}
+            cardWidth={cardWidth}
+            showArrowIcon={showArrowIcon}
           />
         ))}
       </div>
@@ -238,6 +276,13 @@ function CategoryCard({
   nameStyle,
   descStyle,
   isMobile,
+  showDescription = true,
+  cardBorderRadius,
+  cardShadow = true,
+  shadowIntensity = 20,
+  cardHeight,
+  cardWidth,
+  showArrowIcon = true,
 }: {
   category: CatalogCategory;
   index: number;
@@ -248,14 +293,17 @@ function CategoryCard({
   nameStyle: CategoriesTextStyle;
   descStyle: CategoriesTextStyle;
   isMobile?: boolean;
+  showDescription?: boolean;
+  cardBorderRadius?: number;
+  cardShadow?: boolean;
+  shadowIntensity?: number;
+  cardHeight?: number;
+  cardWidth?: number;
+  showArrowIcon?: boolean;
 }) {
   const position = cardTextPosition ?? "inside";
   const isOutside = position === "outside-top" || position === "outside-bottom";
-
-  const offsetStyle: React.CSSProperties = {};
-  if (isOutside && (cardTextOffsetX || cardTextOffsetY)) {
-    offsetStyle.translate = `${cardTextOffsetX ?? 0}px ${cardTextOffsetY ?? 0}px`;
-  }
+  const borderRadius = cardBorderRadius ?? 12;
 
   const cardImage = (
     <>
@@ -269,11 +317,27 @@ function CategoryCard({
         />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
-      <div className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white opacity-0 backdrop-blur transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 translate-x-2 lg:right-5 lg:top-5 lg:h-9 lg:w-9">
-        <ArrowUpRight className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
-      </div>
+      {showArrowIcon && (
+        <div className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white opacity-0 backdrop-blur transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 translate-x-2 lg:right-5 lg:top-5 lg:h-9 lg:w-9">
+          <ArrowUpRight className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
+        </div>
+      )}
     </>
   );
+
+  const cardStyle: React.CSSProperties = {
+    background: category.gradient,
+    borderRadius: `${borderRadius}px`,
+  };
+  if (cardHeight && !isMobile) {
+    cardStyle.height = cardHeight;
+  }
+  if (cardWidth) {
+    cardStyle.maxWidth = cardWidth;
+  }
+  if (cardShadow) {
+    cardStyle.boxShadow = `0 ${shadowIntensity / 4}px ${shadowIntensity}px rgba(0,0,0,0.12)`;
+  }
 
   const card = (
     <motion.a
@@ -283,13 +347,12 @@ function CategoryCard({
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, delay: (index % columns) * 0.07, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-[var(--radius-md)] border border-border shadow-sm transition-shadow hover:shadow-lg",
+        "group relative flex flex-col overflow-hidden border border-border transition-shadow",
         isMobile
           ? "aspect-[3/2]"
           : "aspect-[4/3] lg:aspect-auto lg:h-[300px]",
-        "lg:rounded-[var(--radius-lg)]"
       )}
-      style={{ background: category.gradient }}
+      style={cardStyle}
     >
       {cardImage}
       {position === "inside" && (
@@ -300,6 +363,7 @@ function CategoryCard({
           offsetX={cardTextOffsetX}
           offsetY={cardTextOffsetY}
           isMobile={isMobile}
+          showDescription={showDescription}
         />
       )}
     </motion.a>
@@ -307,13 +371,27 @@ function CategoryCard({
 
   if (isOutside) {
     return (
-      <div style={offsetStyle}>
+      <div className="flex flex-col">
         {position === "outside-top" && (
-          <CardTextBlock category={category} nameStyle={nameStyle} descStyle={descStyle} />
+          <CardTextBlock
+            category={category}
+            nameStyle={nameStyle}
+            descStyle={descStyle}
+            showDescription={showDescription}
+            offsetX={cardTextOffsetX}
+            offsetY={cardTextOffsetY}
+          />
         )}
         {card}
         {position === "outside-bottom" && (
-          <CardTextBlock category={category} nameStyle={nameStyle} descStyle={descStyle} />
+          <CardTextBlock
+            category={category}
+            nameStyle={nameStyle}
+            descStyle={descStyle}
+            showDescription={showDescription}
+            offsetX={cardTextOffsetX}
+            offsetY={cardTextOffsetY}
+          />
         )}
       </div>
     );
@@ -331,6 +409,7 @@ function CardTextOverlay({
   offsetX,
   offsetY,
   isMobile,
+  showDescription = true,
 }: {
   category: CatalogCategory;
   nameStyle: CategoriesTextStyle;
@@ -338,6 +417,7 @@ function CardTextOverlay({
   offsetX?: number;
   offsetY?: number;
   isMobile?: boolean;
+  showDescription?: boolean;
 }) {
   return (
     <div className={cn(
@@ -345,7 +425,7 @@ function CardTextOverlay({
       isMobile ? "p-2" : "p-3 lg:h-1/3 lg:items-center lg:bg-gradient-to-t lg:from-black/90 lg:via-black/55 lg:to-transparent lg:p-6",
     )}>
       <div style={offsetX || offsetY ? { translate: `${offsetX ?? 0}px ${offsetY ?? 0}px` } : undefined}>
-        {category.tagline && (
+        {showDescription && category.tagline && (
           <span
             className="hidden text-[9px] font-semibold uppercase tracking-[0.16em] text-white/60 sm:block lg:text-[10px]"
             style={textStyleToInline(descStyle)}
@@ -373,14 +453,23 @@ function CardTextBlock({
   category,
   nameStyle,
   descStyle,
+  showDescription = true,
+  offsetX,
+  offsetY,
 }: {
   category: CatalogCategory;
   nameStyle: CategoriesTextStyle;
   descStyle: CategoriesTextStyle;
+  showDescription?: boolean;
+  offsetX?: number;
+  offsetY?: number;
 }) {
   return (
-    <div className="px-1 py-2">
-      {category.tagline && (
+    <div
+      className="px-1 py-2"
+      style={offsetX || offsetY ? { translate: `${offsetX ?? 0}px ${offsetY ?? 0}px` } : undefined}
+    >
+      {showDescription && category.tagline && (
         <span
           className="hidden sm:block text-[10px] font-semibold uppercase tracking-[0.16em] text-foreground-muted"
           style={textStyleToInline(descStyle)}

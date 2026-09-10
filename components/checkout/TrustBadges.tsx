@@ -11,10 +11,10 @@ export const TrustBadges: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-wrap justify-center gap-3 text-xs text-foreground-muted sm:gap-4 sm:text-sm">
+    <div className="flex flex-wrap justify-center gap-2 text-[11px] text-foreground-muted sm:gap-3 sm:text-xs">
       {badges.map(({ icon: Icon, label }) => (
         <span key={label} className="flex items-center gap-1">
-          <Icon className="h-4 w-4" /> {label}
+          <Icon className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> {label}
         </span>
       ))}
     </div>

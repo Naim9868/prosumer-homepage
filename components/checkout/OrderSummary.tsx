@@ -81,9 +81,9 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
   const showFreeDelivery = totals.subtotal >= MIN_ORDER_FOR_FREE_DELIVERY;
 
   return (
-    <div className="sticky top-6 rounded-[var(--radius-lg)] bg-card p-4 shadow-lg sm:p-6">
-      <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-foreground">
-        <Package className="h-5 w-5 text-primary" />
+    <div className="sticky top-6 rounded-[var(--radius-lg)] bg-card p-3 shadow-lg sm:p-4">
+      <h3 className="mb-3 flex items-center gap-2 text-base font-bold text-foreground">
+        <Package className="h-4 w-4 text-primary" />
         Order Summary ({displayItems.length})
       </h3>
 

@@ -18,8 +18,6 @@ const links = [
   { label: "Shop Lenses", href: "#shop-by-lens" },
   { label: "Best Sellers", href: "#best-sellers" },
   { label: "How It Works", href: "#how-it-works" },
-  { label: "Reviews", href: "#reviews" },
-  { label: "FAQ", href: "#faq" },
 ];
 
 export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
@@ -79,14 +77,22 @@ export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
     ...(s.fontWeight > 0 ? { fontWeight: s.fontWeight } : {}),
   };
 
+  const headerStyle: React.CSSProperties = {
+    ...navbarVars,
+    ...(s.borderColor ? { borderColor: s.borderColor } : {}),
+    ...(s.fontFamily ? { fontFamily: s.fontFamily } : {}),
+  };
+
+  if (s.backgroundColor) {
+    headerStyle.background = s.backgroundColor;
+    headerStyle.opacity = s.opacity;
+  } else if (scrolled || !s.transparent) {
+    headerStyle.background = "var(--background)";
+  }
+
   return (
     <header
-      style={{
-        ...navbarVars,
-        ...(s.backgroundColor ? { background: s.backgroundColor } : {}),
-        ...(s.borderColor ? { borderColor: s.borderColor } : {}),
-        ...(s.fontFamily ? { fontFamily: s.fontFamily } : {}),
-      }}
+      style={headerStyle}
       className={cn(
         "fixed inset-x-0 top-0 z-50",
         !s.fixed && !isNavVisible && "-translate-y-full",
@@ -94,8 +100,8 @@ export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
         s.backgroundColor
           ? "border-b shadow-sm"
           : scrolled || !s.transparent
-            ? "glass border-b border-border shadow-sm"
-            : "bg-gradient-to-b from-background/90 via-background/55 to-transparent"
+            ? "border-b border-border shadow-sm"
+            : ""
       )}
     >
       <Container
@@ -162,7 +168,7 @@ export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
           </IconButton>
 
           <a
-            href="#shop-by-lens"
+            href="/products"
             className="ml-2 hidden items-center rounded-full bg-[var(--navbar-accent)] px-5 py-2.5 text-[13px] font-semibold text-[var(--navbar-accent-foreground)] shadow-sm transition-transform hover:scale-[1.03] active:scale-[0.98] md:inline-flex"
           >
             Shop Now
