@@ -3,7 +3,7 @@
 // app-example/product/[slug]/page.tsx) and pass it in here.
 
 import type { Product } from "@/types/product";
-import type { ProductReview } from "@/lib/queries/reviews";
+import type { ProductReview } from "@/types/review";
 import { getPresentSections } from "@/lib/section-config";
 import { ProductExperience } from "./ProductExperience";
 import { QuickFactsStrip } from "./QuickFactsStrip";
@@ -51,6 +51,8 @@ export function ProductPage({ product, reviews = [] }: { product: Product; revie
         reviews={reviews}
         ratingAverage={product.ratingAverage}
         ratingCount={product.ratingCount}
+        productId={product._id}
+        productName={product.name}
       />
 
       <ProductTags product={product} />
