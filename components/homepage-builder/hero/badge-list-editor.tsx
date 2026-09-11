@@ -6,7 +6,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Trash2, Plus } from "lucide-react";
 import type { HeroBadge, HeroBadgeIcon } from "@/types/homepage";
 import { badge as makeBadge } from "@/lib/hero";
-import { getHeroBadgeIcon, HERO_BADGE_ICON_OPTIONS } from "@/components/homepage-sections/hero/hero-badge-icons";
+import { getHeroBadgeIcon, HERO_BADGE_ICON_OPTIONS } from "@/components/homepage-sections/hero/hero-content";
 import { Field, TextInput, Select } from "@/components/homepage-builder/fields";
 import { cn } from "@/lib/utils";
 

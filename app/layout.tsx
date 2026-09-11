@@ -4,6 +4,7 @@ import { Providers } from "@/app/context/Provider";
 import CartSidebarModal from "@/components/modals/CartSidebarModal";
 import WishlistSidebarModal from "@/components/modals/WishlistSidebarModal";
 import ProductDrawer from "@/components/product/ProductDrawer";
+import { FloatingContactLoader } from "@/components/shared/FloatingContactLoader";
 
 export const metadata: Metadata = {
   title: "Prosumer Lens BD — Optical-Grade Mobile Lenses",
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <CartSidebarModal />
           <WishlistSidebarModal />
           <ProductDrawer />
+          <FloatingContactLoader />
         </Providers>
       </body>
     </html>

@@ -118,6 +118,27 @@ export interface ProductGridSettings {
   tablet: ProductGridDeviceSettings;
 }
 
+// ---------------------------------------------------------------
+// Floating Contact Button settings
+// ---------------------------------------------------------------
+
+export type ContactChannelType = "phone" | "whatsapp" | "messenger" | "telegram" | "email";
+
+export interface ContactChannelSetting {
+  type: ContactChannelType;
+  enabled: boolean;
+  /** Phone number, WhatsApp number, Messenger username, Telegram username, or email address. */
+  value: string;
+  label: string;
+}
+
+export interface ContactSettings {
+  enabled: boolean;
+  channels: ContactChannelSetting[];
+  /** Main FAB button background color. */
+  accentColor: string;
+}
+
 export interface PageSettings {
   /** Max width of the page container in px. */
   containerWidth: number;
@@ -126,6 +147,8 @@ export interface PageSettings {
   navbar: PageNavbarSettings;
   footer: PageFooterSettings;
   trustBadges: TrustBadgeSettings;
+  /** Floating contact button settings. */
+  contact: ContactSettings;
   /** Number of products per page on /products listing. */
   productsPerPage: number;
   /** Product grid layout on /products listing. */
@@ -160,6 +183,17 @@ export const DEFAULT_PAGE_SETTINGS: PageSettings = {
       { icon: "Truck", title: "Free Shipping", subtitle: "On orders ৳1500+" },
       { icon: "RotateCcw", title: "Easy Returns", subtitle: "30 days return" },
       { icon: "Shield", title: "Secure Checkout", subtitle: "100% secure" },
+    ],
+  },
+  contact: {
+    enabled: true,
+    accentColor: "#25D366",
+    channels: [
+      { type: "phone", enabled: true, value: "+8801521529868", label: "Call Us" },
+      { type: "whatsapp", enabled: true, value: "+8801521529868", label: "WhatsApp" },
+      { type: "messenger", enabled: false, value: "", label: "Messenger" },
+      { type: "telegram", enabled: false, value: "", label: "Telegram" },
+      { type: "email", enabled: false, value: "", label: "Email Us" },
     ],
   },
   productsPerPage: 20,

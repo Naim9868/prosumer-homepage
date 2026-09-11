@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { containerVariants, entranceVariants } from "@/components/homepage-sections/hero/hero-animations";
+import { containerVariants, entranceVariants } from "@/components/homepage-sections/hero/hero-context";
 import type {
   HeroBackgroundSize,
   HeroBadge,

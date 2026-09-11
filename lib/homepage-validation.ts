@@ -57,6 +57,16 @@ const pageSettingsSchema = z.object({
       subtitle: z.string(),
     })),
   }).optional(),
+  contact: z.object({
+    enabled: z.boolean(),
+    accentColor: z.string(),
+    channels: z.array(z.object({
+      type: z.enum(["phone", "whatsapp", "messenger", "telegram", "email"]),
+      enabled: z.boolean(),
+      value: z.string(),
+      label: z.string(),
+    })),
+  }).optional(),
   productGrid: z.object({
     desktop: z.object({
       columns: z.number().min(2).max(6),

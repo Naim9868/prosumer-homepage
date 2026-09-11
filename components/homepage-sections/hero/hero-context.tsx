@@ -2,9 +2,61 @@
 
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import type { Variants } from "framer-motion";
-import type { HeroBreakpoint, HeroSlide } from "@/types/homepage";
+import type { HeroBreakpoint, HeroEntrance, HeroSlide } from "@/types/homepage";
 import type { CatalogProduct } from "@/types/catalog";
-import { containerVariants, entranceVariants } from "./hero-animations";
+
+// ---------------------------------------------------------------
+// Animation variants (previously hero-animations.ts)
+// ---------------------------------------------------------------
+
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+function entranceVariants(entrance: HeroEntrance, durationSec: number): Variants {
+  const duration = Math.max(0.001, durationSec);
+  switch (entrance) {
+    case "fade":
+      return {
+        hidden: { opacity: 0 },
+        show: { opacity: 1, transition: { duration } },
+      };
+    case "fade-up":
+      return {
+        hidden: { opacity: 0, y: 24 },
+        show: { opacity: 1, y: 0, transition: { duration, ease: EASE } },
+      };
+    case "fade-down":
+      return {
+        hidden: { opacity: 0, y: -24 },
+        show: { opacity: 1, y: 0, transition: { duration, ease: EASE } },
+      };
+    case "scale":
+      return {
+        hidden: { opacity: 0, scale: 0.96 },
+        show: { opacity: 1, scale: 1, transition: { duration, ease: EASE } },
+      };
+    default:
+      return {
+        hidden: { opacity: 1 },
+        show: { opacity: 1 },
+      };
+  }
+}
+
+function containerVariants(delaySec: number, staggerSec: number): Variants {
+  return {
+    hidden: {},
+    show: {
+      transition: { delayChildren: delaySec, staggerChildren: Math.max(0, staggerSec) },
+    },
+  };
+}
+
+// Re-export for lib/hero.ts which uses these in animationFor()
+export { entranceVariants, containerVariants };
+
+// ---------------------------------------------------------------
+// Hero context
+// ---------------------------------------------------------------
 
 export interface HeroContextValue {
   slide: HeroSlide;

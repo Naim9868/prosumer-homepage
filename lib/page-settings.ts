@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { PageSettings } from "@/types/homepage";
+import type { PageSettings, ContactChannelType } from "@/types/homepage";
 import { DEFAULT_PAGE_SETTINGS } from "@/types/homepage";
 
 function pickNumber(v: unknown, fallback: number): number {
@@ -58,6 +58,26 @@ export function normalizePageSettings(input: unknown): PageSettings {
       };
     })(),
     productsPerPage: pickNumber(raw.productsPerPage, DEFAULT_PAGE_SETTINGS.productsPerPage),
+    contact: (() => {
+      const rawC = raw.contact && typeof raw.contact === "object" ? raw.contact as Record<string, unknown> : {};
+      const rawChannels = Array.isArray(rawC.channels) ? rawC.channels : [];
+      const defaultChannels = DEFAULT_PAGE_SETTINGS.contact.channels;
+      const channels = rawChannels.length > 0
+        ? rawChannels
+            .filter((ch): ch is Record<string, unknown> => ch !== null && typeof ch === "object")
+            .map((ch) => ({
+              type: (typeof ch.type === "string" ? ch.type : "") as ContactChannelType,
+              enabled: pickBool(ch.enabled, false),
+              value: typeof ch.value === "string" ? ch.value : "",
+              label: typeof ch.label === "string" ? ch.label : "",
+            }))
+        : defaultChannels;
+      return {
+        enabled: pickBool(rawC.enabled, DEFAULT_PAGE_SETTINGS.contact.enabled),
+        accentColor: typeof rawC.accentColor === "string" ? rawC.accentColor : DEFAULT_PAGE_SETTINGS.contact.accentColor,
+        channels,
+      };
+    })(),
     productGrid: (() => {
       const rawPg = raw.productGrid && typeof raw.productGrid === "object" ? raw.productGrid as Record<string, unknown> : {};
       const pickDevice = (key: string) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import type { PageSettings, TrustBadge } from "@/types/homepage";
+import type { PageSettings, TrustBadge, ContactChannelSetting, ContactChannelType } from "@/types/homepage";
 import { Field, FieldGrid, TextInput, Toggle, ColorField, Select } from "@/components/homepage-builder/fields";
 import { X, Plus, Trash2 } from "lucide-react";
 
@@ -32,6 +32,7 @@ export function PageSetupPanel({
   const setNavbar = (patch: Partial<PageSettings["navbar"]>) => onChange({ ...page, navbar: { ...page.navbar, ...patch } });
   const setFooter = (patch: Partial<PageSettings["footer"]>) => onChange({ ...page, footer: { ...page.footer, ...patch } });
   const setTrustBadges = (patch: Partial<PageSettings["trustBadges"]>) => onChange({ ...page, trustBadges: { ...page.trustBadges, ...patch } });
+  const setContact = (patch: Partial<PageSettings["contact"]>) => onChange({ ...page, contact: { ...page.contact, ...patch } });
   const setProductGrid = (device: "desktop" | "tablet", patch: Partial<{ columns: number; gap: number }>) =>
     onChange({
       ...page,
@@ -53,6 +54,27 @@ export function PageSetupPanel({
 
   const removeBadge = (index: number) => {
     setTrustBadges({ badges: page.trustBadges.badges.filter((_, i) => i !== index) });
+  };
+
+  const updateChannel = (index: number, patch: Partial<ContactChannelSetting>) => {
+    const channels = [...page.contact.channels];
+    channels[index] = { ...channels[index], ...patch };
+    setContact({ channels });
+  };
+
+  const addChannel = () => {
+    const usedTypes = page.contact.channels.map((c) => c.type);
+    const available = (["phone", "whatsapp", "messenger", "telegram", "email"] as ContactChannelType[]).find(
+      (t) => !usedTypes.includes(t)
+    );
+    if (!available) return;
+    setContact({
+      channels: [...page.contact.channels, { type: available, enabled: true, value: "", label: "" }],
+    });
+  };
+
+  const removeChannel = (index: number) => {
+    setContact({ channels: page.contact.channels.filter((_, i) => i !== index) });
   };
 
   return (
@@ -356,6 +378,90 @@ export function PageSetupPanel({
                 >
                   <Plus size={14} /> Add Badge
                 </button>
+              </div>
+            )}
+          </section>
+
+          <section className="space-y-4 rounded-[var(--radius-md)] border border-border bg-muted/40 p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Floating Contact Button</p>
+            <div className="flex flex-wrap gap-6">
+              <label className="flex items-center gap-2 text-[13px] font-medium text-foreground">
+                <Toggle checked={page.contact.enabled} onChange={(v) => setContact({ enabled: v })} label="Show contact button" />
+                Show contact button
+              </label>
+            </div>
+            <FieldGrid>
+              <ColorField
+                label="Button Color"
+                value={page.contact.accentColor}
+                onChange={(v) => setContact({ accentColor: v })}
+              />
+            </FieldGrid>
+            {page.contact.enabled && (
+              <div className="space-y-3">
+                {page.contact.channels.map((ch, idx) => {
+                  const typeOptions = [
+                    { label: "Phone", value: "phone" },
+                    { label: "WhatsApp", value: "whatsapp" },
+                    { label: "Messenger", value: "messenger" },
+                    { label: "Telegram", value: "telegram" },
+                    { label: "Email", value: "email" },
+                  ];
+                  const placeholderByType: Record<string, string> = {
+                    phone: "+8801XXXXXXXXX",
+                    whatsapp: "+8801XXXXXXXXX",
+                    messenger: "username or page URL",
+                    telegram: "username (without @)",
+                    email: "you@example.com",
+                  };
+                  return (
+                    <div key={idx} className="flex items-start gap-2 rounded-lg border border-border bg-background p-3">
+                      <div className="flex-1 space-y-2">
+                        <Field label="Channel">
+                          <Select
+                            value={ch.type}
+                            onChange={(v) => updateChannel(idx, { type: v as ContactChannelType })}
+                            options={typeOptions}
+                          />
+                        </Field>
+                        <Field label="Number / Username / Email">
+                          <TextInput
+                            value={ch.value}
+                            onChange={(e) => updateChannel(idx, { value: e.target.value })}
+                            placeholder={placeholderByType[ch.type] || ""}
+                          />
+                        </Field>
+                        <Field label="Tooltip Label">
+                          <TextInput
+                            value={ch.label}
+                            onChange={(e) => updateChannel(idx, { label: e.target.value })}
+                            placeholder="e.g. Call Us, WhatsApp Us"
+                          />
+                        </Field>
+                        <label className="flex items-center gap-2 text-[13px] font-medium text-foreground">
+                          <Toggle checked={ch.enabled} onChange={(v) => updateChannel(idx, { enabled: v })} label="Enabled" />
+                          Enabled
+                        </label>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeChannel(idx)}
+                        className="mt-6 rounded p-1 text-foreground-muted hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  );
+                })}
+                {page.contact.channels.length < 5 && (
+                  <button
+                    type="button"
+                    onClick={addChannel}
+                    className="flex items-center gap-1.5 rounded-lg border border-dashed border-border px-3 py-2 text-[12px] font-medium text-foreground-muted hover:border-primary/50 hover:text-primary"
+                  >
+                    <Plus size={14} /> Add Channel
+                  </button>
+                )}
               </div>
             )}
           </section>

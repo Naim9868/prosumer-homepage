@@ -16,6 +16,7 @@ import { DEFAULT_PAGE_SETTINGS } from "@/types/homepage";
 import { formatCurrency } from "@/lib/utils";
 import { ApertureMark } from "@/components/shared/layout-primitives";
 import { ProductSpecifications } from "./sections/ProductSpecifications";
+import { ShareButton } from "./ui/ShareButton";
 
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   Truck, Shield, RotateCcw, Package, Clock, Star, Award, Zap, CheckCircle,
@@ -270,14 +271,17 @@ export default function ProductDrawer() {
           >
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card/95 p-4 backdrop-blur-md">
               <h2 className="line-clamp-1 font-heading text-xl font-semibold text-foreground">{product.name}</h2>
-              <button
-                type="button"
-                aria-label="Close drawer"
-                onClick={closeDrawer}
-                className="rounded-full p-2 text-foreground-muted transition-colors hover:bg-muted hover:text-foreground"
-              >
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-1">
+                <ShareButton slug={product.slug} productName={product.name} />
+                <button
+                  type="button"
+                  aria-label="Close drawer"
+                  onClick={closeDrawer}
+                  className="rounded-full p-2 text-foreground-muted transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto">

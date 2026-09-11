@@ -1,7 +1,63 @@
 import type { CSSProperties, ReactNode } from "react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { HeroImage } from "./hero-image";
 import type { HeroBackgroundPosition, HeroBackgroundSize } from "@/types/homepage";
+
+// ---------------------------------------------------------------
+// HeroImage (responsive image wrapper)
+// ---------------------------------------------------------------
+
+export function HeroImage({
+  src,
+  alt,
+  sizes = "100vw",
+  priority = false,
+  loading,
+  className,
+  style,
+}: {
+  src: string;
+  alt?: string;
+  sizes?: string;
+  priority?: boolean;
+  loading?: "lazy" | "eager";
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  if (!src) return null;
+
+  const isLocal = /^\/(?!\/)/.test(src);
+
+  if (isLocal) {
+    return (
+      <Image
+        src={src}
+        alt={alt ?? ""}
+        fill
+        sizes={sizes}
+        priority={priority}
+        loading={loading}
+        className={cn("object-cover", className)}
+        style={style}
+      />
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt ?? ""}
+      loading={loading ?? "lazy"}
+      decoding="async"
+      className={cn("absolute inset-0 h-full w-full object-cover", className)}
+      style={style}
+    />
+  );
+}
+
+// ---------------------------------------------------------------
+// HeroBackground
+// ---------------------------------------------------------------
 
 export function HeroBackground({
   image,
@@ -20,10 +76,6 @@ export function HeroBackground({
   overlayOpacity?: number;
   clip?: boolean;
 }) {
-  // The image box has its own absolute px size and its own px offset from the
-  // section center — both independent of the section dimensions. When it is
-  // larger than the section it overflows; `clip` controls whether that
-  // overflow is hidden (public) or visible (builder preview).
   const boxStyle: CSSProperties = {
     left: "50%",
     top: "50%",
@@ -48,6 +100,10 @@ export function HeroBackground({
     </div>
   );
 }
+
+// ---------------------------------------------------------------
+// HeroContainer
+// ---------------------------------------------------------------
 
 export function HeroContainer({
   children,

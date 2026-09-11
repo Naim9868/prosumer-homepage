@@ -1,0 +1,446 @@
+<!-- ========================================== -->
+<!-- WHY US SECTION — Prosumer Lens BD          -->
+<!-- Uses site CSS vars (auto dark/light)       -->
+<!-- ========================================== -->
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+  /* ===== WRAPPER ===== */
+  .plbd-why-us {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 60px 20px;
+    font-family: var(--font-body, 'Inter', -apple-system, BlinkMacSystemFont, sans-serif);
+    background: var(--background);
+    color: var(--foreground);
+    transition: background-color 0.3s, color 0.3s;
+  }
+
+  /* ===== HEADER ===== */
+  .plbd-why-us-header {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+
+  .plbd-why-us-header h2 {
+    font-family: var(--font-heading, 'Manrope', sans-serif);
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 12px 0;
+    color: var(--foreground);
+  }
+
+  .plbd-why-us-header h2 span {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--foreground-muted) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .plbd-why-us-header p {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: var(--foreground-muted);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ===== MAIN GRID ===== */
+  .plbd-why-us-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+    align-items: start;
+  }
+
+  /* ===== BENEFIT CARDS ===== */
+  .plbd-benefits {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .plbd-benefit-card {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 24px 30px;
+    border-radius: var(--radius-lg, 1.5rem);
+    border: 1px solid var(--border);
+    background: var(--card);
+    transition: all 0.3s ease;
+    cursor: default;
+  }
+
+  .plbd-benefit-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .plbd-benefit-icon {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    transition: transform 0.3s ease;
+  }
+
+  .plbd-benefit-card:hover .plbd-benefit-icon {
+    transform: scale(1.05);
+  }
+
+  .plbd-icon-blue {
+    background: #dbeafe;
+    color: #2563eb;
+  }
+  .dark .plbd-icon-blue {
+    background: rgba(37, 99, 235, 0.15);
+    color: #60a5fa;
+  }
+
+  .plbd-icon-green {
+    background: #d1fae5;
+    color: #059669;
+  }
+  .dark .plbd-icon-green {
+    background: rgba(5, 150, 105, 0.15);
+    color: #34d399;
+  }
+
+  .plbd-icon-rose {
+    background: #fce4ec;
+    color: #dc2626;
+  }
+  .dark .plbd-icon-rose {
+    background: rgba(220, 38, 38, 0.15);
+    color: #f87171;
+  }
+
+  .plbd-benefit-text h3 {
+    font-family: var(--font-heading, 'Manrope', sans-serif);
+    font-size: clamp(1rem, 1.5vw, 1.2rem);
+    font-weight: 700;
+    margin: 0 0 6px 0;
+    color: var(--foreground);
+  }
+
+  .plbd-benefit-text p {
+    font-size: clamp(0.875rem, 1.2vw, 1rem);
+    color: var(--foreground-muted);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .plbd-stat {
+    font-weight: 700;
+    color: var(--foreground);
+    background: var(--muted);
+    padding: 2px 10px;
+    border-radius: 6px;
+    display: inline-block;
+  }
+
+  /* ===== TRUST SIDEBAR ===== */
+  .plbd-trust-sidebar {
+    background: var(--card);
+    border-radius: var(--radius-lg, 1.5rem);
+    padding: 30px 25px;
+    border: 1px solid var(--border);
+    transition: background-color 0.3s, border-color 0.3s;
+  }
+
+  .plbd-trust-sidebar h4 {
+    font-family: var(--font-heading, 'Manrope', sans-serif);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--foreground-muted);
+    text-align: center;
+    margin: 0 0 25px 0;
+    font-weight: 600;
+  }
+
+  .plbd-trust-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .plbd-trust-item:last-child {
+    border-bottom: none;
+  }
+
+  .plbd-trust-item .icon-big {
+    font-size: 22px;
+    width: 40px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .plbd-trust-item .trust-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .plbd-trust-item .trust-content strong {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--foreground);
+  }
+
+  .plbd-trust-item .trust-content span {
+    font-size: 0.85rem;
+    color: var(--foreground-muted);
+  }
+
+  /* Payment Icons */
+  .plbd-payment-icons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .plbd-payment-icons span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--background);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--foreground-muted);
+    transition: all 0.2s ease;
+  }
+
+  .plbd-payment-icons span:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .plbd-payment-icons span i {
+    font-size: 14px;
+  }
+
+  /* ===== CTA ===== */
+  .plbd-why-us-cta {
+    text-align: center;
+    margin-top: 50px;
+  }
+
+  .plbd-why-us-cta a {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--foreground);
+    color: var(--background);
+    padding: 16px 48px;
+    border-radius: 60px;
+    text-decoration: none;
+    font-family: var(--font-heading, 'Manrope', sans-serif);
+    font-weight: 600;
+    font-size: clamp(0.95rem, 1.2vw, 1.05rem);
+    transition: all 0.3s ease;
+    border: 2px solid var(--foreground);
+  }
+
+  .plbd-why-us-cta a:hover {
+    background: transparent;
+    color: var(--foreground);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .plbd-why-us-cta a i {
+    transition: transform 0.3s ease;
+  }
+
+  .plbd-why-us-cta a:hover i {
+    transform: translateX(5px);
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 1024px) {
+    .plbd-why-us-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .plbd-why-us {
+      padding: 40px 16px;
+    }
+
+    .plbd-benefit-card {
+      flex-direction: column;
+      text-align: center;
+      padding: 30px 20px;
+    }
+
+    .plbd-benefit-icon {
+      width: 68px;
+      height: 68px;
+      font-size: 30px;
+    }
+
+    .plbd-trust-sidebar {
+      padding: 24px 20px;
+    }
+
+    .plbd-why-us-cta a {
+      padding: 14px 30px;
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .plbd-benefit-card {
+      padding: 24px 16px;
+    }
+
+    .plbd-payment-icons span {
+      font-size: 0.7rem;
+      padding: 4px 10px;
+    }
+  }
+</style>
+
+<!-- ========================================== -->
+<!-- HTML STRUCTURE                            -->
+<!-- ========================================== -->
+
+<div class="plbd-why-us">
+
+  <!-- Header -->
+  <div class="plbd-why-us-header">
+    <h2>Why Shop <span>With Us?</span></h2>
+    <p>We cut the fluff and focus on what actually matters to you.</p>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="plbd-why-us-grid">
+
+    <!-- LEFT COLUMN: BENEFITS -->
+    <div class="plbd-benefits">
+
+      <!-- Benefit 1: Shipping -->
+      <div class="plbd-benefit-card">
+        <div class="plbd-benefit-icon plbd-icon-blue">
+          <i class="fas fa-rocket"></i>
+        </div>
+        <div class="plbd-benefit-text">
+          <h3>Lightning-Fast Delivery</h3>
+          <p>
+            Get your order in
+            <span class="plbd-stat">1–3 Business Days</span>.
+            Free shipping on orders over
+            <span class="plbd-stat">৳1500+</span>.
+          </p>
+        </div>
+      </div>
+
+      <!-- Benefit 2: Warranty -->
+      <div class="plbd-benefit-card">
+        <div class="plbd-benefit-icon plbd-icon-green">
+          <i class="fas fa-shield-halved"></i>
+        </div>
+        <div class="plbd-benefit-text">
+          <h3>2-Year Warranty</h3>
+          <p>
+            Every lens is backed by a
+            <span class="plbd-stat">2-Year</span> manufacturer warranty.
+            Not satisfied? 30-day hassle-free returns, no questions asked.
+          </p>
+        </div>
+      </div>
+
+      <!-- Benefit 3: Trust -->
+      <div class="plbd-benefit-card">
+        <div class="plbd-benefit-icon plbd-icon-rose">
+          <i class="fas fa-heart"></i>
+        </div>
+        <div class="plbd-benefit-text">
+          <h3>Trusted by Thousands</h3>
+          <p>
+            Join
+            <span class="plbd-stat">10,000+</span>
+            happy photographers across Bangladesh. Rated
+            <span class="plbd-stat">4.8/5</span>
+            Stars.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: TRUST SIDEBAR -->
+    <div class="plbd-trust-sidebar">
+
+      <h4><i class="fas fa-lock" style="margin-right:6px;"></i> Peace of Mind</h4>
+
+      <div class="plbd-trust-item">
+        <div class="icon-big" style="color:#f59e0b;">
+          <i class="fas fa-star"></i>
+        </div>
+        <div class="trust-content">
+          <strong>Verified Reviews</strong>
+          <span>5,000+ real customer ratings</span>
+        </div>
+      </div>
+
+      <div class="plbd-trust-item">
+        <div class="icon-big" style="color:#6366f1;">
+          <i class="fas fa-comment-dots"></i>
+        </div>
+        <div class="trust-content">
+          <strong>Live Human Support</strong>
+          <span>Reply in under 2 minutes</span>
+        </div>
+      </div>
+
+      <div class="plbd-trust-item">
+        <div class="icon-big" style="color:#10b981;">
+          <i class="fas fa-leaf"></i>
+        </div>
+        <div class="trust-content">
+          <strong>Eco-Friendly Packaging</strong>
+          <span>100% recyclable materials</span>
+        </div>
+      </div>
+
+      <!-- Payment Methods -->
+      <div class="plbd-payment-icons">
+        <span><i class="fas fa-shield-check"></i> SSL Secure</span>
+        <span><i class="fas fa-mobile-screen-button"></i> bKash / Nagad</span>
+        <span><i class="fas fa-truck"></i> Insured Shipping</span>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Bottom CTA -->
+  <div class="plbd-why-us-cta">
+    <a href="/products">
+      <i class="fas fa-sparkles"></i>
+      Shop Now — Fast Shipping & Quality Guaranteed
+      <i class="fas fa-arrow-right"></i>
+    </a>
+  </div>
+
+</div>

@@ -4,11 +4,11 @@ import { motion } from "framer-motion";
 import { heroCssVars, heroColorsFor, heroBreakpointFor, spacingFor, heroSectionHeight, heroContainerWidthFor, heroPaddingXFor } from "@/lib/hero";
 import { useHero } from "../hero-context";
 import { HeroBackground, HeroContainer } from "../hero-background";
-import { HeroEyebrow } from "../hero-eyebrow";
-import { HeroHeading } from "../hero-heading";
-import { HeroDescription } from "../hero-description";
-import { HeroCTAGroup } from "../hero-cta-group";
-import { HeroTrustBadges } from "../hero-trust-badges";
+import { HeroEyebrow } from "../hero-content";
+import { HeroHeading } from "../hero-content";
+import { HeroDescription } from "../hero-content";
+import { HeroCTAGroup } from "../hero-content";
+import { HeroTrustBadges } from "../hero-content";
 import { MobileHeroPoster } from "./mobile-hero-poster";
 import { cn } from "@/lib/utils";
 

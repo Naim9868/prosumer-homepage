@@ -24,6 +24,7 @@ import { PurchaseActions } from "./PurchaseActions";
 import { PriceDisplay } from "./ui/PriceDisplay";
 import { StockPill } from "./ui/BadgesAndStock";
 import { ProductInfoHeader } from "./ProductInfoHeader";
+import { ShareButton } from "./ui/ShareButton";
 import { useCartContext } from "@/app/context/CartContext";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import { useGuestInfo } from "@/app/context/GuestInfoContext";
@@ -109,7 +110,12 @@ export function ProductExperience({ product }: { product: Product }) {
       <ProductGallery images={images} productName={product.name} />
 
       <div className="flex flex-col gap-5">
-        <ProductInfoHeader product={product} />
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1">
+            <ProductInfoHeader product={product} />
+          </div>
+          <ShareButton slug={product.slug} productName={product.name} className="mt-1 flex-shrink-0" />
+        </div>
 
         <PriceDisplay data={price} />
 
