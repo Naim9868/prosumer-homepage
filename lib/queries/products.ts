@@ -1,5 +1,6 @@
 import "server-only";
 import { connectDB } from "@/lib/dbConnect";
+import "@/models/index";
 import { ProductModel } from "@/models/Product";
 import type { Product } from "@/models/Product";
 
