@@ -80,31 +80,41 @@ export function HeroLivePreview({
         </div>
       </div>
 
-      <div ref={boxRef} className="overflow-hidden rounded-[var(--radius-lg)] border border-border bg-[var(--background)] shadow-inner">
+      <div ref={boxRef} className="overflow-hidden rounded-[var(--radius-lg)] border border-dashed border-primary/40 bg-[var(--background)] shadow-inner">
         {rendered && (
-          <div
-            className="relative mx-auto"
-            style={{
-              width: device.width * scale,
-              height: content.height > 0 ? content.height * scale : undefined,
-            }}
-          >
-            <div
-              ref={contentRef}
-              className="overflow-hidden"
-              style={{ width: device.width, transform: `scale(${scale})`, transformOrigin: "top left" }}
-            >
-              <HeroRenderer
-                slides={slides}
-                settings={{ ...settings.slider, autoplay: false }}
-                breakpoint={breakpoint}
-                preview
-                forceTheme={forceTheme}
-                controlledIndex={controlledIndex}
-                products={productsById}
-              />
+          <>
+            <div className="flex items-center justify-between border-b border-dashed border-primary/20 px-3 py-1.5">
+              <span className="rounded-full border border-primary/40 bg-primary/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                {device.label}
+              </span>
+              <span className="text-[10px] font-mono text-foreground-muted">
+                {device.width}px wide
+              </span>
             </div>
-          </div>
+            <div
+              className="relative mx-auto"
+              style={{
+                width: device.width * scale,
+                height: content.height > 0 ? content.height * scale : undefined,
+              }}
+            >
+              <div
+                ref={contentRef}
+                className="overflow-hidden"
+                style={{ width: device.width, transform: `scale(${scale})`, transformOrigin: "top left" }}
+              >
+                <HeroRenderer
+                  slides={slides}
+                  settings={{ ...settings.slider, autoplay: false }}
+                  breakpoint={breakpoint}
+                  preview
+                  forceTheme={forceTheme}
+                  controlledIndex={controlledIndex}
+                  products={productsById}
+                />
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>

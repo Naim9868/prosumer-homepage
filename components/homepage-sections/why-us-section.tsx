@@ -74,8 +74,8 @@ export function WhyUsSection({
                 <Icon style={{ width: iconSize, height: iconSize }} />
               </div>
               <div>
-                <h3 className="font-heading text-[15px] font-semibold text-foreground">{item.title}</h3>
-                <p className="mt-1 text-[13.5px] leading-relaxed text-foreground-muted">{item.description}</p>
+                <h3 className="text-product-title font-heading text-[15px] text-foreground">{item.title}</h3>
+                <p className="text-body-premium mt-1 text-[13.5px] text-foreground-muted">{item.description}</p>
               </div>
             </div>
           );

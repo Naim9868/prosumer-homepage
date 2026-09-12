@@ -15,3 +15,4 @@ const BrandSchema = new Schema(
 
 export const BrandModel: Model<Record<string, unknown>> =
   models.Brand || model("Brand", BrandSchema);
+ 

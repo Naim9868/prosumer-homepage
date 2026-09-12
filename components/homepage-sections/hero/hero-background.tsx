@@ -1,7 +1,8 @@
 import type { CSSProperties, ReactNode } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import type { HeroBackgroundPosition, HeroBackgroundSize } from "@/types/homepage";
+import type { HeroBackgroundConfig, HeroBackgroundPosition, HeroBackgroundSize } from "@/types/homepage";
+import { BackgroundImageRenderer } from "@/components/shared/background-image-renderer";
 
 // ---------------------------------------------------------------
 // HeroImage (responsive image wrapper)
@@ -67,6 +68,7 @@ export function HeroBackground({
   backgroundPosition = { x: 0, y: 0 },
   overlayOpacity = 1,
   clip = true,
+  backgroundConfig,
 }: {
   image?: string;
   overlay: string;
@@ -75,7 +77,24 @@ export function HeroBackground({
   backgroundPosition?: Partial<HeroBackgroundPosition>;
   overlayOpacity?: number;
   clip?: boolean;
+  backgroundConfig?: HeroBackgroundConfig;
 }) {
+  // When backgroundConfig is present, use the new shared renderer
+  // Merge the legacy image as fallback if backgroundConfig.image is empty
+  if (backgroundConfig) {
+    const mergedConfig = {
+      ...backgroundConfig,
+      image: backgroundConfig.image || image || "",
+    };
+    return (
+      <div aria-hidden className={cn("pointer-events-none absolute inset-0", clip && "overflow-hidden")}>
+        <div className="absolute inset-0" style={{ background: "var(--hero-background)" }} />
+        <BackgroundImageRenderer config={mergedConfig} sizes={sizes} priority />
+      </div>
+    );
+  }
+
+  // Legacy behavior — unchanged
   const boxStyle: CSSProperties = {
     left: "50%",
     top: "50%",

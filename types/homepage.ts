@@ -322,6 +322,85 @@ export interface HeroBackgroundPosition {
 
 export type HeroImageWidthMode = "auto" | "manual";
 
+export type HeroImageFitMode = "cover" | "contain" | "width" | "height" | "original" | "custom";
+
+export type HeroOverlayType = "solid" | "linear" | "radial";
+
+export type HeroOverlayDirection = "to-right" | "to-left" | "to-bottom" | "to-top";
+
+export interface HeroOverlayConfig {
+  type: HeroOverlayType;
+  color: string;
+  opacity: number;
+  direction: HeroOverlayDirection;
+  colorEnd: string;
+}
+
+export interface HeroBackgroundConfig {
+  image: string;
+  mobileImage: string;
+  useMobileImage: boolean;
+  fit: HeroImageFitMode;
+  position: { x: number; y: number };
+  zoom: number;
+  customWidth: number;
+  customWidthUnit: "%" | "px";
+  customHeight: number;
+  customHeightUnit: "%" | "px";
+  repeat: "no-repeat" | "repeat" | "repeat-x" | "repeat-y";
+  overlay: HeroOverlayConfig;
+}
+
+export const DEFAULT_HERO_BACKGROUND_CONFIG: HeroBackgroundConfig = {
+  image: "",
+  mobileImage: "",
+  useMobileImage: false,
+  fit: "cover",
+  position: { x: 50, y: 50 },
+  zoom: 100,
+  customWidth: 100,
+  customWidthUnit: "%",
+  customHeight: 100,
+  customHeightUnit: "%",
+  repeat: "no-repeat",
+  overlay: {
+    type: "solid",
+    color: "#000000",
+    opacity: 35,
+    direction: "to-right",
+    colorEnd: "#000000",
+  },
+};
+
+export const HERO_IMAGE_FIT_OPTIONS: { value: HeroImageFitMode; label: string; hint: string }[] = [
+  { value: "cover", label: "Cover", hint: "Fills hero, may crop edges" },
+  { value: "contain", label: "Contain", hint: "Shows full image, may leave space" },
+  { value: "width", label: "Fit Width", hint: "Stretches to hero width" },
+  { value: "height", label: "Fit Height", hint: "Stretches to hero height" },
+  { value: "original", label: "Original", hint: "Natural image size" },
+  { value: "custom", label: "Custom", hint: "Set exact dimensions" },
+];
+
+export const HERO_POSITION_PRESETS: { label: string; x: number; y: number }[] = [
+  { label: "Top Left", x: 0, y: 0 },
+  { label: "Top Center", x: 50, y: 0 },
+  { label: "Top Right", x: 100, y: 0 },
+  { label: "Center Left", x: 0, y: 50 },
+  { label: "Center", x: 50, y: 50 },
+  { label: "Center Right", x: 100, y: 50 },
+  { label: "Bottom Left", x: 0, y: 100 },
+  { label: "Bottom Center", x: 50, y: 100 },
+  { label: "Bottom Right", x: 100, y: 100 },
+];
+
+export const HERO_BG_PRESETS: { label: string; fit: HeroImageFitMode; x: number; y: number; zoom: number; overlayType?: HeroOverlayType; overlayOpacity?: number }[] = [
+  { label: "Full Bleed", fit: "cover", x: 50, y: 50, zoom: 100 },
+  { label: "Product Right", fit: "cover", x: 70, y: 50, zoom: 100 },
+  { label: "Product Left", fit: "cover", x: 30, y: 50, zoom: 100 },
+  { label: "Cinematic", fit: "cover", x: 50, y: 50, zoom: 105, overlayType: "linear", overlayOpacity: 40 },
+  { label: "Full Image", fit: "contain", x: 50, y: 50, zoom: 100 },
+];
+
 export interface HeroBorderRadius {
   topLeft: number;
   topRight: number;
@@ -347,6 +426,8 @@ export interface HeroMedia {
   imageWidth: number;
   /** Border radius of the image card (per-corner in px). */
   borderRadius: HeroBorderRadius;
+  /** Advanced background image configuration (fit, focal point, zoom, overlay). Falls back to legacy behavior when absent. */
+  backgroundConfig?: HeroBackgroundConfig;
 }
 
 /** Button sizing overrides (px); 0/0 means "auto" for the given dimension. */

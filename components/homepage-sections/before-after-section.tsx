@@ -64,9 +64,9 @@ export function BeforeAfterSection({ section, catalog, breakpoint, forceTheme }:
     <SectionWrapper style={section.style}>
       <div style={styleFor(settings.sectionStyle, device, currentTheme)}>
       <div className="mx-auto max-w-2xl text-center" style={headingStyle}>
-        {settings.eyebrow && <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">{settings.eyebrow}</p>}
-        <h2 className="mt-3 text-balance font-heading text-[clamp(1.75rem,3.4vw,2.75rem)] font-semibold leading-[1.1]" style={headingStyle}>{settings.title}</h2>
-        {settings.subtitle && <p className="mt-4 text-[15px] leading-relaxed" style={subtitleStyle}>{settings.subtitle}</p>}
+        {settings.eyebrow && <p className="text-eyebrow text-[11px] text-primary">{settings.eyebrow}</p>}
+        <h2 className="text-section-title mt-3 text-balance font-heading text-[clamp(1.75rem,3.4vw,2.75rem)]" style={headingStyle}>{settings.title}</h2>
+        {settings.subtitle && <p className="text-body-premium mt-4 text-[15px]" style={subtitleStyle}>{settings.subtitle}</p>}
       </div>
       {categories.length > 0 && (
         <div className="mt-8 flex overflow-x-auto pb-2 sm:justify-center" style={{ gap: layout.categoryGap }} role="tablist" aria-label="Comparison categories">
@@ -77,10 +77,10 @@ export function BeforeAfterSection({ section, catalog, breakpoint, forceTheme }:
       <div className="mx-auto mt-8 flex w-full items-center" style={{ gap: layout.contentGap, flexDirection: layout.layoutMode === "row" ? "row" : "column" }}>
         <div style={{ maxWidth: layout.imageWidth, width: "100%", flex: layout.layoutMode === "row" ? `0 1 ${layout.imageColumnPercent}%` : "0 1 auto" }}><BeforeAfterSlider beforeImage={activeItem.beforeImage} afterImage={activeItem.afterImage} beforeLabel={activeItem.beforeLabel} afterLabel={activeItem.afterLabel} style={{ ...comparisonStyle, aspectRatio: layout.imageAspectRatio }} /></div>
         <div className="w-full text-center lg:text-left" style={{ flex: layout.layoutMode === "row" ? `0 1 ${layout.contentColumnPercent}%` : "0 1 auto" }}>
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">{categories.find((category) => category.id === activeItem.categoryId)?.name}</p>
-          <h3 className="mt-2 font-heading text-2xl font-bold" style={itemTitleStyle}>{activeItem.title}</h3>
-          <p className="mt-3 text-[14px] leading-6" style={itemDescriptionStyle}>{activeItem.description}</p>
-          {(activeItem.buttonUrl || product) && activeItem.buttonText && <a href={activeItem.buttonUrl || `/products/${product?.slug}`} style={ctaStyle} className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-[13px] font-semibold text-primary-foreground transition-transform hover:scale-[1.02]">{activeItem.buttonText}<ArrowUpRight className="h-4 w-4" /></a>}
+          <p className="text-eyebrow text-[11px] text-primary">{categories.find((category) => category.id === activeItem.categoryId)?.name}</p>
+          <h3 className="text-product-title mt-2 font-heading text-2xl" style={itemTitleStyle}>{activeItem.title}</h3>
+          <p className="text-body-premium mt-3 text-[14px] leading-6" style={itemDescriptionStyle}>{activeItem.description}</p>
+          {(activeItem.buttonUrl || product) && activeItem.buttonText && <a href={activeItem.buttonUrl || `/products/${product?.slug}`} style={ctaStyle} className="text-btn mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-[13px] text-primary-foreground transition-transform hover:scale-[1.02]">{activeItem.buttonText}<ArrowUpRight className="h-4 w-4" /></a>}
         </div>
       </div>
       </div>

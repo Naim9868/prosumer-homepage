@@ -18,6 +18,17 @@
 @import "@fontsource/inter/600.css";
 
 /* ------------------------------------------------------------
+   SF PRO TYPOGRAPHY SYSTEM — Apple-inspired premium type
+   Uses system font stack with SF Pro at the top.
+   Manrope retained as fallback for Latin headings.
+------------------------------------------------------------- */
+:root {
+  --font-sf-display: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Manrope", "Helvetica Neue", Arial, sans-serif;
+  --font-sf-text: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-sf-mono: "SF Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+/* ------------------------------------------------------------
    DESIGN TOKENS — Prosumer Lens BD
    Signature: aperture-iris geometry (7-blade polygon) used as a
    recurring cut / reveal / accent shape across the page.
@@ -60,8 +71,8 @@
   --radius-lg: 1.5rem;
   --radius-xl: 2.5rem;
 
-  --font-heading: "Manrope", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-sf-display);
+  --font-body: var(--font-sf-text);
 
   /* Navbar customization defaults — overridable per page via inline CSS vars. */
   --navbar-text: var(--foreground);
@@ -126,6 +137,9 @@
 
   --font-heading: var(--font-heading);
   --font-body: var(--font-body);
+  --font-sf-display: var(--font-sf-display);
+  --font-sf-text: var(--font-sf-text);
+  --font-sf-mono: var(--font-sf-mono);
 
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
@@ -147,11 +161,83 @@ body {
   color: var(--foreground);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
   overflow-x: clip;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
+  font-optical-sizing: auto;
+}
+
+/* ------------------------------------------------------------
+   TYPOGRAPHY SYSTEM — Apple-inspired hierarchical type scale
+------------------------------------------------------------- */
+
+/* Display / Hero — largest headlines */
+.text-display {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+}
+
+/* Large section headings */
+.text-section-title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.08;
+}
+
+/* Section description / body premium */
+.text-body-premium {
+  font-family: var(--font-body);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.55;
+}
+
+/* Product title */
+.text-product-title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+
+/* Product metadata / labels */
+.text-meta {
+  font-family: var(--font-body);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.35;
+}
+
+/* Eyebrow / micro label */
+.text-eyebrow {
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+/* Price — strong visual hierarchy */
+.text-price {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+/* Button text */
+.text-btn {
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
 }
 
 ::selection {
@@ -244,7 +330,7 @@ h1, h2, h3, h4, h5, h6 {
   --editor-radius-sm: 6px;
   --editor-radius-md: 8px;
   --editor-radius-lg: 12px;
-  --editor-font: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --editor-font: var(--font-sf-text);
 }
 
 .editor-dark {

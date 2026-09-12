@@ -66,9 +66,9 @@ export function HeroEditor({
   if (!selected) return null;
 
   return (
-    <div className="space-y-4">
+    <div className="flex min-h-0 flex-col overflow-hidden" style={{ height: "calc(100vh - 64px)" }}>
       {/* Top bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
         <div>
           <h2 className="font-heading text-[15px] font-bold text-foreground">Hero Section Builder</h2>
           <p className="text-[11.5px] text-foreground-muted">
@@ -112,53 +112,64 @@ export function HeroEditor({
       </div>
 
       {sliderPanelOpen && (
-        <div className="rounded-[var(--radius-md)] border border-border bg-muted/40 p-4">
+        <div className="shrink-0 border-b bg-muted/40 px-4 py-3">
           <HeroSliderSettingsEditor settings={normalized.slider} onChange={(slider) => updateSettings({ ...normalized, slider })} />
         </div>
       )}
 
-      {/* Two-column builder: slides rail left, preview + selected-slide settings right */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[300px_1fr]">
-        <div className="lg:sticky lg:top-0 lg:max-h-[calc(100vh-220px)] lg:self-start lg:overflow-y-auto">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Slides</p>
-          <HeroSlideList
-            slides={slides}
-            selectedId={selected.id}
-            onSelect={setSelectedId}
-            onReorder={(next) => updateSettings({ ...normalized, slides: next })}
-            onToggleEnabled={handleToggleEnabled}
-            onDuplicate={handleDuplicate}
-            onDelete={handleDelete}
-            onRename={handleRename}
-            onAdd={handleAdd}
-          />
-        </div>
+      {/* Three-panel builder: slides | preview canvas | inspector */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row">
+        {/* Left — slide list */}
+        <aside className="flex shrink-0 flex-col overflow-hidden border-r lg:w-56">
+          <div className="shrink-0 border-b px-3 py-2.5">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Slides</p>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto p-3">
+            <HeroSlideList
+              slides={slides}
+              selectedId={selected.id}
+              onSelect={setSelectedId}
+              onReorder={(next) => updateSettings({ ...normalized, slides: next })}
+              onToggleEnabled={handleToggleEnabled}
+              onDuplicate={handleDuplicate}
+              onDelete={handleDelete}
+              onRename={handleRename}
+              onAdd={handleAdd}
+            />
+          </div>
+        </aside>
 
-        <div className="min-w-0 space-y-4">
-          <HeroLivePreview
-            settings={normalized}
-            breakpoint={breakpoint}
-            onBreakpointChange={setBreakpoint}
-            activeSlideId={selected.id}
-            forceTheme={selected.theme}
-          />
-
-          <div>
-            <div className="rounded-[var(--radius-md)] border border-border bg-muted/40 p-4">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">
-                Selected Slide — {selected.name || "Untitled slide"}
-              </p>
-              <HeroSlideEditor
-                slide={selected}
-                onChange={updateSlide}
-                mode={mode}
-                breakpoint={breakpoint}
-                onBreakpointChange={setBreakpoint}
-              />
-            </div>
-            {footer && <div className="mt-4">{footer}</div>}
+        {/* Center — preview canvas (fixed, scrollable inside) */}
+        <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">
+          <div className="absolute inset-0 overflow-y-auto p-6">
+            <HeroLivePreview
+              settings={normalized}
+              breakpoint={breakpoint}
+              onBreakpointChange={setBreakpoint}
+              activeSlideId={selected.id}
+              forceTheme={selected.theme}
+            />
           </div>
         </div>
+
+        {/* Right — slide inspector */}
+        <aside className="flex shrink-0 flex-col overflow-hidden border-l lg:w-[380px]">
+          <div className="shrink-0 border-b px-3 py-2.5">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">
+              {selected.name || "Untitled slide"}
+            </p>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto p-4">
+            <HeroSlideEditor
+              slide={selected}
+              onChange={updateSlide}
+              mode={mode}
+              breakpoint={breakpoint}
+              onBreakpointChange={setBreakpoint}
+            />
+            {footer && <div className="mt-4">{footer}</div>}
+          </div>
+        </aside>
       </div>
     </div>
   );

@@ -38,7 +38,7 @@ export function Gallery() {
                 <rect width="300" height="300" fill={`url(#g-tile-${i})`} />
                 <circle cx="150" cy="140" r="70" fill="none" stroke="#ffffff" strokeOpacity="0.12" strokeWidth="10" />
               </svg>
-              <figcaption className="absolute inset-x-0 bottom-0 translate-y-full bg-black/55 p-3 text-[11.5px] font-medium text-white backdrop-blur transition-transform duration-300 group-hover:translate-y-0">
+              <figcaption className="text-meta absolute inset-x-0 bottom-0 translate-y-full bg-black/55 p-3 text-[11.5px] text-white backdrop-blur transition-transform duration-300 group-hover:translate-y-0">
                 {tile.label}
               </figcaption>
             </figure>

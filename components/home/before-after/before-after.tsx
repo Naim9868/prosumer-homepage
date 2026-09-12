@@ -55,7 +55,7 @@ export function BeforeAfter() {
           {/* "After" layer — full width, sharp */}
           <div className="absolute inset-0">
             <SceneSvg variant="sharp" />
-            <span className="absolute right-4 top-4 rounded-full bg-black/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur">
+            <span className="text-eyebrow absolute right-4 top-4 rounded-full bg-black/50 px-3 py-1 text-[11px] text-white backdrop-blur">
               With Prosumer Glass
             </span>
           </div>
@@ -63,7 +63,7 @@ export function BeforeAfter() {
           {/* "Before" layer — clipped */}
           <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}>
             <SceneSvg variant="soft" />
-            <span className="absolute left-4 top-4 rounded-full bg-black/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur">
+            <span className="text-eyebrow absolute left-4 top-4 rounded-full bg-black/50 px-3 py-1 text-[11px] text-white backdrop-blur">
               Phone Camera
             </span>
           </div>

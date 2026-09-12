@@ -804,11 +804,13 @@ export const FONT_WEIGHT_OPTIONS = ["100", "200", "300", "400", "500", "600", "7
 /** Common CSS font-family options. */
 export const FONT_FAMILY_OPTIONS = [
   { label: "Inherit", value: "" },
+  { label: "SF Pro Display", value: '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Manrope", "Helvetica Neue", Arial, sans-serif' },
+  { label: "SF Pro Text", value: '"SF Pro Text", -apple-system, BlinkMacSystemFont, "Inter", "Helvetica Neue", Arial, sans-serif' },
   { label: "Inter", value: '"Inter", ui-sans-serif, system-ui, sans-serif' },
   { label: "Manrope", value: '"Manrope", ui-sans-serif, system-ui, sans-serif' },
   { label: "System", value: "ui-sans-serif, system-ui, sans-serif" },
   { label: "Serif", value: 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif' },
-  { label: "Mono", value: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace' },
+  { label: "Mono", value: '"SF Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace' },
 ];
 
 /** Common easing values. */

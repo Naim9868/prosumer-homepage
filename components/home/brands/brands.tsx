@@ -7,7 +7,7 @@ export function Brands() {
   return (
     <section className="border-y border-border py-14">
       <Container>
-        <p className="mb-8 text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-foreground-muted">
+        <p className="text-eyebrow mb-8 text-center text-[11px] text-foreground-muted">
           Optical glass sourced from
         </p>
       </Container>

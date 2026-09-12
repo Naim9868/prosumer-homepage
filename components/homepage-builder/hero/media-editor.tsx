@@ -1,10 +1,13 @@
 "use client";
 
-import type { HeroFloatingBadge, HeroImageWidthMode, HeroMedia, HeroBorderRadius } from "@/types/homepage";
+import { useEffect } from "react";
+import type { HeroBackgroundConfig, HeroFloatingBadge, HeroImageWidthMode, HeroMedia, HeroBorderRadius } from "@/types/homepage";
+import { DEFAULT_HERO_BACKGROUND_CONFIG } from "@/types/homepage";
 import { Field, FieldGrid, TextInput, Select, Toggle } from "@/components/homepage-builder/fields";
 import { CatalogPicker, type CatalogPickerItem } from "@/components/homepage-builder/catalog-picker";
 import { ImagePositionControls } from "@/components/homepage-builder/hero/image-position-controls";
 import { BackgroundSizeControls } from "@/components/homepage-builder/hero/background-size-controls";
+import { BackgroundImageEditor } from "@/components/homepage-builder/hero/background-image-editor";
 import { ImageUploader } from "@/components/homepage-builder/image-uploader";
 import { useCatalog } from "@/components/shared/catalog-context";
 
@@ -29,6 +32,22 @@ export function MediaEditor({ media, onChange, advanced }: { media: HeroMedia; o
   const set = <K extends keyof HeroMedia>(key: K, value: HeroMedia[K]) => onChange({ ...media, [key]: value });
   const setFloating = (patch: Partial<HeroFloatingBadge>) => onChange({ ...media, floatingBadge: { ...media.floatingBadge, ...patch } });
   const productItems = useProductItems();
+
+  // Auto-initialize backgroundConfig with existing image data if not present
+  useEffect(() => {
+    if (!media.backgroundConfig) {
+      const existingImage = media.backgroundImage || media.desktopImage || "";
+      onChange({
+        ...media,
+        backgroundConfig: {
+          ...DEFAULT_HERO_BACKGROUND_CONFIG,
+          image: existingImage,
+        },
+      });
+    }
+  // Only run on mount when backgroundConfig is missing
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Guard: ensure borderRadius is always an object (legacy data may have a number)
   const br = (media.borderRadius && typeof media.borderRadius === "object"
@@ -188,6 +207,15 @@ export function MediaEditor({ media, onChange, advanced }: { media: HeroMedia; o
             onSizeChange={(backgroundSize) => onChange({ ...media, backgroundSize })}
             onPositionChange={(backgroundPosition) => onChange({ ...media, backgroundPosition })}
           />
+
+          {/* Advanced Background Image Editor */}
+          <div className="rounded-[var(--radius-md)] border border-primary/30 bg-primary/5 p-3">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-primary">Background Image Config</p>
+            <BackgroundImageEditor
+              config={media.backgroundConfig ?? DEFAULT_HERO_BACKGROUND_CONFIG}
+              onChange={(backgroundConfig: HeroBackgroundConfig) => onChange({ ...media, backgroundConfig })}
+            />
+          </div>
         </>
       )}
 

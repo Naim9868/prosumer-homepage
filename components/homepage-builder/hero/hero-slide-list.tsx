@@ -42,7 +42,7 @@ function SlideRow({
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        "flex items-center gap-2 rounded-[var(--radius-md)] border bg-card px-2 py-2 transition-colors",
+        "flex items-center gap-1.5 rounded-[var(--radius-sm)] border bg-card px-1.5 py-1 transition-colors",
         selected ? "border-primary shadow-sm" : "border-border",
         isDragging && "opacity-60 shadow-lg",
         !slide.enabled && "opacity-60"
@@ -53,13 +53,13 @@ function SlideRow({
         {...attributes}
         {...listeners}
         aria-label="Drag to reorder slide"
-        className="cursor-grab p-1 text-foreground-muted active:cursor-grabbing"
+        className="cursor-grab p-0.5 text-foreground-muted active:cursor-grabbing"
       >
-        <GripVertical className="h-4 w-4" />
+        <GripVertical className="h-3 w-3" />
       </button>
 
       <div className="min-w-0 flex-1 cursor-pointer text-left" onClick={onSelect} onDoubleClick={() => setEditing(true)} title="Double-click to rename">
-        <span className="mr-2 text-[10.5px] font-bold text-foreground-muted">#{index + 1}</span>
+        <span className="mr-1 text-[9px] font-bold text-foreground-muted">#{index + 1}</span>
         {editing ? (
           <TextInput
             autoFocus
@@ -73,10 +73,10 @@ function SlideRow({
                 setEditing(false);
               }
             }}
-            className="inline w-32 px-2 py-0.5 text-[13px]"
+            className="inline w-24 px-1.5 py-0 text-[11px]"
           />
         ) : (
-          <span className={cn("truncate text-[13px] font-semibold", selected ? "text-primary" : "text-foreground")}>
+          <span className={cn("truncate text-[11px] font-semibold", selected ? "text-primary" : "text-foreground")}>
             {slide.name || "Untitled slide"}
           </span>
         )}
@@ -87,17 +87,17 @@ function SlideRow({
         type="button"
         onClick={onDuplicate}
         aria-label="Duplicate slide"
-        className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] text-foreground-muted hover:bg-muted"
+        className="flex h-5 w-5 items-center justify-center rounded text-foreground-muted hover:bg-muted"
       >
-        <Copy className="h-3.5 w-3.5" />
+        <Copy className="h-3 w-3" />
       </button>
       <button
         type="button"
         onClick={onDelete}
         aria-label="Delete slide"
-        className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] text-destructive hover:bg-muted"
+        className="flex h-5 w-5 items-center justify-center rounded text-destructive hover:bg-muted"
       >
-        <Trash2 className="h-3.5 w-3.5" />
+        <Trash2 className="h-3 w-3" />
       </button>
     </div>
   );
@@ -136,10 +136,10 @@ export function HeroSlideList({
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       <DndContext id="hero-slide-list" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={slides.map((s) => s.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {slides.map((slide, i) => (
               <SlideRow
                 key={slide.id}
@@ -160,9 +160,9 @@ export function HeroSlideList({
       <button
         type="button"
         onClick={onAdd}
-        className="flex w-full items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-dashed border-border py-2.5 text-[12.5px] font-semibold text-foreground-muted transition-colors hover:bg-muted"
+        className="flex w-full items-center justify-center gap-1 rounded-[var(--radius-sm)] border border-dashed border-border py-1.5 text-[10.5px] font-semibold text-foreground-muted transition-colors hover:bg-muted"
       >
-        <Plus className="h-4 w-4" /> Add Slide
+        <Plus className="h-3 w-3" /> Add Slide
       </button>
     </div>
   );

@@ -62,7 +62,7 @@ function ReviewCard({ review, index }: { review: CatalogReview; index: number })
           />
         ))}
       </div>
-      <blockquote className="flex-1 text-[13.5px] leading-relaxed text-foreground">
+      <blockquote className="text-body-premium flex-1 text-[13.5px] text-foreground">
         &ldquo;{review.comment}&rdquo;
       </blockquote>
       <figcaption className="flex items-center gap-3 border-t border-border pt-4">

@@ -199,7 +199,7 @@ export function CategoriesSection({
           {eyebrow && (
             <span
               className={cn(
-                "mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-primary",
+                "text-eyebrow mb-2 block text-[11px] text-primary",
                 isMobile && "text-[9px] mb-1",
               )}
               style={textStyleToInline(eStyle)}
@@ -210,7 +210,7 @@ export function CategoriesSection({
           {title && (
             <h2
               className={cn(
-                "font-heading text-[clamp(1.75rem,3.4vw,2.75rem)] font-semibold leading-[1.1] tracking-tight text-foreground",
+                "text-section-title font-heading text-[clamp(1.75rem,3.4vw,2.75rem)] text-foreground",
                 isMobile && "text-xl",
               )}
               style={textStyleToInline(tStyle)}
@@ -221,7 +221,7 @@ export function CategoriesSection({
           {subtitle && (
             <p
               className={cn(
-                "mt-3 max-w-2xl text-[15px] leading-relaxed text-foreground-muted",
+                "text-body-premium mt-3 max-w-2xl text-[15px] text-foreground-muted",
                 isMobile && "mt-1.5 text-xs",
               )}
               style={textStyleToInline(sStyle)}

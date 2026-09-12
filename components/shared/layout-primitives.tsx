@@ -20,7 +20,7 @@ export function Container({ className, children, style, ...props }: HTMLAttribut
 
 export function Eyebrow({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
+    <span className="text-eyebrow inline-flex items-center gap-2 text-[11px] text-primary">
       <ApertureMark className="h-3 w-3" />
       {children}
     </span>
@@ -45,11 +45,11 @@ export function SectionHeading({
   return (
     <div className={cn("max-w-2xl", align === "center" && "mx-auto text-center", className)}>
       {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
-      <h2 className="mt-3 text-balance font-heading text-[clamp(1.75rem,3.4vw,2.75rem)] font-semibold leading-[1.1] tracking-tight text-foreground">
+      <h2 className="text-section-title mt-3 text-balance font-heading text-[clamp(1.75rem,3.4vw,2.75rem)] text-foreground">
         {title}
       </h2>
       {description && (
-        <p className={cn("mt-4 text-[15px] leading-relaxed text-foreground-muted", descriptionClassName)}>
+        <p className={cn("text-body-premium mt-4 text-[15px] text-foreground-muted", descriptionClassName)}>
           {description}
         </p>
       )}

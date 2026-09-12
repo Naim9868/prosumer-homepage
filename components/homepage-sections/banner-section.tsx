@@ -20,12 +20,12 @@ export function BannerSection({ section }: { section: Extract<Section, { type: "
           className="pointer-events-none absolute inset-0 opacity-40"
           style={{ background: "radial-gradient(circle at 20% 20%, rgba(201,164,76,0.35), transparent 55%), radial-gradient(circle at 80% 80%, rgba(255,255,255,0.15), transparent 50%)" }}
         />
-        <h2 className="relative mx-auto mt-6 max-w-xl text-balance font-heading text-[clamp(1.75rem,4vw,3rem)] font-bold leading-tight text-white">
+        <h2 className="text-display relative mx-auto mt-6 max-w-xl text-balance font-heading text-[clamp(1.75rem,4vw,3rem)] text-white">
           {title}
         </h2>
-        {subtitle && <p className="relative mx-auto mt-4 max-w-md text-[15px] leading-relaxed text-white/70">{subtitle}</p>}
+        {subtitle && <p className="text-body-premium relative mx-auto mt-4 max-w-md text-[15px] text-white/70">{subtitle}</p>}
         {buttonLabel && (
-          <a href={buttonUrl || "#"} className="relative mt-8 inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 text-[14.5px] font-semibold text-black shadow-lg transition-transform hover:scale-[1.03] active:scale-[0.98]">
+          <a href={buttonUrl || "#"} className="text-btn relative mt-8 inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 text-[14.5px] text-black shadow-lg transition-transform hover:scale-[1.03] active:scale-[0.98]">
             {buttonLabel}
             <ArrowRight className="h-4 w-4" />
           </a>

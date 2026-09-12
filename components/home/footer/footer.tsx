@@ -43,7 +43,7 @@ export function Footer({ settings }: { settings?: PageFooterSettings }) {
                 Prosumer<span className="text-primary"> Lens</span> BD
               </span>
             </a>
-            <p className="mt-4 max-w-xs text-[13.5px] leading-relaxed text-foreground-muted">
+            <p className="text-body-premium mt-4 max-w-xs text-[13.5px] text-foreground-muted">
               Optical-grade mobile lenses, engineered for photographers across Bangladesh who refuse
               to compromise on glass.
             </p>
@@ -88,7 +88,7 @@ export function Footer({ settings }: { settings?: PageFooterSettings }) {
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
             {linkGroups.map((group) => (
               <div key={group.title}>
-                <h3 className="text-[11px] font-semibold uppercase tracking-wider text-foreground">
+                <h3 className="text-eyebrow text-[11px] text-foreground">
                   {group.title}
                 </h3>
                 <ul className="mt-4 space-y-3">

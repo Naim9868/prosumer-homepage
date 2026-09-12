@@ -47,6 +47,7 @@ export function MobileHeroPoster() {
           backgroundSize={media.backgroundSize}
           backgroundPosition={media.backgroundPosition}
           clip={!preview}
+          backgroundConfig={media.backgroundConfig}
         />
       ) : null}
       <HeroContainer

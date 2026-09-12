@@ -10,7 +10,7 @@ export function BrandsSection({ section }: { section: Extract<Section, { type: "
   return (
     <SectionWrapper style={{ ...section.style, paddingTop: section.style.paddingTop ?? 56, paddingBottom: section.style.paddingBottom ?? 56 }}>
       {title && (
-        <p className="mb-8 text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-foreground-muted">{title}</p>
+        <p className="text-eyebrow mb-8 text-center text-[11px] text-foreground-muted">{title}</p>
       )}
       <div className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-background to-transparent" />

@@ -55,7 +55,7 @@ export function FlashSaleSection({
                 { value: seconds, label: "s" },
               ].map((unit) => (
                 <div key={unit.label} className="flex h-14 w-14 flex-col items-center justify-center rounded-[var(--radius-md)] border border-border bg-card">
-                  <span className="font-heading text-lg font-bold text-foreground">{String(unit.value).padStart(2, "0")}</span>
+                  <span className="text-price font-heading text-lg text-foreground">{String(unit.value).padStart(2, "0")}</span>
                   <span className="text-[10px] uppercase text-foreground-muted">{unit.label}</span>
                 </div>
               ))}
@@ -63,7 +63,7 @@ export function FlashSaleSection({
             {buttonLabel && (
               <a
                 href={buttonUrl || "#"}
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-[13.5px] font-semibold text-primary-foreground shadow-sm transition-transform hover:scale-[1.03] active:scale-[0.98]"
+                className="text-btn inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-[13.5px] text-primary-foreground shadow-sm transition-transform hover:scale-[1.03] active:scale-[0.98]"
               >
                 {buttonLabel}
                 <ArrowRight className="h-4 w-4" />

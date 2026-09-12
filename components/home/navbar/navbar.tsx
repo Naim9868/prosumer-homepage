@@ -127,7 +127,7 @@ export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
             <a
               key={link.href}
               href={link.href}
-              className="text-[13.5px] font-medium text-[var(--navbar-text-muted)] transition-colors hover:text-[var(--navbar-hover)]"
+              className="text-meta text-[13.5px] text-[var(--navbar-text-muted)] transition-colors hover:text-[var(--navbar-hover)]"
             >
               {link.label}
             </a>
@@ -169,7 +169,7 @@ export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
 
           <a
             href="/products"
-            className="ml-2 hidden items-center rounded-full bg-[var(--navbar-accent)] px-5 py-2.5 text-[13px] font-semibold text-[var(--navbar-accent-foreground)] shadow-sm transition-transform hover:scale-[1.03] active:scale-[0.98] md:inline-flex"
+            className="text-btn ml-2 hidden items-center rounded-full bg-[var(--navbar-accent)] px-5 py-2.5 text-[13px] text-[var(--navbar-accent-foreground)] shadow-sm transition-transform hover:scale-[1.03] active:scale-[0.98] md:inline-flex"
           >
             Shop Now
           </a>
@@ -203,7 +203,7 @@ export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMenuOpen(false)}
-                  className="flex items-center justify-between rounded-md px-2 py-2.5 text-[15px] font-medium text-[var(--navbar-text-muted)] hover:bg-[var(--navbar-hover-bg)] hover:text-[var(--navbar-hover)]"
+                  className="text-meta flex items-center justify-between rounded-md px-2 py-2.5 text-[15px] text-[var(--navbar-text-muted)] hover:bg-[var(--navbar-hover-bg)] hover:text-[var(--navbar-hover)]"
                 >
                   {link.label}
                   <ChevronRight className="h-4 w-4 opacity-50" />
@@ -217,7 +217,7 @@ export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
                     setMenuOpen(false);
                     openWishlistModal();
                   }}
-                  className="flex w-full items-center justify-between rounded-md px-2 py-2.5 text-[15px] font-medium text-[var(--navbar-text-muted)] hover:bg-[var(--navbar-hover-bg)] hover:text-[var(--navbar-hover)]"
+                  className="text-meta flex w-full items-center justify-between rounded-md px-2 py-2.5 text-[15px] text-[var(--navbar-text-muted)] hover:bg-[var(--navbar-hover-bg)] hover:text-[var(--navbar-hover)]"
                 >
                   <span className="flex items-center gap-2">
                     <Heart className="h-4 w-4" /> Wishlist
@@ -232,7 +232,7 @@ export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
                     setMenuOpen(false);
                     openCartModal();
                   }}
-                  className="flex w-full items-center justify-between rounded-md px-2 py-2.5 text-[15px] font-medium text-[var(--navbar-text-muted)] hover:bg-[var(--navbar-hover-bg)] hover:text-[var(--navbar-hover)]"
+                  className="text-meta flex w-full items-center justify-between rounded-md px-2 py-2.5 text-[15px] text-[var(--navbar-text-muted)] hover:bg-[var(--navbar-hover-bg)] hover:text-[var(--navbar-hover)]"
                 >
                   <span className="flex items-center gap-2">
                     <ShoppingBag className="h-4 w-4" /> Cart

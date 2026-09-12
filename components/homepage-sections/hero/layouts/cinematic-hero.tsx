@@ -42,6 +42,7 @@ export function CinematicHero() {
         backgroundSize={bp.media.backgroundSize}
         backgroundPosition={bp.media.backgroundPosition}
         clip={!preview}
+        backgroundConfig={bp.media.backgroundConfig}
       />
       <HeroContainer
         className="relative mx-auto"

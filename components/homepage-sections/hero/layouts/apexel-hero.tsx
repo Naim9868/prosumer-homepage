@@ -60,6 +60,7 @@ export function ApexelHero() {
           backgroundSize={bp.media.backgroundSize}
           backgroundPosition={bp.media.backgroundPosition}
           clip={!preview}
+          backgroundConfig={bp.media.backgroundConfig}
         />
       </motion.div>
       <HeroContainer

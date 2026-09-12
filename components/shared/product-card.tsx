@@ -326,16 +326,16 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
               <Link
                 href={`/products/${slug}`}
                 onClick={(e) => e.stopPropagation()}
-                className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-foreground-muted transition-colors hover:text-primary"
+                className="text-eyebrow shrink-0 text-[10px] text-foreground-muted transition-colors hover:text-primary"
               >
                 {brandName}
               </Link>
             ) : (
-              <span className="text-[10px] text-foreground-muted uppercase tracking-wider">{categoryName || "Lens"}</span>
+              <span className="text-eyebrow text-[10px] text-foreground-muted">{categoryName || "Lens"}</span>
             )}
 
             {categoryName && (
-              <span className="rounded-full bg-muted px-2 py-0.5 text-[8px] font-medium uppercase tracking-wider text-foreground-muted">
+              <span className="text-meta rounded-full bg-muted px-2 py-0.5 text-[8px] text-foreground-muted">
                 {categoryName}
               </span>
             )}
@@ -346,13 +346,13 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
           </div>
 
           <Link href={`/products/${slug}`} onClick={(e) => e.stopPropagation()} className="block group/title">
-            <h3 className="line-clamp-2 font-heading text-[13px] font-semibold leading-snug text-foreground transition-colors group-hover/title:text-primary md:text-sm">
+            <h3 className="text-product-title line-clamp-2 font-heading text-[13px] text-foreground transition-colors group-hover/title:text-primary md:text-sm">
               {name}
             </h3>
           </Link>
 
           <div className="flex items-center gap-2 pt-0.5">
-            <span className="font-heading text-[15px] font-bold tracking-tight text-foreground md:text-lg">
+            <span className="text-price font-heading text-[15px] text-foreground md:text-lg">
               {formatCurrency(currentPrice)}
             </span>
             {hasDiscount && (

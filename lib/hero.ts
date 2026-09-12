@@ -97,15 +97,15 @@ export const DEFAULT_HERO_SLIDER: HeroSliderSettings = {
 
 const DEFAULT_HERO_TYPOGRAPHY: HeroTypography = {
   headingSize: 62,
-  headingWeight: 800,
-  headingLineHeight: 1.04,
-  headingLetterSpacing: -1.5,
+  headingWeight: 700,
+  headingLineHeight: 1.02,
+  headingLetterSpacing: -1.8,
   descriptionSize: 17,
   descriptionWeight: 400,
   eyebrowSize: 12.5,
   eyebrowLetterSpacing: 0.22,
   buttonFontSize: 14,
-  buttonWeight: 700,
+  buttonWeight: 600,
 };
 
 const DEFAULT_HERO_BREAKPOINT_LAYOUT: Record<

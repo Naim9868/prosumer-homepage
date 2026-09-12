@@ -222,7 +222,7 @@ export function HeroMedia({ className }: { className?: string }) {
                 src={img}
                 alt={bp.content.heading}
                 sizes="(max-width: 768px) 90vw, 44vw"
-                className="object-cover"
+                className="object-contain"
               />
             </div>
           ) : product ? (

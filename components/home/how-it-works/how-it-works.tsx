@@ -27,8 +27,8 @@ export function HowItWorks() {
               <span className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full border border-border bg-background font-heading text-lg font-bold text-primary shadow-sm">
                 {step.step}
               </span>
-              <h3 className="mt-5 font-heading text-lg font-semibold text-foreground">{step.title}</h3>
-              <p className="mt-2 max-w-xs text-[14px] leading-relaxed text-foreground-muted">{step.description}</p>
+              <h3 className="text-product-title mt-5 font-heading text-lg text-foreground">{step.title}</h3>
+              <p className="text-body-premium mt-2 max-w-xs text-[14px] text-foreground-muted">{step.description}</p>
             </motion.div>
           ))}
         </div>
