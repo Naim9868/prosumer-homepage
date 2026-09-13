@@ -184,7 +184,7 @@ export function ProductFilters({
               {expandedSections.category ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
             {expandedSections.category && (
-              <div className="absolute left-0 top-full z-20 mt-1 w-56 rounded-lg border border-border bg-card p-2 shadow-lg">
+              <div className="absolute left-0 top-full z-20 mt-1 min-w-full w-56 rounded-lg border border-border bg-card p-2 shadow-lg">
                 <button
                   type="button"
                   onClick={() => { updateFilter("categoryId", ""); setExpandedSections((p) => ({ ...p, category: false })); }}
@@ -226,7 +226,7 @@ export function ProductFilters({
               {expandedSections.brand ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
             {expandedSections.brand && (
-              <div className="absolute left-0 top-full z-20 mt-1 w-56 rounded-lg border border-border bg-card p-2 shadow-lg">
+              <div className="absolute left-0 top-full z-20 mt-1 min-w-full w-56 rounded-lg border border-border bg-card p-2 shadow-lg">
                 <button
                   type="button"
                   onClick={() => { updateFilter("brandId", ""); setExpandedSections((p) => ({ ...p, brand: false })); }}
@@ -268,7 +268,7 @@ export function ProductFilters({
               {expandedSections.price ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
             {expandedSections.price && (
-              <div className="absolute left-0 top-full z-20 mt-1 w-64 rounded-lg border border-border bg-card p-4 shadow-lg">
+              <div className="absolute left-0 top-full z-20 mt-1 w-64 min-w-full rounded-lg border border-border bg-card p-4 shadow-lg">
                 <div className="flex items-center gap-2">
                   <input
                     type="number"

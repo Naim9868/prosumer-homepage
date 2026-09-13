@@ -115,9 +115,16 @@ export function GallerySection({ section }: { section: Extract<Section, { type: 
                           <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
                         </svg>
                       </div>
+                      {/* Desktop: caption as hover overlay */}
+                      {img.caption && (
+                        <figcaption className="absolute inset-x-0 bottom-0 translate-y-full bg-black/55 px-3 py-2.5 text-center text-xs leading-snug text-white backdrop-blur transition-transform duration-300 group-hover:translate-y-0 hidden lg:block">
+                          {img.caption}
+                        </figcaption>
+                      )}
                     </div>
+                    {/* Mobile: caption below image (always visible) */}
                     {img.caption && (
-                      <figcaption className="px-3 py-2.5 text-center text-xs leading-snug text-foreground-muted sm:text-sm">
+                      <figcaption className="px-3 py-2.5 text-center text-xs leading-snug text-foreground-muted sm:text-sm lg:hidden">
                         {img.caption}
                       </figcaption>
                     )}
