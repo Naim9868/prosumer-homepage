@@ -83,6 +83,10 @@ export function normalizePageSettings(input: unknown): PageSettings {
       borderColor: typeof navbar.borderColor === "string" ? navbar.borderColor : DEFAULT_PAGE_SETTINGS.navbar.borderColor,
       accentColor: typeof navbar.accentColor === "string" ? navbar.accentColor : DEFAULT_PAGE_SETTINGS.navbar.accentColor,
       buttonTextColor: typeof navbar.buttonTextColor === "string" ? navbar.buttonTextColor : DEFAULT_PAGE_SETTINGS.navbar.buttonTextColor,
+      darkTextColor: typeof navbar.darkTextColor === "string" ? navbar.darkTextColor : DEFAULT_PAGE_SETTINGS.navbar.darkTextColor,
+      darkMutedTextColor: typeof navbar.darkMutedTextColor === "string" ? navbar.darkMutedTextColor : DEFAULT_PAGE_SETTINGS.navbar.darkMutedTextColor,
+      lightTextColor: typeof navbar.lightTextColor === "string" ? navbar.lightTextColor : DEFAULT_PAGE_SETTINGS.navbar.lightTextColor,
+      lightMutedTextColor: typeof navbar.lightMutedTextColor === "string" ? navbar.lightMutedTextColor : DEFAULT_PAGE_SETTINGS.navbar.lightMutedTextColor,
       typography: normalizeNavbarTypography(navbar),
     },
     footer: {

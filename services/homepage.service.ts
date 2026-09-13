@@ -31,7 +31,14 @@ export async function getHomepageConfigForAdmin(): Promise<HomepageConfig> {
 export async function saveHomepageConfiguration(input: unknown): Promise<
   { success: true; config: HomepageConfig } | { success: false; error: string }
 > {
-  const parsed = homepageConfigSchema.safeParse(input);
+  // Normalize page settings BEFORE Zod validation so partial/legacy data hydrates.
+  const raw = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
+  const normalizedInput = {
+    ...raw,
+    page: raw.page != null ? normalizePageSettings(raw.page) : undefined,
+  };
+
+  const parsed = homepageConfigSchema.safeParse(normalizedInput);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues.map((i) => i.message).join(", ") };
   }

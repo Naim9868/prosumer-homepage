@@ -68,19 +68,24 @@ export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
   if (!s.enabled) return null;
 
   const isTransparent = !scrolled && s.transparent;
+
+  // Resolve per-theme text colors — theme-specific overrides fall back to base color.
+  const themeTextColor = (theme === "dark" ? s.darkTextColor : s.lightTextColor) || s.textColor;
+  const themeMutedTextColor = (theme === "dark" ? s.darkMutedTextColor : s.lightMutedTextColor) || s.mutedTextColor;
+
   const navbarVars = {
     ...(s.accentColor ? { "--navbar-accent": s.accentColor } : {}),
     ...(s.buttonTextColor ? { "--navbar-accent-foreground": s.buttonTextColor } : {}),
     ...(isTransparent
       ? {
-          "--navbar-text": s.textColor || "#ffffff",
-          "--navbar-text-muted": s.mutedTextColor || "rgba(255,255,255,0.85)",
+          "--navbar-text": themeTextColor || "#ffffff",
+          "--navbar-text-muted": themeMutedTextColor || "rgba(255,255,255,0.85)",
           "--navbar-hover": s.hoverColor || "#ffffff",
           "--navbar-hover-bg": s.hoverBackgroundColor || "rgba(255,255,255,0.12)",
         }
       : {
-          ...(s.textColor ? { "--navbar-text": s.textColor } : {}),
-          ...(s.mutedTextColor ? { "--navbar-text-muted": s.mutedTextColor } : {}),
+          ...(themeTextColor ? { "--navbar-text": themeTextColor } : {}),
+          ...(themeMutedTextColor ? { "--navbar-text-muted": themeMutedTextColor } : {}),
           ...(s.hoverColor ? { "--navbar-hover": s.hoverColor } : {}),
           ...(s.hoverBackgroundColor ? { "--navbar-hover-bg": s.hoverBackgroundColor } : {}),
         }),

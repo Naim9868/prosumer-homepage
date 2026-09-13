@@ -82,6 +82,16 @@ export interface PageNavbarSettings {
   /** Text color on accent surfaces (CTA button, badges). */
   buttonTextColor: string;
 
+  // Per-theme color overrides — empty string means "use the base color above".
+  /** Text color when dark theme is active. */
+  darkTextColor: string;
+  /** Muted text color when dark theme is active. */
+  darkMutedTextColor: string;
+  /** Text color when light theme is active. */
+  lightTextColor: string;
+  /** Muted text color when light theme is active. */
+  lightMutedTextColor: string;
+
   // Typography — empty/0 means "use the theme default".
   /** Per-device typography for nav links. */
   typography: NavbarTypographySettings;
@@ -181,6 +191,10 @@ export const DEFAULT_PAGE_SETTINGS: PageSettings = {
     borderColor: "",
     accentColor: "",
     buttonTextColor: "",
+    darkTextColor: "",
+    darkMutedTextColor: "",
+    lightTextColor: "",
+    lightMutedTextColor: "",
     typography: {
       desktop: { fontFamily: "", fontSize: 0, fontWeight: 0 },
       tablet: { fontFamily: "", fontSize: 0, fontWeight: 0 },

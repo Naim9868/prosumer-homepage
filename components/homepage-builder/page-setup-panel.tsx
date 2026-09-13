@@ -338,6 +338,33 @@ export function PageSetupPanel({
               />
             </FieldGrid>
 
+            <p className="pt-2 text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Per-Theme Text Colors</p>
+            <p className="text-[11px] text-foreground-muted/70">Override text color when a specific theme is active. Leave empty to use the base colors above.</p>
+            <FieldGrid>
+              <ColorField
+                label="Dark Theme Text"
+                value={page.navbar.darkTextColor}
+                onChange={(v) => setNavbar({ darkTextColor: v })}
+              />
+              <ColorField
+                label="Dark Theme Muted"
+                value={page.navbar.darkMutedTextColor}
+                onChange={(v) => setNavbar({ darkMutedTextColor: v })}
+              />
+            </FieldGrid>
+            <FieldGrid>
+              <ColorField
+                label="Light Theme Text"
+                value={page.navbar.lightTextColor}
+                onChange={(v) => setNavbar({ lightTextColor: v })}
+              />
+              <ColorField
+                label="Light Theme Muted"
+                value={page.navbar.lightMutedTextColor}
+                onChange={(v) => setNavbar({ lightMutedTextColor: v })}
+              />
+            </FieldGrid>
+
             <p className="pt-2 text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Typography</p>
             <NavbarTypographyTabs page={page} setNavbar={setNavbar} />
           </section>
