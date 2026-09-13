@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Play, Pause, Volume2, VolumeX, Maximize } from "lucide-react";
 import { SectionHeading } from "@/components/shared/layout-primitives";
 import { SectionWrapper } from "@/components/shared/section-wrapper";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { loadYouTubeAPI, extractYouTubeId } from "@/lib/youtube-api";
 import type { Section } from "@/types/homepage";
 import { cn } from "@/lib/utils";
@@ -55,6 +56,7 @@ export function VideoSection({ section }: { section: Extract<Section, { type: "v
     spacing,
   } = section.settings;
 
+  const device = useBreakpoint();
   const videoId = extractYouTubeId(videoUrl) || legacyId;
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -235,7 +237,7 @@ export function VideoSection({ section }: { section: Extract<Section, { type: "v
 
   if (!videoId) {
     return (
-      <SectionWrapper style={section.style}>
+      <SectionWrapper device={device} style={section.style} responsiveStyles={section.responsiveStyles}>
         <SectionHeading eyebrow="In the Field" title={title} description={subtitle} align="center" className="mx-auto" />
         <div
           className="mx-auto mt-12 flex aspect-video items-center justify-center rounded-[var(--radius-lg)] border border-dashed border-border bg-muted/30"
@@ -249,11 +251,13 @@ export function VideoSection({ section }: { section: Extract<Section, { type: "v
 
   return (
     <SectionWrapper
+      device={device}
       style={{
         ...section.style,
         paddingTop: spacing?.top ?? section.style.paddingTop,
         paddingBottom: spacing?.bottom ?? section.style.paddingBottom,
       }}
+      responsiveStyles={section.responsiveStyles}
     >
       <SectionHeading eyebrow="In the Field" title={title} description={subtitle} align="center" className="mx-auto" />
 

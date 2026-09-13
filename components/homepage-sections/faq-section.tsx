@@ -5,14 +5,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Plus } from "lucide-react";
 import { SectionHeading } from "@/components/shared/layout-primitives";
 import { SectionWrapper } from "@/components/shared/section-wrapper";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 import type { Section } from "@/types/homepage";
 
 export function FaqSection({ section }: { section: Extract<Section, { type: "faq" }> }) {
   const { title, subtitle, items } = section.settings;
+  const device = useBreakpoint();
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <SectionWrapper id="faq" style={{ ...section.style, containerWidth: section.style.containerWidth ?? "md" }}>
+    <SectionWrapper device={device} id="faq" style={{ ...section.style, containerWidth: section.style.containerWidth ?? "md" }} responsiveStyles={section.responsiveStyles}>
       <SectionHeading eyebrow="Questions" title={title} description={subtitle} align="center" className="mx-auto" />
       <div className="mt-10 divide-y divide-border rounded-[var(--radius-lg)] border border-border bg-card">
         {items.map((item, i) => {

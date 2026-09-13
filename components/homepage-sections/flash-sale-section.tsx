@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { SectionHeading } from "@/components/shared/layout-primitives";
 import { SectionWrapper } from "@/components/shared/section-wrapper";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { ProductCard } from "@/components/shared/product-card";
 import { getDiscountedProducts, getProductsByIds } from "@/lib/catalog-utils";
 import type { CatalogData } from "@/types/catalog";
@@ -35,6 +36,7 @@ export function FlashSaleSection({
 }) {
   const { title, subtitle, endsAt, productIds, buttonLabel, buttonUrl } = section.settings;
   const { days, hours, minutes, seconds, isOver } = useCountdown(endsAt);
+  const device = useBreakpoint();
   const products = productIds.length
     ? getProductsByIds(catalog, productIds, 4)
     : getDiscountedProducts(catalog, 4);
@@ -42,7 +44,7 @@ export function FlashSaleSection({
   if (products.length === 0) return null;
 
   return (
-    <SectionWrapper style={section.style}>
+    <SectionWrapper device={device} style={section.style} responsiveStyles={section.responsiveStyles}>
       <div className="flex flex-wrap items-end justify-between gap-6">
         <SectionHeading eyebrow="Limited Time" title={title} description={subtitle} />
         {!isOver && (

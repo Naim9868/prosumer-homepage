@@ -135,7 +135,7 @@ export function FeaturedProductsSection({
   if (allProducts.length === 0) return null;
 
   return (
-    <SectionWrapper id="featured-products" style={{ ...section.style, ...sectionPadding }}>
+    <SectionWrapper device={device} id="featured-products" style={{ ...section.style, ...sectionPadding }} responsiveStyles={section.responsiveStyles}>
       <div className={cn("flex flex-wrap items-end justify-between gap-6", isMobile && "flex-col items-start gap-3")}>
         <div>
           {eyebrow && (

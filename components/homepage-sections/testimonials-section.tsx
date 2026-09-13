@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { BadgeCheck, Star } from "lucide-react";
 import { SectionHeading } from "@/components/shared/layout-primitives";
 import { SectionWrapper } from "@/components/shared/section-wrapper";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { getReviewsByIds } from "@/lib/catalog-utils";
 import type { CatalogData, CatalogReview } from "@/types/catalog";
 import type { Section } from "@/types/homepage";
@@ -26,13 +27,14 @@ export function TestimonialsSection({
   catalog?: CatalogData;
 }) {
   const { title, subtitle, testimonialIds } = section.settings;
+  const device = useBreakpoint();
   const all = catalog?.reviews ?? [];
   let items = testimonialIds.length ? getReviewsByIds(catalog, testimonialIds) : all;
   if (items.length === 0) items = all;
   if (items.length === 0) return null;
 
   return (
-    <SectionWrapper id="reviews" style={section.style}>
+    <SectionWrapper device={device} id="reviews" style={section.style} responsiveStyles={section.responsiveStyles}>
       <SectionHeading eyebrow="Reviews" title={title} description={subtitle} align="center" className="mx-auto" />
       <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {items.map((t, i) => (

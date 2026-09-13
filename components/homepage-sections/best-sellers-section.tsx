@@ -118,7 +118,7 @@ export function BestSellersSection({
   if (allProducts.length === 0) {
     if (!preview) return null;
     return (
-      <SectionWrapper id="best-sellers" style={{ ...section.style, ...sectionPadding }}>
+      <SectionWrapper device={device} id="best-sellers" style={{ ...section.style, ...sectionPadding }} responsiveStyles={section.responsiveStyles}>
         <div>
           {(eyebrow || title || subtitle) && (
             <div className={cn(isMobile && "mb-2")}>
@@ -157,7 +157,7 @@ export function BestSellersSection({
   }
 
   return (
-    <SectionWrapper id="best-sellers" style={{ ...section.style, ...sectionPadding }}>
+    <SectionWrapper device={device} id="best-sellers" style={{ ...section.style, ...sectionPadding }} responsiveStyles={section.responsiveStyles}>
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div>
           {(eyebrow || title || subtitle) && (

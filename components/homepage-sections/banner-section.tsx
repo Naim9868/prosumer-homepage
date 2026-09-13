@@ -1,13 +1,17 @@
+"use client";
+
 import { ArrowRight } from "lucide-react";
 import { ApertureMark } from "@/components/shared/layout-primitives";
 import { SectionWrapper } from "@/components/shared/section-wrapper";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 import type { Section } from "@/types/homepage";
 
 export function BannerSection({ section }: { section: Extract<Section, { type: "banner" }> }) {
   const { title, subtitle, buttonLabel, buttonUrl, image } = section.settings;
+  const device = useBreakpoint();
 
   return (
-    <SectionWrapper style={section.style}>
+    <SectionWrapper device={device} style={section.style} responsiveStyles={section.responsiveStyles}>
       <div
         className="relative overflow-hidden rounded-[var(--radius-xl)] px-8 py-16 text-center sm:px-16 sm:py-24"
         style={{

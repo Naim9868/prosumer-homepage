@@ -21,7 +21,12 @@ export function SectionEditorPanel({
   const Editor = SECTION_EDITOR_REGISTRY[section.type] as any;
 
   const styleControls = (
-    <StyleControls style={section.style} onChange={(style) => onChange({ ...section, style })} />
+    <StyleControls
+      style={section.style}
+      responsiveStyles={section.responsiveStyles}
+      onChange={(style) => onChange({ ...section, style })}
+      onResponsiveStylesChange={(responsiveStyles) => onChange({ ...section, responsiveStyles })}
+    />
   );
 
   return (

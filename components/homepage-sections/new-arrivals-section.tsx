@@ -115,7 +115,7 @@ export function NewArrivalsSection({
   if (allProducts.length === 0) return null;
 
   return (
-    <SectionWrapper style={{ ...section.style, ...sectionPadding }}>
+    <SectionWrapper device={device} style={{ ...section.style, ...sectionPadding }} responsiveStyles={section.responsiveStyles}>
       <div>
         {(eyebrow || title || subtitle) && (
           <div className={cn(isMobile && "mb-2")}>

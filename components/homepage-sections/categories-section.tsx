@@ -189,8 +189,10 @@ export function CategoriesSection({
 
   return (
     <SectionWrapper
+      device={device}
       id="shop-by-lens"
       style={{ ...section.style, ...sectionPadding }}
+      responsiveStyles={section.responsiveStyles}
     >
       {(eyebrow || title || subtitle) && (
         <div

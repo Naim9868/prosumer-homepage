@@ -61,7 +61,7 @@ export function BeforeAfterSection({ section, catalog, breakpoint, forceTheme }:
 
   if (!activeItem) return null;
   return (
-    <SectionWrapper style={section.style}>
+    <SectionWrapper device={device} style={section.style} responsiveStyles={section.responsiveStyles}>
       <div style={styleFor(settings.sectionStyle, device, currentTheme)}>
       <div className="mx-auto max-w-2xl text-center" style={headingStyle}>
         {settings.eyebrow && <p className="text-eyebrow text-[11px] text-primary">{settings.eyebrow}</p>}

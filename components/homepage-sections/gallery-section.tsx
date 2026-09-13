@@ -79,7 +79,7 @@ export function GallerySection({ section }: { section: Extract<Section, { type: 
   const isMobile = device === "mobile";
 
   return (
-    <SectionWrapper style={section.style}>
+    <SectionWrapper device={device} style={section.style} responsiveStyles={section.responsiveStyles}>
       <SectionHeading eyebrow="Community" title={title} description={subtitle} />
 
       <div className="mt-10 overflow-hidden">

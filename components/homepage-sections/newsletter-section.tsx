@@ -3,13 +3,15 @@
 import { ArrowRight } from "lucide-react";
 import { SectionHeading } from "@/components/shared/layout-primitives";
 import { SectionWrapper } from "@/components/shared/section-wrapper";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 import type { Section } from "@/types/homepage";
 
 export function NewsletterSection({ section }: { section: Extract<Section, { type: "newsletter" }> }) {
   const { title, subtitle, placeholder, buttonLabel } = section.settings;
+  const device = useBreakpoint();
 
   return (
-    <SectionWrapper style={section.style}>
+    <SectionWrapper device={device} style={section.style} responsiveStyles={section.responsiveStyles}>
       <div className="mx-auto max-w-xl text-center">
         <SectionHeading title={title} description={subtitle} align="center" className="mx-auto" />
         <form onSubmit={(e) => e.preventDefault()} className="mx-auto mt-6 flex max-w-sm items-center gap-2 rounded-full border border-border bg-card p-1.5 pl-4">

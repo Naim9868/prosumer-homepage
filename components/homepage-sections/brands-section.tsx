@@ -1,14 +1,18 @@
+"use client";
+
 import { SectionWrapper } from "@/components/shared/section-wrapper";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { brandPartners as defaultBrands } from "@/lib/data";
 import type { Section } from "@/types/homepage";
 
 export function BrandsSection({ section }: { section: Extract<Section, { type: "brands" }> }) {
   const { title, logos } = section.settings;
+  const device = useBreakpoint();
   const names = logos.length ? logos.map((l) => l.name) : defaultBrands;
   const loop = [...names, ...names];
 
   return (
-    <SectionWrapper style={{ ...section.style, paddingTop: section.style.paddingTop ?? 56, paddingBottom: section.style.paddingBottom ?? 56 }}>
+    <SectionWrapper device={device} style={{ ...section.style, paddingTop: section.style.paddingTop ?? 56, paddingBottom: section.style.paddingBottom ?? 56 }} responsiveStyles={section.responsiveStyles}>
       {title && (
         <p className="text-eyebrow mb-8 text-center text-[11px] text-foreground-muted">{title}</p>
       )}

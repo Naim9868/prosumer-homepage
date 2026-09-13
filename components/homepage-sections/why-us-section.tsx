@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { SectionHeading } from "@/components/shared/layout-primitives";
 import { SectionWrapper } from "@/components/shared/section-wrapper";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 import type { Section, WhyUsIcon, WhyUsIconVariant } from "@/types/homepage";
 import { cn } from "@/lib/utils";
 
@@ -54,10 +55,11 @@ export function WhyUsSection({
   section: Extract<Section, { type: "whyUs" }>;
 }) {
   const { eyebrow, title, subtitle, columns, items, animated, iconVariant, iconSize } = section.settings;
+  const device = useBreakpoint();
   if (items.length === 0) return null;
 
   return (
-    <SectionWrapper id="why-us" style={section.style}>
+    <SectionWrapper device={device} id="why-us" style={section.style} responsiveStyles={section.responsiveStyles}>
       <SectionHeading eyebrow={eyebrow} title={title} description={subtitle} align="center" className="mx-auto" />
 
       <div className={cn("mt-12 grid grid-cols-1 gap-4", gridCols[columns])}>

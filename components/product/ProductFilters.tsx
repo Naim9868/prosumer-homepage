@@ -268,7 +268,7 @@ export function ProductFilters({
               {expandedSections.price ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
             {expandedSections.price && (
-              <div className="absolute left-0 top-full z-20 mt-1 w-64 min-w-full rounded-lg border border-border bg-card p-4 shadow-lg">
+              <div className="absolute right-0 top-full z-20 mt-1 min-w-full w-56 max-w-[calc(100vw-2rem)] rounded-lg border border-border bg-card p-4 shadow-lg">
                 <div className="flex items-center gap-2">
                   <input
                     type="number"

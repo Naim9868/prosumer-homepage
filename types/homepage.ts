@@ -1352,6 +1352,7 @@ export interface BaseSection {
   enabled: boolean;
   order: number;
   style: SectionStyle;
+  responsiveStyles?: ResponsiveSectionStyles;
 }
 
 export type PredefinedSection = {
@@ -1366,7 +1367,6 @@ export interface CustomSection extends BaseSection {
   type: "custom";
   settings: CustomSectionSettings;
   blocks: Block[];
-  responsiveStyles?: ResponsiveSectionStyles;
 }
 
 export type Section = PredefinedSection | CustomSection;
