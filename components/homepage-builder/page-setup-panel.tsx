@@ -1,7 +1,9 @@
 "use client";
 
-import type { PageSettings, TrustBadge, ContactChannelSetting, ContactChannelType } from "@/types/homepage";
+import { useState } from "react";
+import type { PageSettings, TrustBadge, ContactChannelSetting, ContactChannelType, EditorDevice, NavbarDeviceTypography } from "@/types/homepage";
 import { Field, FieldGrid, TextInput, Toggle, ColorField, Select } from "@/components/homepage-builder/fields";
+import { cn } from "@/lib/utils";
 import { X, Plus, Trash2 } from "lucide-react";
 
 const FONT_OPTIONS = [
@@ -18,6 +20,82 @@ const FONT_WEIGHT_OPTIONS = [
   { label: "Bold (700)", value: "700" },
   { label: "Extra Bold (800)", value: "800" },
 ];
+
+const DEVICE_TABS: { label: string; value: EditorDevice }[] = [
+  { label: "Desktop", value: "desktop" },
+  { label: "Tablet", value: "tablet" },
+  { label: "Mobile", value: "mobile" },
+];
+
+function NavbarTypographyTabs({
+  page,
+  setNavbar,
+}: {
+  page: PageSettings;
+  setNavbar: (patch: Partial<PageSettings["navbar"]>) => void;
+}) {
+  const [activeDevice, setActiveDevice] = useState<EditorDevice>("desktop");
+  const typo = page.navbar.typography;
+  const current = typo?.[activeDevice] ?? { fontFamily: "", fontSize: 0, fontWeight: 0 };
+
+  const updateTypo = (patch: Partial<NavbarDeviceTypography>) => {
+    setNavbar({
+      typography: {
+        ...typo,
+        [activeDevice]: { ...current, ...patch },
+      },
+    });
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-1 rounded-lg border border-border bg-background p-1">
+        {DEVICE_TABS.map((tab) => (
+          <button
+            key={tab.value}
+            type="button"
+            onClick={() => setActiveDevice(tab.value)}
+            className={cn(
+              "flex-1 rounded-md px-3 py-1.5 text-[11.5px] font-semibold transition-colors",
+              activeDevice === tab.value
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-foreground-muted hover:bg-muted"
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      <div className="rounded-lg border border-border bg-background p-3">
+        <FieldGrid>
+          <Field label="Font Family">
+            <Select
+              value={current.fontFamily}
+              onChange={(v) => updateTypo({ fontFamily: v })}
+              options={FONT_OPTIONS}
+            />
+          </Field>
+          <Field label="Font Weight">
+            <Select
+              value={String(current.fontWeight)}
+              onChange={(v) => updateTypo({ fontWeight: Number(v) })}
+              options={FONT_WEIGHT_OPTIONS}
+            />
+          </Field>
+          <Field label="Font Size (px)">
+            <TextInput
+              type="number"
+              min={0}
+              max={32}
+              value={current.fontSize}
+              onChange={(e) => updateTypo({ fontSize: Number(e.target.value) })}
+            />
+          </Field>
+        </FieldGrid>
+      </div>
+    </div>
+  );
+}
 
 export function PageSetupPanel({
   page,
@@ -261,31 +339,7 @@ export function PageSetupPanel({
             </FieldGrid>
 
             <p className="pt-2 text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Typography</p>
-            <FieldGrid>
-              <Field label="Font Family">
-                <Select
-                  value={page.navbar.fontFamily}
-                  onChange={(v) => setNavbar({ fontFamily: v })}
-                  options={FONT_OPTIONS}
-                />
-              </Field>
-              <Field label="Link Font Weight">
-                <Select
-                  value={String(page.navbar.fontWeight)}
-                  onChange={(v) => setNavbar({ fontWeight: Number(v) })}
-                  options={FONT_WEIGHT_OPTIONS}
-                />
-              </Field>
-              <Field label="Link Font Size (px)">
-                <TextInput
-                  type="number"
-                  min={0}
-                  max={32}
-                  value={page.navbar.fontSize}
-                  onChange={(e) => setNavbar({ fontSize: Number(e.target.value) })}
-                />
-              </Field>
-            </FieldGrid>
+            <NavbarTypographyTabs page={page} setNavbar={setNavbar} />
           </section>
 
           <section className="space-y-4 rounded-[var(--radius-md)] border border-border bg-muted/40 p-4">

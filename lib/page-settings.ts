@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { PageSettings, ContactChannelType } from "@/types/homepage";
+import type { PageSettings, ContactChannelType, NavbarDeviceTypography, NavbarTypographySettings, EditorDevice } from "@/types/homepage";
 import { DEFAULT_PAGE_SETTINGS } from "@/types/homepage";
 
 function pickNumber(v: unknown, fallback: number): number {
@@ -8,6 +8,56 @@ function pickNumber(v: unknown, fallback: number): number {
 
 function pickBool(v: unknown, fallback: boolean): boolean {
   return typeof v === "boolean" ? v : fallback;
+}
+
+function pickDeviceTypography(raw: Record<string, unknown>, fallback: NavbarDeviceTypography): NavbarDeviceTypography {
+  const d = raw && typeof raw === "object" ? raw : {};
+  return {
+    fontFamily: typeof d.fontFamily === "string" ? d.fontFamily : fallback.fontFamily,
+    fontSize: pickNumber(d.fontSize, fallback.fontSize),
+    fontWeight: pickNumber(d.fontWeight, fallback.fontWeight),
+  };
+}
+
+/** Normalize legacy flat fontFamily/fontSize/fontWeight into per-device typography. */
+function normalizeNavbarTypography(raw: Record<string, unknown>): NavbarTypographySettings {
+  const rawTyp = raw.typography;
+  if (rawTyp && typeof rawTyp === "object" && !Array.isArray(rawTyp)) {
+    const t = rawTyp as Record<string, unknown>;
+    const def = DEFAULT_PAGE_SETTINGS.navbar.typography;
+    return {
+      desktop: pickDeviceTypography((t.desktop ?? {}) as Record<string, unknown>, def.desktop!),
+      tablet: pickDeviceTypography((t.tablet ?? {}) as Record<string, unknown>, def.tablet!),
+      mobile: pickDeviceTypography((t.mobile ?? {}) as Record<string, unknown>, def.mobile!),
+    };
+  }
+  // Legacy: flat fontFamily/fontSize/fontWeight → apply to all devices
+  const legacyFamily = typeof raw.fontFamily === "string" ? raw.fontFamily : "";
+  const legacySize = pickNumber(raw.fontSize, 0);
+  const legacyWeight = pickNumber(raw.fontWeight, 0);
+  if (legacyFamily || legacySize > 0 || legacyWeight > 0) {
+    const device: NavbarDeviceTypography = { fontFamily: legacyFamily, fontSize: legacySize, fontWeight: legacyWeight };
+    return { desktop: device, tablet: device, mobile: device };
+  }
+  return DEFAULT_PAGE_SETTINGS.navbar.typography;
+}
+
+/**
+ * Resolve per-device navbar typography for the current device.
+ * Falls back: mobile → tablet → desktop → defaults.
+ */
+export function resolveNavbarTypography(
+  typography: NavbarTypographySettings | undefined,
+  device: EditorDevice,
+): NavbarDeviceTypography {
+  const def = DEFAULT_PAGE_SETTINGS.navbar.typography;
+  if (device === "mobile") {
+    return typography?.mobile ?? typography?.tablet ?? typography?.desktop ?? def.mobile!;
+  }
+  if (device === "tablet") {
+    return typography?.tablet ?? typography?.desktop ?? def.tablet!;
+  }
+  return typography?.desktop ?? def.desktop!;
 }
 
 /** Deep-merge raw persisted page settings over the defaults so legacy/partial data always hydrates. */
@@ -33,9 +83,7 @@ export function normalizePageSettings(input: unknown): PageSettings {
       borderColor: typeof navbar.borderColor === "string" ? navbar.borderColor : DEFAULT_PAGE_SETTINGS.navbar.borderColor,
       accentColor: typeof navbar.accentColor === "string" ? navbar.accentColor : DEFAULT_PAGE_SETTINGS.navbar.accentColor,
       buttonTextColor: typeof navbar.buttonTextColor === "string" ? navbar.buttonTextColor : DEFAULT_PAGE_SETTINGS.navbar.buttonTextColor,
-      fontFamily: typeof navbar.fontFamily === "string" ? navbar.fontFamily : DEFAULT_PAGE_SETTINGS.navbar.fontFamily,
-      fontSize: pickNumber(navbar.fontSize, DEFAULT_PAGE_SETTINGS.navbar.fontSize),
-      fontWeight: pickNumber(navbar.fontWeight, DEFAULT_PAGE_SETTINGS.navbar.fontWeight),
+      typography: normalizeNavbarTypography(navbar),
     },
     footer: {
       enabled: pickBool(footer.enabled, DEFAULT_PAGE_SETTINGS.footer.enabled),

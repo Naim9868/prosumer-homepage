@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import type { HeroBackgroundConfig, HeroFloatingBadge, HeroImageWidthMode, HeroMedia, HeroBorderRadius } from "@/types/homepage";
+import type { HeroBackgroundConfig, HeroFloatingBadge, HeroImageWidthMode, HeroMedia, HeroBorderRadius, HeroProductImageSettings } from "@/types/homepage";
 import { DEFAULT_HERO_BACKGROUND_CONFIG } from "@/types/homepage";
 import { Field, FieldGrid, TextInput, Select, Toggle } from "@/components/homepage-builder/fields";
 import { CatalogPicker, type CatalogPickerItem } from "@/components/homepage-builder/catalog-picker";
@@ -240,6 +240,291 @@ export function MediaEditor({ media, onChange, advanced }: { media: HeroMedia; o
           </FieldGrid>
         )}
       </div>
+
+      {/* ── Product Image Settings ─────────────────────────── */}
+      {media.source !== "upload" && (
+        <ProductImageSettingsEditor
+          settings={media.productImageSettings}
+          onChange={(productImageSettings) => onChange({ ...media, productImageSettings })}
+          productUrl={media.productId ? `/products/${media.productId}` : ""}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ── Product Image Settings sub-editor ─────────────────────────── */
+
+const BORDER_STYLES = [
+  { label: "Solid", value: "solid" },
+  { label: "Dashed", value: "dashed" },
+  { label: "Dotted", value: "dotted" },
+  { label: "None", value: "none" },
+] as const;
+
+const BUTTON_STYLES = [
+  { label: "Filled", value: "filled" },
+  { label: "Outline", value: "outline" },
+  { label: "Ghost", value: "ghost" },
+] as const;
+
+const DEFAULT_PRODUCT_IMG: HeroProductImageSettings = {
+  enabled: false,
+  height: 200,
+  width: 200,
+  offsetX: 0,
+  offsetY: 0,
+  border: { width: 0, color: "#ffffff", style: "solid" },
+  borderRadius: { topLeft: 12, topRight: 12, bottomLeft: 12, bottomRight: 12 },
+  shadow: 0.3,
+  button: {
+    enabled: false,
+    text: "View Product",
+    url: "",
+    style: "filled",
+    backgroundColor: "",
+    textColor: "",
+    borderRadius: 9999,
+  },
+};
+
+function ProductImageSettingsEditor({
+  settings,
+  onChange,
+  productUrl,
+}: {
+  settings: HeroProductImageSettings;
+  onChange: (next: HeroProductImageSettings) => void;
+  productUrl: string;
+}) {
+  const s = { ...DEFAULT_PRODUCT_IMG, ...settings };
+  const patch = (partial: Partial<HeroProductImageSettings>) => onChange({ ...s, ...partial });
+  const patchBorder = (partial: Partial<typeof s.border>) => patch({ border: { ...s.border, ...partial } });
+  const patchBr = (partial: Partial<typeof s.borderRadius>) => patch({ borderRadius: { ...s.borderRadius, ...partial } });
+  const patchBtn = (partial: Partial<typeof s.button>) => patch({ button: { ...s.button, ...partial } });
+
+  return (
+    <div className="space-y-3 rounded-[var(--radius-md)] border border-border p-3">
+      <label className="flex items-center gap-2 text-[13px] font-medium text-foreground">
+        <Toggle
+          checked={s.enabled}
+          onChange={(enabled) => patch({ enabled })}
+          label="Product image overlay"
+        />
+        Product Image
+      </label>
+
+      {s.enabled && (
+        <>
+          {/* Size */}
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Size (px)</p>
+          <FieldGrid>
+            <Field label="Width">
+              <TextInput
+                type="number"
+                min={40}
+                max={800}
+                value={s.width}
+                onChange={(e) => patch({ width: Math.max(40, Math.min(800, Number(e.target.value))) })}
+              />
+            </Field>
+            <Field label="Height">
+              <TextInput
+                type="number"
+                min={40}
+                max={800}
+                value={s.height}
+                onChange={(e) => patch({ height: Math.max(40, Math.min(800, Number(e.target.value))) })}
+              />
+            </Field>
+          </FieldGrid>
+
+          {/* Position */}
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Position Offset (px)</p>
+          <FieldGrid>
+            <Field label="X (left/right)">
+              <TextInput
+                type="number"
+                min={-400}
+                max={400}
+                value={s.offsetX}
+                onChange={(e) => patch({ offsetX: Math.max(-400, Math.min(400, Number(e.target.value))) })}
+              />
+            </Field>
+            <Field label="Y (up/down)">
+              <TextInput
+                type="number"
+                min={-400}
+                max={400}
+                value={s.offsetY}
+                onChange={(e) => patch({ offsetY: Math.max(-400, Math.min(400, Number(e.target.value))) })}
+              />
+            </Field>
+          </FieldGrid>
+
+          {/* Shadow */}
+          <Field label={`Shadow (${Math.round(s.shadow * 100)}%)`}>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={s.shadow}
+              onChange={(e) => patch({ shadow: Number(e.target.value) })}
+              className="w-full accent-primary"
+            />
+          </Field>
+
+          {/* Border */}
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Border</p>
+          <FieldGrid>
+            <Field label="Width (px)">
+              <TextInput
+                type="number"
+                min={0}
+                max={20}
+                value={s.border.width}
+                onChange={(e) => patchBorder({ width: Math.max(0, Math.min(20, Number(e.target.value))) })}
+              />
+            </Field>
+            <Field label="Style">
+              <Select
+                value={s.border.style}
+                onChange={(v) => patchBorder({ style: v as HeroProductImageSettings["border"]["style"] })}
+                options={[...BORDER_STYLES]}
+              />
+            </Field>
+          </FieldGrid>
+          <Field label="Color">
+            <div className="flex gap-2">
+              <input
+                type="color"
+                value={s.border.color}
+                onChange={(e) => patchBorder({ color: e.target.value })}
+                className="h-9 w-9 shrink-0 cursor-pointer rounded border border-border bg-transparent"
+              />
+              <TextInput value={s.border.color} onChange={(e) => patchBorder({ color: e.target.value })} />
+            </div>
+          </Field>
+
+          {/* Border Radius */}
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Border Radius (px)</p>
+          <FieldGrid>
+            <Field label="Top Left">
+              <TextInput
+                type="number"
+                min={0}
+                max={200}
+                value={s.borderRadius.topLeft}
+                onChange={(e) => patchBr({ topLeft: Math.max(0, Math.min(200, Number(e.target.value))) })}
+              />
+            </Field>
+            <Field label="Top Right">
+              <TextInput
+                type="number"
+                min={0}
+                max={200}
+                value={s.borderRadius.topRight}
+                onChange={(e) => patchBr({ topRight: Math.max(0, Math.min(200, Number(e.target.value))) })}
+              />
+            </Field>
+          </FieldGrid>
+          <FieldGrid>
+            <Field label="Bottom Left">
+              <TextInput
+                type="number"
+                min={0}
+                max={200}
+                value={s.borderRadius.bottomLeft}
+                onChange={(e) => patchBr({ bottomLeft: Math.max(0, Math.min(200, Number(e.target.value))) })}
+              />
+            </Field>
+            <Field label="Bottom Right">
+              <TextInput
+                type="number"
+                min={0}
+                max={200}
+                value={s.borderRadius.bottomRight}
+                onChange={(e) => patchBr({ bottomRight: Math.max(0, Math.min(200, Number(e.target.value))) })}
+              />
+            </Field>
+          </FieldGrid>
+
+          {/* Button */}
+          <div className="rounded-[var(--radius-sm)] border border-border p-3 space-y-3">
+            <label className="flex items-center gap-2 text-[13px] font-medium text-foreground">
+              <Toggle
+                checked={s.button.enabled}
+                onChange={(enabled) => patchBtn({ enabled })}
+                label="Product link button"
+              />
+              Link Button
+            </label>
+            {s.button.enabled && (
+              <>
+                <Field label="Button Text">
+                  <TextInput value={s.button.text} onChange={(e) => patchBtn({ text: e.target.value })} />
+                </Field>
+                <Field label="Link URL" hint="Leave empty to use product page">
+                  <TextInput
+                    value={s.button.url}
+                    onChange={(e) => patchBtn({ url: e.target.value })}
+                    placeholder={productUrl || "/products/..."}
+                  />
+                </Field>
+                <Field label="Button Style">
+                  <Select
+                    value={s.button.style}
+                    onChange={(v) => patchBtn({ style: v as HeroProductImageSettings["button"]["style"] })}
+                    options={[...BUTTON_STYLES]}
+                  />
+                </Field>
+                <FieldGrid>
+                  <Field label="Background">
+                    <div className="flex gap-2">
+                      <input
+                        type="color"
+                        value={s.button.backgroundColor || "#ffffff"}
+                        onChange={(e) => patchBtn({ backgroundColor: e.target.value })}
+                        className="h-9 w-9 shrink-0 cursor-pointer rounded border border-border bg-transparent"
+                      />
+                      <TextInput
+                        value={s.button.backgroundColor}
+                        onChange={(e) => patchBtn({ backgroundColor: e.target.value })}
+                        placeholder="auto"
+                      />
+                    </div>
+                  </Field>
+                  <Field label="Text Color">
+                    <div className="flex gap-2">
+                      <input
+                        type="color"
+                        value={s.button.textColor || "#000000"}
+                        onChange={(e) => patchBtn({ textColor: e.target.value })}
+                        className="h-9 w-9 shrink-0 cursor-pointer rounded border border-border bg-transparent"
+                      />
+                      <TextInput
+                        value={s.button.textColor}
+                        onChange={(e) => patchBtn({ textColor: e.target.value })}
+                        placeholder="auto"
+                      />
+                    </div>
+                  </Field>
+                </FieldGrid>
+                <Field label="Button Radius (px)">
+                  <TextInput
+                    type="number"
+                    min={0}
+                    max={9999}
+                    value={s.button.borderRadius}
+                    onChange={(e) => patchBtn({ borderRadius: Math.max(0, Math.min(9999, Number(e.target.value))) })}
+                  />
+                </Field>
+              </>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -937,6 +937,35 @@ export function GalleryEditor({
           />
         </Field>
       </FieldGrid>
+      <div className="grid grid-cols-3 gap-3">
+        <Field label="Per page (Mobile)">
+          <TextInput
+            type="number"
+            min={0}
+            value={settings.perPageMobile ?? ""}
+            onChange={(e) => set("perPageMobile", e.target.value ? Number(e.target.value) : 0)}
+            placeholder="4"
+          />
+        </Field>
+        <Field label="Per page (Tablet)">
+          <TextInput
+            type="number"
+            min={0}
+            value={settings.perPageTablet ?? ""}
+            onChange={(e) => set("perPageTablet", e.target.value ? Number(e.target.value) : 0)}
+            placeholder="6"
+          />
+        </Field>
+        <Field label="Per page (Desktop)">
+          <TextInput
+            type="number"
+            min={0}
+            value={settings.perPageDesktop ?? ""}
+            onChange={(e) => set("perPageDesktop", e.target.value ? Number(e.target.value) : 0)}
+            placeholder="8"
+          />
+        </Field>
+      </div>
       <div className="space-y-2">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">
           Images{" "}

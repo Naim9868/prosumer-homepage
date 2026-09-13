@@ -4,6 +4,7 @@ import { heroCssVars, heroColorsFor, heroBreakpointFor, spacingFor, heroSectionH
 import { useHero } from "../hero-context";
 import { HeroBackground, HeroContainer } from "../hero-background";
 import { HeroContent } from "../hero-content";
+import { HeroMedia } from "../hero-media";
 import { MobileHeroPoster } from "./mobile-hero-poster";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,8 @@ export function CinematicHero() {
   const spacing = spacingFor(slide, breakpoint);
   const isMobile = breakpoint === "mobile";
   const heightStyle = heroSectionHeight(slide, breakpoint);
+  const sectionBr = bp.styling.borderRadius;
+  const hasSectionBr = sectionBr && (sectionBr.topLeft || sectionBr.topRight || sectionBr.bottomLeft || sectionBr.bottomRight);
 
   const bgSizes = preview
     ? breakpoint === "mobile"
@@ -32,6 +35,7 @@ export function CinematicHero() {
         ...heroCssVars(slide),
         background: colors.background,
         ...heightStyle,
+        ...(hasSectionBr ? { borderRadius: `${sectionBr.topLeft}px ${sectionBr.topRight}px ${sectionBr.bottomRight}px ${sectionBr.bottomLeft}px` } : {}),
       }}
     >
       <HeroBackground
@@ -59,7 +63,9 @@ export function CinematicHero() {
           style={{ gap: spacing.contentGap }}
         >
           <HeroContent />
-          <div aria-hidden className="hidden @5xl:block" />
+          <div className="hidden @5xl:block">
+            <HeroMedia />
+          </div>
         </div>
       </HeroContainer>
       {navigation}

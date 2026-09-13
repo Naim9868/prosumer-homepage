@@ -8,6 +8,7 @@ import type {
   HeroBreakpoint,
   HeroBreakpointData,
   HeroBreakpointStyling,
+  HeroBorderRadius,
   HeroButton,
   HeroButtonSize,
   HeroButtonStyle,
@@ -121,6 +122,7 @@ const DEFAULT_HERO_BREAKPOINT_LAYOUT: Record<
     imagePosition: { x: 0, y: 0, scale: 1, objectPosition: "center center" },
     showSecondaryCta: true,
     showBadges: true,
+    borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 0, bottomRight: 0 },
   },
   tablet: {
     textAlign: "left",
@@ -131,6 +133,7 @@ const DEFAULT_HERO_BREAKPOINT_LAYOUT: Record<
     imagePosition: { x: 0, y: 0, scale: 1, objectPosition: "center center" },
     showSecondaryCta: true,
     showBadges: true,
+    borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 0, bottomRight: 0 },
   },
   mobile: {
     textAlign: "center",
@@ -141,6 +144,7 @@ const DEFAULT_HERO_BREAKPOINT_LAYOUT: Record<
     imagePosition: { x: 0, y: 0, scale: 1, objectPosition: "center center" },
     showSecondaryCta: true,
     showBadges: true,
+    borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 0, bottomRight: 0 },
   },
 };
 
@@ -180,6 +184,25 @@ export function defaultHeroMedia(theme: HeroTheme = "dark"): HeroMedia {
     imageWidthMode: "auto",
     imageWidth: 480,
     borderRadius: { topLeft: 40, topRight: 40, bottomLeft: 40, bottomRight: 40 },
+    productImageSettings: {
+      enabled: false,
+      height: 200,
+      width: 200,
+      offsetX: 0,
+      offsetY: 0,
+      border: { width: 0, color: "#ffffff", style: "solid" },
+      borderRadius: { topLeft: 12, topRight: 12, bottomLeft: 12, bottomRight: 12 },
+      shadow: 0.3,
+      button: {
+        enabled: false,
+        text: "View Product",
+        url: "",
+        style: "filled",
+        backgroundColor: "",
+        textColor: "",
+        borderRadius: 9999,
+      },
+    },
   };
 }
 
@@ -581,6 +604,7 @@ type HeroBreakpointStylingInput = {
   imagePosition?: Partial<HeroImagePosition>;
   showSecondaryCta?: boolean;
   showBadges?: boolean;
+  borderRadius?: Partial<HeroBorderRadius>;
 };
 
 /** Permissive per-device input used by the merge (partial fields allowed). */
@@ -642,6 +666,14 @@ function mergeBreakpointStyling(
     imagePosition: { ...defaults.imagePosition, ...v.imagePosition },
     showSecondaryCta: v.showSecondaryCta ?? defaults.showSecondaryCta,
     showBadges: v.showBadges ?? defaults.showBadges,
+    borderRadius: v.borderRadius
+      ? {
+          topLeft: v.borderRadius.topLeft ?? defaults.borderRadius.topLeft,
+          topRight: v.borderRadius.topRight ?? defaults.borderRadius.topRight,
+          bottomLeft: v.borderRadius.bottomLeft ?? defaults.borderRadius.bottomLeft,
+          bottomRight: v.borderRadius.bottomRight ?? defaults.borderRadius.bottomRight,
+        }
+      : defaults.borderRadius,
   };
 }
 
@@ -674,6 +706,22 @@ function mergeBreakpointData(defaults: HeroBreakpointData, input: HeroBreakpoint
           return { topLeft: raw, topRight: raw, bottomLeft: raw, bottomRight: raw };
         }
         return defaults.media.borderRadius;
+      })(),
+      productImageSettings: (() => {
+        const d = defaults.media.productImageSettings;
+        const s = v.media?.productImageSettings;
+        if (!s) return d;
+        return {
+          enabled: s.enabled ?? d.enabled,
+          height: s.height ?? d.height,
+          width: s.width ?? d.width,
+          offsetX: s.offsetX ?? d.offsetX,
+          offsetY: s.offsetY ?? d.offsetY,
+          border: { ...d.border, ...s.border },
+          borderRadius: { ...d.borderRadius, ...(s.borderRadius ?? {}) },
+          shadow: s.shadow ?? d.shadow,
+          button: { ...d.button, ...s.button },
+        };
       })(),
     },
     styling: mergeBreakpointStyling(defaults.styling, v.styling),

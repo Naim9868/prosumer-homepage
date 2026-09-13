@@ -9,6 +9,7 @@ import { HeroHeading } from "../hero-content";
 import { HeroDescription } from "../hero-content";
 import { HeroCTAGroup } from "../hero-content";
 import { HeroTrustBadges } from "../hero-content";
+import { HeroMedia } from "../hero-media";
 import { MobileHeroPoster } from "./mobile-hero-poster";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,8 @@ export function ApexelHero() {
   const spacing = spacingFor(slide, breakpoint);
   const isMobile = breakpoint === "mobile";
   const heightStyle = heroSectionHeight(slide, breakpoint);
+  const sectionBr = bp.styling.borderRadius;
+  const hasSectionBr = sectionBr && (sectionBr.topLeft || sectionBr.topRight || sectionBr.bottomLeft || sectionBr.bottomRight);
 
   const bgSizes = preview
     ? breakpoint === "mobile"
@@ -43,6 +46,7 @@ export function ApexelHero() {
         ...heroCssVars(slide),
         background: colors.background,
         ...heightStyle,
+        ...(hasSectionBr ? { borderRadius: `${sectionBr.topLeft}px ${sectionBr.topRight}px ${sectionBr.bottomRight}px ${sectionBr.bottomLeft}px` } : {}),
       }}
     >
       <motion.div
@@ -85,6 +89,9 @@ export function ApexelHero() {
           </div>
           <div className="flex shrink-0 items-center @4xl:justify-end">
             <HeroCTAGroup hideSecondary={!bp.styling.showSecondaryCta} />
+          </div>
+          <div className="hidden @4xl:block">
+            <HeroMedia />
           </div>
         </div>
       </HeroContainer>

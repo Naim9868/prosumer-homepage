@@ -107,18 +107,120 @@ export function BeforeAfterEditor({ settings, onChange }: { settings: BeforeAfte
 
 export function VideoEditor({ settings, onChange }: { settings: VideoSettings; onChange: (next: VideoSettings) => void }) {
   const set = <K extends keyof VideoSettings>(key: K, value: VideoSettings[K]) => onChange({ ...settings, [key]: value });
+  const setSpacing = (patch: Partial<VideoSettings["spacing"]>) => set("spacing", { ...settings.spacing, ...patch });
   return (
-    <FieldGrid>
-      <Field label="Title">
-        <TextInput value={settings.title} onChange={(e) => set("title", e.target.value)} />
+    <div className="space-y-4">
+      {/* Content */}
+      <FieldGrid>
+        <Field label="Title">
+          <TextInput value={settings.title} onChange={(e) => set("title", e.target.value)} />
+        </Field>
+        <Field label="Subtitle">
+          <TextInput value={settings.subtitle} onChange={(e) => set("subtitle", e.target.value)} />
+        </Field>
+      </FieldGrid>
+      <Field label="YouTube URL">
+        <TextInput
+          value={settings.videoUrl}
+          onChange={(e) => set("videoUrl", e.target.value)}
+          placeholder="https://www.youtube.com/watch?v=..."
+        />
       </Field>
-      <Field label="Subtitle">
-        <TextInput value={settings.subtitle} onChange={(e) => set("subtitle", e.target.value)} />
-      </Field>
-      <Field label="YouTube Video ID" hint="The part after v= in the YouTube URL">
-        <TextInput value={settings.youtubeId} onChange={(e) => set("youtubeId", e.target.value)} />
-      </Field>
-    </FieldGrid>
+      {settings.youtubeId && !settings.videoUrl && (
+        <Field label="YouTube Video ID (legacy)">
+          <TextInput value={settings.youtubeId} onChange={(e) => set("youtubeId", e.target.value)} />
+        </Field>
+      )}
+
+      {/* Playback */}
+      <div className="space-y-2 rounded-[var(--radius-md)] border border-border p-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Playback</p>
+        <div className="space-y-2">
+          <Toggle checked={settings.autoplayOnScroll} onChange={(v) => set("autoplayOnScroll", v)} label="Autoplay on scroll" />
+          <Toggle checked={settings.autoplayMuted} onChange={(v) => set("autoplayMuted", v)} label="Start muted" />
+          <Toggle checked={settings.pauseWhenOutOfView} onChange={(v) => set("pauseWhenOutOfView", v)} label="Pause when out of view" />
+          <Toggle checked={settings.resumeWhenInView} onChange={(v) => set("resumeWhenInView", v)} label="Resume when in view" />
+        </div>
+        <Field label="Intersection threshold">
+          <TextInput
+            type="number"
+            min={0.1}
+            max={1}
+            step={0.05}
+            value={settings.intersectionThreshold}
+            onChange={(e) => set("intersectionThreshold", Number(e.target.value) || 0.45)}
+          />
+        </Field>
+        <FieldGrid>
+          <Field label="Start time (sec)">
+            <TextInput type="number" min={0} value={settings.startTime} onChange={(e) => set("startTime", Number(e.target.value) || 0)} />
+          </Field>
+          <Field label="End time (sec)">
+            <TextInput type="number" min={0} value={settings.endTime} onChange={(e) => set("endTime", Number(e.target.value) || 0)} placeholder="0 = no limit" />
+          </Field>
+        </FieldGrid>
+      </div>
+
+      {/* Appearance */}
+      <div className="space-y-2 rounded-[var(--radius-md)] border border-border p-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Appearance</p>
+        <Field label="Aspect ratio">
+          <Select
+            value={settings.aspectRatio}
+            onChange={(v) => set("aspectRatio", v)}
+            options={[
+              { label: "16:9", value: "16/9" },
+              { label: "21:9", value: "21/9" },
+              { label: "4:3", value: "4/3" },
+              { label: "1:1", value: "1/1" },
+            ]}
+          />
+        </Field>
+        <FieldGrid>
+          <Field label="Max width">
+            <TextInput value={settings.maxWidth} onChange={(e) => set("maxWidth", e.target.value)} placeholder="1400px" />
+          </Field>
+          <Field label="Border radius (px)">
+            <TextInput type="number" min={0} value={settings.borderRadius} onChange={(e) => set("borderRadius", Number(e.target.value) || 0)} />
+          </Field>
+        </FieldGrid>
+        <Toggle checked={settings.overlay} onChange={(v) => set("overlay", v)} label="Dark overlay" />
+        {settings.overlay && (
+          <Field label="Overlay opacity">
+            <TextInput
+              type="number"
+              min={0}
+              max={1}
+              step={0.05}
+              value={settings.overlayOpacity}
+              onChange={(e) => set("overlayOpacity", Number(e.target.value) || 0)}
+            />
+          </Field>
+        )}
+      </div>
+
+      {/* Controls */}
+      <div className="space-y-2 rounded-[var(--radius-md)] border border-border p-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Controls</p>
+        <Toggle checked={settings.showCustomControls} onChange={(v) => set("showCustomControls", v)} label="Show custom controls" />
+        <Toggle checked={settings.showPlayButton} onChange={(v) => set("showPlayButton", v)} label="Show play button" />
+        <Toggle checked={settings.showMuteButton} onChange={(v) => set("showMuteButton", v)} label="Show mute button" />
+        <Toggle checked={settings.controls} onChange={(v) => set("controls", v)} label="Show native YouTube controls" />
+      </div>
+
+      {/* Spacing */}
+      <div className="space-y-2 rounded-[var(--radius-md)] border border-border p-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Spacing</p>
+        <FieldGrid>
+          <Field label="Top (px)">
+            <TextInput type="number" min={0} value={settings.spacing.top} onChange={(e) => setSpacing({ top: Number(e.target.value) || 0 })} />
+          </Field>
+          <Field label="Bottom (px)">
+            <TextInput type="number" min={0} value={settings.spacing.bottom} onChange={(e) => setSpacing({ bottom: Number(e.target.value) || 0 })} />
+          </Field>
+        </FieldGrid>
+      </div>
+    </div>
   );
 }
 

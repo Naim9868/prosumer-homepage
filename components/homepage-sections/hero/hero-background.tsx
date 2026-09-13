@@ -69,6 +69,7 @@ export function HeroBackground({
   overlayOpacity = 1,
   clip = true,
   backgroundConfig,
+  borderRadius,
 }: {
   image?: string;
   overlay: string;
@@ -78,7 +79,13 @@ export function HeroBackground({
   overlayOpacity?: number;
   clip?: boolean;
   backgroundConfig?: HeroBackgroundConfig;
+  borderRadius?: { topLeft: number; topRight: number; bottomLeft: number; bottomRight: number };
 }) {
+  const br = borderRadius && (borderRadius.topLeft || borderRadius.topRight || borderRadius.bottomLeft || borderRadius.bottomRight)
+    ? borderRadius
+    : undefined;
+  const brStyle = br ? { borderRadius: `${br.topLeft}px ${br.topRight}px ${br.bottomRight}px ${br.bottomLeft}px` } : {};
+
   // When backgroundConfig is present, use the new shared renderer
   // Merge the legacy image as fallback if backgroundConfig.image is empty
   if (backgroundConfig) {
@@ -86,8 +93,12 @@ export function HeroBackground({
       ...backgroundConfig,
       image: backgroundConfig.image || image || "",
     };
+    const configBr = backgroundConfig.borderRadius && (backgroundConfig.borderRadius.topLeft || backgroundConfig.borderRadius.topRight || backgroundConfig.borderRadius.bottomLeft || backgroundConfig.borderRadius.bottomRight)
+      ? backgroundConfig.borderRadius
+      : undefined;
+    const configBrStyle = configBr ? { borderRadius: `${configBr.topLeft}px ${configBr.topRight}px ${configBr.bottomRight}px ${configBr.bottomLeft}px` } : {};
     return (
-      <div aria-hidden className={cn("pointer-events-none absolute inset-0", clip && "overflow-hidden")}>
+      <div aria-hidden className={cn("pointer-events-none absolute inset-0", clip && "overflow-hidden")} style={configBrStyle}>
         <div className="absolute inset-0" style={{ background: "var(--hero-background)" }} />
         <BackgroundImageRenderer config={mergedConfig} sizes={sizes} priority />
       </div>
@@ -104,7 +115,7 @@ export function HeroBackground({
   };
 
   return (
-    <div aria-hidden className={cn("pointer-events-none absolute inset-0", clip && "overflow-hidden")}>
+    <div aria-hidden className={cn("pointer-events-none absolute inset-0", clip && "overflow-hidden")} style={brStyle}>
       <div className="absolute inset-0" style={{ background: "var(--hero-background)" }} />
 
       {image && (

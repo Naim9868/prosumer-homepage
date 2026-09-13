@@ -83,13 +83,22 @@ export interface PageNavbarSettings {
   buttonTextColor: string;
 
   // Typography — empty/0 means "use the theme default".
-  /** CSS font-family stack for nav links; empty = theme body font. */
+  /** Per-device typography for nav links. */
+  typography: NavbarTypographySettings;
+}
+
+/** Typography settings for a single device breakpoint. */
+export interface NavbarDeviceTypography {
+  /** CSS font-family stack; empty = theme body font. */
   fontFamily: string;
   /** Nav link font size in px; 0 = theme default. */
   fontSize: number;
   /** Nav link font weight; 0 = theme default. */
   fontWeight: number;
 }
+
+/** Per-device navbar typography — falls back to larger device if undefined. */
+export type NavbarTypographySettings = Partial<Record<EditorDevice, NavbarDeviceTypography>>;
 
 export interface PageFooterSettings {
   enabled: boolean;
@@ -172,9 +181,11 @@ export const DEFAULT_PAGE_SETTINGS: PageSettings = {
     borderColor: "",
     accentColor: "",
     buttonTextColor: "",
-    fontFamily: "",
-    fontSize: 0,
-    fontWeight: 0,
+    typography: {
+      desktop: { fontFamily: "", fontSize: 0, fontWeight: 0 },
+      tablet: { fontFamily: "", fontSize: 0, fontWeight: 0 },
+      mobile: { fontFamily: "", fontSize: 0, fontWeight: 0 },
+    },
   },
   footer: { enabled: true, backgroundColor: "", paddingTop: 64 },
   trustBadges: {
@@ -349,6 +360,7 @@ export interface HeroBackgroundConfig {
   customHeightUnit: "%" | "px";
   repeat: "no-repeat" | "repeat" | "repeat-x" | "repeat-y";
   overlay: HeroOverlayConfig;
+  borderRadius: HeroBorderRadius;
 }
 
 export const DEFAULT_HERO_BACKGROUND_CONFIG: HeroBackgroundConfig = {
@@ -370,6 +382,7 @@ export const DEFAULT_HERO_BACKGROUND_CONFIG: HeroBackgroundConfig = {
     direction: "to-right",
     colorEnd: "#000000",
   },
+  borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 0, bottomRight: 0 },
 };
 
 export const HERO_IMAGE_FIT_OPTIONS: { value: HeroImageFitMode; label: string; hint: string }[] = [
@@ -428,6 +441,45 @@ export interface HeroMedia {
   borderRadius: HeroBorderRadius;
   /** Advanced background image configuration (fit, focal point, zoom, overlay). Falls back to legacy behavior when absent. */
   backgroundConfig?: HeroBackgroundConfig;
+  /** Product image display settings. */
+  productImageSettings: HeroProductImageSettings;
+}
+
+/** Product image display settings — controls how the product image is rendered. */
+export interface HeroProductImageSettings {
+  /** Show the product image overlay. */
+  enabled: boolean;
+  /** Product image height in px. */
+  height: number;
+  /** Product image width in px. */
+  width: number;
+  /** Horizontal position offset in px (negative = left, positive = right). */
+  offsetX: number;
+  /** Vertical position offset in px (negative = up, positive = down). */
+  offsetY: number;
+  /** Border settings. */
+  border: {
+    width: number;
+    color: string;
+    style: "solid" | "dashed" | "dotted" | "none";
+  };
+  /** Border radius (per-corner in px). */
+  borderRadius: HeroBorderRadius;
+  /** Shadow intensity 0–1. */
+  shadow: number;
+  /** Linkable button inside the product image. */
+  button: HeroProductImageButton;
+}
+
+/** Linkable button displayed inside the product image. */
+export interface HeroProductImageButton {
+  enabled: boolean;
+  text: string;
+  url: string;
+  style: "filled" | "outline" | "ghost";
+  backgroundColor: string;
+  textColor: string;
+  borderRadius: number;
 }
 
 /** Button sizing overrides (px); 0/0 means "auto" for the given dimension. */
@@ -525,6 +577,8 @@ export interface HeroBreakpointStyling {
   imagePosition: HeroImagePosition;
   showSecondaryCta: boolean;
   showBadges: boolean;
+  /** Section border radius (px). Applied to the hero section container. */
+  borderRadius: HeroBorderRadius;
 }
 
 /**
@@ -741,6 +795,12 @@ export interface GallerySettings {
   title: string;
   subtitle: string;
   images: { url: string; caption?: string }[];
+  /** Number of images per page on mobile. 0 = auto (4). */
+  perPageMobile: number;
+  /** Number of images per page on tablet. 0 = auto (6). */
+  perPageTablet: number;
+  /** Number of images per page on desktop. 0 = auto (8). */
+  perPageDesktop: number;
 }
 
 export interface TestimonialsSettings {
@@ -839,6 +899,52 @@ export interface VideoSettings {
   subtitle: string;
   youtubeId: string;
   thumbnail?: string;
+
+  /** YouTube video URL (watch, shorts, or youtu.be). Normalized to youtubeId. */
+  videoUrl: string;
+
+  /** Auto-play when section scrolls into view. */
+  autoplayOnScroll: boolean;
+  /** Start muted (required for most browsers to allow autoplay). */
+  autoplayMuted: boolean;
+  /** Pause when section leaves viewport. */
+  pauseWhenOutOfView: boolean;
+  /** Resume when section re-enters viewport. */
+  resumeWhenInView: boolean;
+  /** IntersectionObserver threshold (0–1). */
+  intersectionThreshold: number;
+
+  /** Show native YouTube controls. */
+  controls: boolean;
+  /** Show custom play/pause/mute controls. */
+  showCustomControls: boolean;
+  /** Show a large play button overlay. */
+  showPlayButton: boolean;
+  /** Show mute/unmute toggle. */
+  showMuteButton: boolean;
+
+  /** Show dark overlay over video. */
+  overlay: boolean;
+  /** Overlay opacity 0–1. */
+  overlayOpacity: number;
+
+  /** CSS aspect-ratio value. */
+  aspectRatio: string;
+  /** Max width of the video container. */
+  maxWidth: string;
+  /** Border radius in px. */
+  borderRadius: number;
+
+  /** Video start time in seconds. */
+  startTime: number;
+  /** Video end time in seconds (0 = no limit). */
+  endTime: number;
+
+  /** Section spacing. */
+  spacing: {
+    top: number;
+    bottom: number;
+  };
 }
 
 export interface FaqSettings {
@@ -1281,7 +1387,7 @@ export const SECTION_TYPE_META: Record<SectionType, SectionTypeMeta> = {
   gallery: { type: "gallery", label: "Gallery", description: "Masonry image gallery." },
   testimonials: { type: "testimonials", label: "Testimonials", description: "Customer review cards." },
   beforeAfter: { type: "beforeAfter", label: "Before / After", description: "Interactive comparison slider." },
-  video: { type: "video", label: "Video", description: "Embedded video with custom thumbnail." },
+  video: { type: "video", label: "YouTube Video", description: "Scroll-triggered autoplay YouTube video with custom controls." },
   faq: { type: "faq", label: "FAQ", description: "Expandable question accordion." },
   newsletter: { type: "newsletter", label: "Newsletter", description: "Email capture banner." },
   banner: { type: "banner", label: "Banner", description: "Full-width image banner with a single CTA." },

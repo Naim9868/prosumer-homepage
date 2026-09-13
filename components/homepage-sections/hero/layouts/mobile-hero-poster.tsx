@@ -25,6 +25,8 @@ export function MobileHeroPoster() {
 
   const heightStyle = heroSectionHeight(slide, "mobile");
   const spacing = spacingFor(slide, "mobile");
+  const sectionBr = bp.styling.borderRadius;
+  const hasSectionBr = sectionBr && (sectionBr.topLeft || sectionBr.topRight || sectionBr.bottomLeft || sectionBr.bottomRight);
 
   // Text can be pushed down via per-element y offsets; reserve room for the
   // largest positive offset so it is never clipped by the section bounds.
@@ -36,7 +38,12 @@ export function MobileHeroPoster() {
   return (
     <section
       className={cn("relative flex w-full flex-col justify-center @container", preview ? "overflow-visible" : "overflow-hidden")}
-      style={{ ...heroCssVars(slide), background: colors.background, ...heightStyle }}
+      style={{
+        ...heroCssVars(slide),
+        background: colors.background,
+        ...heightStyle,
+        ...(hasSectionBr ? { borderRadius: `${sectionBr.topLeft}px ${sectionBr.topRight}px ${sectionBr.bottomRight}px ${sectionBr.bottomLeft}px` } : {}),
+      }}
     >
       {img ? (
         <HeroBackground

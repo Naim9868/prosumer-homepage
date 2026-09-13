@@ -161,6 +161,62 @@ export function HeroResponsiveEditor({
           Trust badges
         </label>
       </div>
+
+      <div className="space-y-2">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Section Border Radius (px)</p>
+        <FieldGrid>
+          <Field label="Top Left">
+            <TextInput
+              type="number"
+              min={0}
+              max={200}
+              value={styling.borderRadius?.topLeft ?? 0}
+              onChange={(e) => set("borderRadius", {
+                ...(styling.borderRadius ?? { topLeft: 0, topRight: 0, bottomLeft: 0, bottomRight: 0 }),
+                topLeft: Math.max(0, Math.min(200, Number(e.target.value))),
+              })}
+            />
+          </Field>
+          <Field label="Top Right">
+            <TextInput
+              type="number"
+              min={0}
+              max={200}
+              value={styling.borderRadius?.topRight ?? 0}
+              onChange={(e) => set("borderRadius", {
+                ...(styling.borderRadius ?? { topLeft: 0, topRight: 0, bottomLeft: 0, bottomRight: 0 }),
+                topRight: Math.max(0, Math.min(200, Number(e.target.value))),
+              })}
+            />
+          </Field>
+        </FieldGrid>
+        <FieldGrid>
+          <Field label="Bottom Left">
+            <TextInput
+              type="number"
+              min={0}
+              max={200}
+              value={styling.borderRadius?.bottomLeft ?? 0}
+              onChange={(e) => set("borderRadius", {
+                ...(styling.borderRadius ?? { topLeft: 0, topRight: 0, bottomLeft: 0, bottomRight: 0 }),
+                bottomLeft: Math.max(0, Math.min(200, Number(e.target.value))),
+              })}
+            />
+          </Field>
+          <Field label="Bottom Right">
+            <TextInput
+              type="number"
+              min={0}
+              max={200}
+              value={styling.borderRadius?.bottomRight ?? 0}
+              onChange={(e) => set("borderRadius", {
+                ...(styling.borderRadius ?? { topLeft: 0, topRight: 0, bottomLeft: 0, bottomRight: 0 }),
+                bottomRight: Math.max(0, Math.min(200, Number(e.target.value))),
+              })}
+            />
+          </Field>
+        </FieldGrid>
+      </div>
     </div>
   );
 }

@@ -13,6 +13,8 @@ import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import { useWishlistModalContext } from "@/app/context/WishlistSidebarModalContext";
 import { SearchRibbon } from "@/components/shared/SearchRibbon";
 import { formatCurrency, cn } from "@/lib/utils";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
+import { resolveNavbarTypography } from "@/lib/page-settings";
 
 const links = [
   { label: "Shop Lenses", href: "#shop-by-lens" },
@@ -22,6 +24,8 @@ const links = [
 
 export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
   const s: PageNavbarSettings = { ...DEFAULT_PAGE_SETTINGS.navbar, ...settings };
+  const device = useBreakpoint();
+  const typo = resolveNavbarTypography(s.typography, device);
 
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -63,24 +67,34 @@ export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
 
   if (!s.enabled) return null;
 
+  const isTransparent = !scrolled && s.transparent;
   const navbarVars = {
-    ...(s.textColor ? { "--navbar-text": s.textColor } : {}),
-    ...(s.mutedTextColor ? { "--navbar-text-muted": s.mutedTextColor } : {}),
-    ...(s.hoverColor ? { "--navbar-hover": s.hoverColor } : {}),
-    ...(s.hoverBackgroundColor ? { "--navbar-hover-bg": s.hoverBackgroundColor } : {}),
     ...(s.accentColor ? { "--navbar-accent": s.accentColor } : {}),
     ...(s.buttonTextColor ? { "--navbar-accent-foreground": s.buttonTextColor } : {}),
+    ...(isTransparent
+      ? {
+          "--navbar-text": s.textColor || "#ffffff",
+          "--navbar-text-muted": s.mutedTextColor || "rgba(255,255,255,0.85)",
+          "--navbar-hover": s.hoverColor || "#ffffff",
+          "--navbar-hover-bg": s.hoverBackgroundColor || "rgba(255,255,255,0.12)",
+        }
+      : {
+          ...(s.textColor ? { "--navbar-text": s.textColor } : {}),
+          ...(s.mutedTextColor ? { "--navbar-text-muted": s.mutedTextColor } : {}),
+          ...(s.hoverColor ? { "--navbar-hover": s.hoverColor } : {}),
+          ...(s.hoverBackgroundColor ? { "--navbar-hover-bg": s.hoverBackgroundColor } : {}),
+        }),
   } as React.CSSProperties;
 
-  const navStyle: React.CSSProperties = {
-    ...(s.fontSize > 0 ? { fontSize: s.fontSize } : {}),
-    ...(s.fontWeight > 0 ? { fontWeight: s.fontWeight } : {}),
+  const navLinkStyle: React.CSSProperties = {
+    ...(typo.fontFamily ? { fontFamily: typo.fontFamily } : {}),
+    ...(typo.fontSize > 0 ? { fontSize: typo.fontSize } : {}),
+    ...(typo.fontWeight > 0 ? { fontWeight: typo.fontWeight } : {}),
   };
 
   const headerStyle: React.CSSProperties = {
     ...navbarVars,
     ...(s.borderColor ? { borderColor: s.borderColor } : {}),
-    ...(s.fontFamily ? { fontFamily: s.fontFamily } : {}),
   };
 
   if (s.backgroundColor) {
@@ -93,6 +107,7 @@ export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
   return (
     <header
       style={headerStyle}
+      suppressHydrationWarning
       className={cn(
         "fixed inset-x-0 top-0 z-50",
         !s.fixed && !isNavVisible && "-translate-y-full",
@@ -117,7 +132,6 @@ export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
 
         <nav
           aria-label="Primary"
-          style={navStyle}
           className={cn(
             "hidden items-center gap-8 transition-all duration-300 lg:flex",
             searchOpen ? "pointer-events-none opacity-0" : "opacity-100"
@@ -127,7 +141,8 @@ export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
             <a
               key={link.href}
               href={link.href}
-              className="text-meta text-[13.5px] text-[var(--navbar-text-muted)] transition-colors hover:text-[var(--navbar-hover)]"
+              style={navLinkStyle}
+              className="text-meta text-[var(--navbar-text-muted)] transition-colors hover:text-[var(--navbar-hover)]"
             >
               {link.label}
             </a>
@@ -203,6 +218,7 @@ export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMenuOpen(false)}
+                  style={navLinkStyle}
                   className="text-meta flex items-center justify-between rounded-md px-2 py-2.5 text-[15px] text-[var(--navbar-text-muted)] hover:bg-[var(--navbar-hover-bg)] hover:text-[var(--navbar-hover)]"
                 >
                   {link.label}

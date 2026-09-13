@@ -43,6 +43,32 @@ const pageSettingsSchema = z.object({
     fixed: z.boolean(),
     transparent: z.boolean(),
     height: z.number().min(40).max(140),
+    opacity: z.number().min(0).max(1),
+    backgroundColor: z.string(),
+    textColor: z.string(),
+    mutedTextColor: z.string(),
+    hoverColor: z.string(),
+    hoverBackgroundColor: z.string(),
+    borderColor: z.string(),
+    accentColor: z.string(),
+    buttonTextColor: z.string(),
+    typography: z.object({
+      desktop: z.object({
+        fontFamily: z.string(),
+        fontSize: z.number().min(0).max(32),
+        fontWeight: z.number().min(0).max(800),
+      }),
+      tablet: z.object({
+        fontFamily: z.string(),
+        fontSize: z.number().min(0).max(32),
+        fontWeight: z.number().min(0).max(800),
+      }),
+      mobile: z.object({
+        fontFamily: z.string(),
+        fontSize: z.number().min(0).max(32),
+        fontWeight: z.number().min(0).max(800),
+      }),
+    }),
   }),
   footer: z.object({
     enabled: z.boolean(),

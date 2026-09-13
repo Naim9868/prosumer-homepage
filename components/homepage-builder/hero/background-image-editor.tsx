@@ -316,6 +316,65 @@ export function BackgroundImageEditor({
         </div>
       </CollapsibleSection>
 
+      {/* Border Radius */}
+      <CollapsibleSection title="Border Radius">
+        <p className="text-[11px] text-foreground-muted/70">
+          Rounded corners for the background image container. 0 = sharp corners.
+        </p>
+        <FieldGrid>
+          <Field label="Top Left">
+            <TextInput
+              type="number"
+              min={0}
+              max={200}
+              value={config.borderRadius?.topLeft ?? 0}
+              onChange={(e) => set("borderRadius", {
+                ...(config.borderRadius ?? { topLeft: 0, topRight: 0, bottomLeft: 0, bottomRight: 0 }),
+                topLeft: Math.max(0, Math.min(200, Number(e.target.value))),
+              })}
+            />
+          </Field>
+          <Field label="Top Right">
+            <TextInput
+              type="number"
+              min={0}
+              max={200}
+              value={config.borderRadius?.topRight ?? 0}
+              onChange={(e) => set("borderRadius", {
+                ...(config.borderRadius ?? { topLeft: 0, topRight: 0, bottomLeft: 0, bottomRight: 0 }),
+                topRight: Math.max(0, Math.min(200, Number(e.target.value))),
+              })}
+            />
+          </Field>
+        </FieldGrid>
+        <FieldGrid>
+          <Field label="Bottom Left">
+            <TextInput
+              type="number"
+              min={0}
+              max={200}
+              value={config.borderRadius?.bottomLeft ?? 0}
+              onChange={(e) => set("borderRadius", {
+                ...(config.borderRadius ?? { topLeft: 0, topRight: 0, bottomLeft: 0, bottomRight: 0 }),
+                bottomLeft: Math.max(0, Math.min(200, Number(e.target.value))),
+              })}
+            />
+          </Field>
+          <Field label="Bottom Right">
+            <TextInput
+              type="number"
+              min={0}
+              max={200}
+              value={config.borderRadius?.bottomRight ?? 0}
+              onChange={(e) => set("borderRadius", {
+                ...(config.borderRadius ?? { topLeft: 0, topRight: 0, bottomLeft: 0, bottomRight: 0 }),
+                bottomRight: Math.max(0, Math.min(200, Number(e.target.value))),
+              })}
+            />
+          </Field>
+        </FieldGrid>
+      </CollapsibleSection>
+
       {/* Reset */}
       <button
         type="button"
