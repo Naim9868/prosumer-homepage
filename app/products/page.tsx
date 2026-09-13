@@ -27,11 +27,13 @@ export default async function ProductsPage({
 
   let perPage = DEFAULT_PAGE_SETTINGS.productsPerPage;
   let productGrid = DEFAULT_PAGE_SETTINGS.productGrid;
+  let navbarSettings = DEFAULT_PAGE_SETTINGS.navbar;
   try {
     const config = await readHomepageConfig();
     const pageSettings = normalizePageSettings(config.page);
     perPage = pageSettings.productsPerPage;
     productGrid = pageSettings.productGrid;
+    navbarSettings = pageSettings.navbar;
   } catch {}
 
   let products: IProduct[] = [];
@@ -75,7 +77,7 @@ export default async function ProductsPage({
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <Navbar settings={{ ...DEFAULT_PAGE_SETTINGS.navbar, fixed: false }} />
+      <Navbar settings={{ ...navbarSettings, fixed: false }} />
       <main className="flex-1 pt-32">
         <Container className="-mt-5 pb-10 lg:pb-16">
           <div className="mb-8">

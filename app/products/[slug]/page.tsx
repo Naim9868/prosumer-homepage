@@ -17,6 +17,8 @@ import { Navbar } from "@/components/home/navbar/navbar";
 import { Footer } from "@/components/home/footer/footer";
 import { Container } from "@/components/shared/layout-primitives";
 import { DEFAULT_PAGE_SETTINGS } from "@/types/homepage";
+import { readHomepageConfig } from "@/lib/homepage-store";
+import { normalizePageSettings } from "@/lib/page-settings";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -53,9 +55,16 @@ export default async function Page({ params }: Props) {
 
   const reviews = await getReviewsByProductId(product._id);
 
+  let navbarSettings = DEFAULT_PAGE_SETTINGS.navbar;
+  try {
+    const config = await readHomepageConfig();
+    const pageSettings = normalizePageSettings(config.page);
+    navbarSettings = pageSettings.navbar;
+  } catch {}
+
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <Navbar settings={{ ...DEFAULT_PAGE_SETTINGS.navbar, fixed: false }} />
+      <Navbar settings={{ ...navbarSettings, fixed: false }} />
       <main className="flex-1 pt-8">
         <Container className="py-10 lg:py-16">
           <nav aria-label="Breadcrumb" className="-mb-10 flex items-center gap-2 text-sm text-[color:var(--titanium-400)]">
