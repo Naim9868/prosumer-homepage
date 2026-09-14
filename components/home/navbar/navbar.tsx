@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Heart, ShoppingBag, Menu, X, Sun, Moon, ChevronRight, Phone } from "lucide-react";
+import { Search, Heart, ShoppingBag, Menu, X, Sun, Moon, ChevronRight, Phone, ArrowUpRight } from "lucide-react";
 import { Container, ApertureMark } from "@/components/shared/layout-primitives";
 import type { PageNavbarSettings } from "@/types/homepage";
 import { DEFAULT_PAGE_SETTINGS } from "@/types/homepage";
+import type { CatalogCategory } from "@/types/catalog";
 import { useTheme } from "@/components/shared/theme-provider";
 import { useCartContext } from "@/app/context/CartContext";
 import { useWishlistContext } from "@/app/context/WishlistContext";
@@ -17,12 +18,12 @@ import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { resolveNavbarTypography } from "@/lib/page-settings";
 
 const links = [
-  { label: "Shop Lenses", href: "#shop-by-lens" },
-  { label: "Best Sellers", href: "#best-sellers" },
-  { label: "How It Works", href: "#how-it-works" },
+  { label: "Shop Lenses", href: "#shop-by-lens", hasDropdown: true },
+  { label: "Best Sellers", href: "#best-sellers", hasDropdown: false },
+  { label: "How It Works", href: "#how-it-works", hasDropdown: false },
 ];
 
-export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
+export function Navbar({ settings, categories }: { settings?: PageNavbarSettings; categories?: CatalogCategory[] }) {
   const s: PageNavbarSettings = { ...DEFAULT_PAGE_SETTINGS.navbar, ...settings };
   const device = useBreakpoint();
   const typo = resolveNavbarTypography(s.typography, device);
@@ -31,7 +32,9 @@ export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [isNavVisible, setIsNavVisible] = useState(true);
+  const [shopDropdownOpen, setShopDropdownOpen] = useState(false);
   const lastScrollY = useRef(0);
+  const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { theme, toggleTheme } = useTheme();
   const { openCartModal } = useCartModalContext();
@@ -63,6 +66,28 @@ export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const handleDropdownEnter = () => {
+    if (dropdownTimeoutRef.current) {
+      clearTimeout(dropdownTimeoutRef.current);
+      dropdownTimeoutRef.current = null;
+    }
+    setShopDropdownOpen(true);
+  };
+
+  const handleDropdownLeave = () => {
+    dropdownTimeoutRef.current = setTimeout(() => {
+      setShopDropdownOpen(false);
+    }, 150);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (dropdownTimeoutRef.current) {
+        clearTimeout(dropdownTimeoutRef.current);
+      }
+    };
   }, []);
 
   if (!s.enabled) return null;
@@ -143,14 +168,90 @@ export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
           )}
         >
           {links.map((link) => (
-            <a
+            <div
               key={link.href}
-              href={link.href}
-              style={navLinkStyle}
-              className="text-meta text-[var(--navbar-text-muted)] transition-colors hover:text-[var(--navbar-hover)]"
+              className="relative"
+              onMouseEnter={link.hasDropdown ? handleDropdownEnter : undefined}
+              onMouseLeave={link.hasDropdown ? handleDropdownLeave : undefined}
             >
-              {link.label}
-            </a>
+              <a
+                href={link.href}
+                style={navLinkStyle}
+                className="text-meta text-[var(--navbar-text-muted)] transition-colors hover:text-[var(--navbar-hover)]"
+              >
+                {link.label}
+              </a>
+              {link.hasDropdown && shopDropdownOpen && categories && categories.length > 0 && (
+                <div
+                  className="absolute left-1/2 top-full -translate-x-1/2 pt-3"
+                  onMouseEnter={handleDropdownEnter}
+                  onMouseLeave={handleDropdownLeave}
+                >
+                  <motion.div
+                    initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                    transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                    className="glass w-[520px] rounded-2xl border border-border/60 p-4 shadow-lg"
+                  >
+                    <div className="mb-3 px-2">
+                      <span className="text-eyebrow text-[10px] text-[var(--navbar-accent)]">
+                        All Categories
+                      </span>
+                      <h3 className="font-heading text-sm font-semibold text-[var(--navbar-text)]">
+                        Shop by Lens Type
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {categories.map((cat) => (
+                        <a
+                          key={cat.id}
+                          href={`/products?categoryId=${cat.id}`}
+                          className="group relative flex items-center gap-3 overflow-hidden rounded-xl p-3 transition-all duration-200 hover:bg-[var(--navbar-hover-bg)]"
+                        >
+                          <div
+                            className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg"
+                            style={{ background: cat.gradient }}
+                          >
+                            {cat.image ? (
+                              <img
+                                src={cat.image}
+                                alt=""
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-xs font-bold text-white/80">
+                                {cat.name.charAt(0)}
+                              </span>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <span className="text-meta block truncate text-[13px] font-medium text-[var(--navbar-text)] group-hover:text-[var(--navbar-hover)]">
+                              {cat.name}
+                            </span>
+                            {cat.tagline && (
+                              <span className="text-[11px] text-[var(--navbar-text-muted)] line-clamp-1">
+                                {cat.tagline}
+                              </span>
+                            )}
+                          </div>
+                          <ArrowUpRight className="h-3.5 w-3.5 flex-shrink-0 text-[var(--navbar-text-muted)] opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
+                        </a>
+                      ))}
+                    </div>
+                    <div className="mt-3 border-t border-border/50 pt-3">
+                      <a
+                        href="#shop-by-lens"
+                        className="text-meta flex items-center justify-center gap-1.5 rounded-lg py-2 text-[13px] text-[var(--navbar-accent)] transition-colors hover:bg-[var(--navbar-hover-bg)]"
+                      >
+                        View All Categories
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
+                  </motion.div>
+                </div>
+              )}
+            </div>
           ))}
         </nav>
 
@@ -219,16 +320,73 @@ export function Navbar({ settings }: { settings?: PageNavbarSettings }) {
           >
             <Container className="flex flex-col gap-1 py-4">
               {links.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMenuOpen(false)}
-                  style={navLinkStyle}
-                  className="text-meta flex items-center justify-between rounded-md px-2 py-2.5 text-[15px] text-[var(--navbar-text-muted)] hover:bg-[var(--navbar-hover-bg)] hover:text-[var(--navbar-hover)]"
-                >
-                  {link.label}
-                  <ChevronRight className="h-4 w-4 opacity-50" />
-                </a>
+                <div key={link.href}>
+                  {link.hasDropdown ? (
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => setShopDropdownOpen((v) => !v)}
+                        style={navLinkStyle}
+                        className="text-meta flex w-full items-center justify-between rounded-md px-2 py-2.5 text-[15px] text-[var(--navbar-text-muted)] hover:bg-[var(--navbar-hover-bg)] hover:text-[var(--navbar-hover)]"
+                      >
+                        {link.label}
+                        <ChevronRight className={cn("h-4 w-4 opacity-50 transition-transform duration-200", shopDropdownOpen && "rotate-90")} />
+                      </button>
+                      <AnimatePresence>
+                        {shopDropdownOpen && categories && categories.length > 0 && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                            className="overflow-hidden pl-3"
+                          >
+                            <div className="grid grid-cols-1 gap-1 py-1">
+                              {categories.map((cat) => (
+                                <a
+                                  key={cat.id}
+                                  href={`/products?categoryId=${cat.id}`}
+                                  onClick={() => setMenuOpen(false)}
+                                  className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-[var(--navbar-hover-bg)]"
+                                >
+                                  <div
+                                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-md"
+                                    style={{ background: cat.gradient }}
+                                  >
+                                    {cat.image ? (
+                                      <img
+                                        src={cat.image}
+                                        alt=""
+                                        className="h-full w-full object-cover"
+                                      />
+                                    ) : (
+                                      <span className="text-[10px] font-bold text-white/80">
+                                        {cat.name.charAt(0)}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="text-meta text-[13px] text-[var(--navbar-text-muted)]">
+                                    {cat.name}
+                                  </span>
+                                </a>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  ) : (
+                    <a
+                      href={link.href}
+                      onClick={() => setMenuOpen(false)}
+                      style={navLinkStyle}
+                      className="text-meta flex items-center justify-between rounded-md px-2 py-2.5 text-[15px] text-[var(--navbar-text-muted)] hover:bg-[var(--navbar-hover-bg)] hover:text-[var(--navbar-hover)]"
+                    >
+                      {link.label}
+                      <ChevronRight className="h-4 w-4 opacity-50" />
+                    </a>
+                  )}
+                </div>
               ))}
 
               <div className="mt-1 space-y-2 border-t border-[var(--navbar-border)] pt-2">

@@ -77,6 +77,8 @@ function sectionStyleDeclarations(style: SectionStyle): string {
   }
   add("padding-top", style.paddingTop, "px");
   add("padding-bottom", style.paddingBottom, "px");
+  add("padding-left", style.paddingLeft, "px");
+  add("padding-right", style.paddingRight, "px");
   add("min-height", style.minHeight, "px");
   add("overflow", style.overflow);
   add("position", style.position);

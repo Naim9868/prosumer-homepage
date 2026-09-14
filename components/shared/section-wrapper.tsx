@@ -47,6 +47,8 @@ export function SectionWrapper({
         backgroundPosition: resolved.backgroundImage ? "center" : undefined,
         paddingTop: resolved.paddingTop ?? 80,
         paddingBottom: resolved.paddingBottom ?? 80,
+        paddingLeft: resolved.paddingLeft ?? "clamp(12px, var(--page-padding, 24px), 1vw)",
+        paddingRight: resolved.paddingRight ?? "clamp(12px, var(--page-padding, 24px), 1vw)",
         minHeight: resolved.minHeight || undefined,
         overflow: resolved.overflow ?? "visible",
         position: resolved.position ?? "relative",
@@ -59,10 +61,6 @@ export function SectionWrapper({
     >
       <div
         className={cn("mx-auto w-full", width)}
-        style={{
-           paddingLeft: resolved.paddingLeft ?? "clamp(12px, var(--page-padding, 24px), 1vw)",
-           paddingRight: resolved.paddingRight ?? "clamp(12px, var(--page-padding, 24px), 1vw)",
-        }}
       >
         {children}
       </div>

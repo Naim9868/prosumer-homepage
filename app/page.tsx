@@ -13,7 +13,7 @@ export default async function Home() {
 
   return (
     <div style={pageCssVars(page)}>
-      <Navbar settings={page?.navbar} />
+      <Navbar settings={page?.navbar} categories={catalog.categories} />
       <main>
         <HomepageRenderer sections={config.sections} catalog={catalog} />
       </main>
