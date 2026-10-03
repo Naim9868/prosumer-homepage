@@ -22,7 +22,7 @@ export function ProductPage({ product, reviews = [] }: { product: Product; revie
   const sections = getPresentSections(product);
 
   return (
-    <main className="mx-auto flex flex-col gap-16 px-4 py-10 lg:px-8 lg:py-16">
+    <main className="mx-auto flex flex-col gap-16 py-10 lg:px-8 lg:py-16">
       <ProductExperience product={product} />
 
       <QuickFactsStrip product={product} />

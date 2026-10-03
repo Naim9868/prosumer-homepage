@@ -10,13 +10,12 @@ import { getProductId } from "@/lib/cart-item";
 
 export function ProductDescription({ product }: { product: Product }) {
   if (!product.description?.trim()) return null;
-
   return (
     <section id="description" aria-labelledby="section-description" className="flex flex-col gap-3">
       <h2 id="section-description" className="text-xl font-medium text-[color:var(--titanium-100)]">
         Description
       </h2>
-      <div className="max-w-prose whitespace-pre-line text-[15px] leading-relaxed text-[color:var(--titanium-300)]">
+      <div className="w-full whitespace-pre-line text-[15px] leading-relaxed text-[color:var(--titanium-300)]">
         {product.description}
       </div>
     </section>
@@ -139,7 +138,7 @@ export function RelatedProducts({ product }: { product: Product }) {
           const res = await fetch(`/api/products?ids=${ids.join(",")}`);
           const data = await res.json();
           items = data.products ?? [];
-        } catch {}
+        } catch { }
       }
 
       if (items.length === 0) {
@@ -154,7 +153,7 @@ export function RelatedProducts({ product }: { product: Product }) {
           items = (data.products ?? []).filter(
             (p: CartProductInput) => getProductId(p) !== product._id
           );
-        } catch {}
+        } catch { }
       }
 
       if (!cancelled) {

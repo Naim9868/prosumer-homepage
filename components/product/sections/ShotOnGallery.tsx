@@ -16,7 +16,7 @@ export function ShotOnGallery({ product }: { product: Product }) {
       </h2>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         {images.map((img, i) => (
-          <div key={`${i}`} className="relative aspect-[4/5] overflow-hidden rounded-xl bg-[color:var(--surface-800)]">
+          <div key={`${i}`} className="relative aspect-[4/3] overflow-hidden rounded-xl bg-[color:var(--surface-800)]">
             {img.url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img

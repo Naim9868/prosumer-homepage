@@ -46,7 +46,7 @@ export function ImageGroupSection({
         {group.images.map((img, i) => (
           <div
             key={`${group.title}-${i}`}
-            className="relative aspect-square overflow-hidden rounded-xl bg-[color:var(--surface-800)]"
+            className="relative aspect-[4/3] overflow-hidden rounded-sm bg-[color:var(--surface-800)]"
           >
             {img.url ? (
               // eslint-disable-next-line @next/next/no-img-element

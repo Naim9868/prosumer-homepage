@@ -153,7 +153,7 @@ export function Navbar({ settings, categories }: { settings?: PageNavbarSettings
         className="relative flex items-center justify-between overflow-visible"
         style={{ height: s.height }}
       >
-        <a href="#top" className="z-20 flex items-center gap-2.5" aria-label="Prosumer Lens BD home">
+        <a href="/" className="z-20 flex items-center gap-2.5" aria-label="Prosumer Lens BD home">
           <ApertureMark className="h-7 w-7 text-[var(--navbar-accent)]" />
           <span className="font-heading text-[15px] font-bold uppercase tracking-[0.14em] text-[var(--navbar-text)]">
             Prosumer<span className="text-[var(--navbar-accent)]"> Lens</span> BD

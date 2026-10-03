@@ -13,10 +13,10 @@ export function InTheBox({ product }: { product: Product }) {
       <h2 id="section-in-the-box" className="text-2xl font-medium text-[color:var(--titanium-100)]">
         In the box
       </h2>
-      <div className="flex flex-wrap gap-6">
+      <div className="flex flex-wrap gap-3">
         {items.map((img, i) => (
-          <div key={`${i}`} className="flex w-32 flex-col items-center gap-2 text-center">
-            <div className="relative h-24 w-24 overflow-hidden rounded-lg bg-[color:var(--surface-800)]">
+          <div key={`${i}`} className="flex w-42 flex-col items-center gap-1 text-center">
+            <div className="relative h-42 w-42 overflow-hidden rounded-lg bg-[color:var(--surface-800)]">
               {img.url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={img.url} alt="" loading="lazy" className="h-full w-full object-contain" />
