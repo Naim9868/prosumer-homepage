@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { Package, CheckCircle } from "lucide-react";
+import { Package } from "lucide-react";
 import type { CheckoutTotals, OrderItem, Coupon } from "@/types/checkout";
 import { CartItems } from "./CartItems";
 import { CouponSection } from "./CouponSection";
 import { PriceBreakdown } from "./PriceBreakdown";
-import { MIN_ORDER_FOR_FREE_DELIVERY } from "@/constants/checkout-constant";
 
 interface OrderSummaryProps {
   items: OrderItem[];
@@ -18,7 +17,6 @@ interface OrderSummaryProps {
   isApplyingCoupon: boolean;
   couponMessage: string | null;
   appliedCoupon: Coupon | null;
-  couponFreeShipping: boolean;
   availableCoupons?: Coupon[];
   onQuantityChange: (itemId: string, quantity: number) => void;
   onVariantChange: (itemId: string, variantKey: string) => void;
@@ -38,7 +36,6 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
   isApplyingCoupon,
   couponMessage,
   appliedCoupon,
-  couponFreeShipping,
   availableCoupons,
   onQuantityChange,
   onVariantChange,
@@ -78,8 +75,6 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
     });
   }, [items, validatedItems]);
 
-  const showFreeDelivery = totals.subtotal >= MIN_ORDER_FOR_FREE_DELIVERY;
-
   return (
     <div className="sticky top-6 rounded-[var(--radius-lg)] bg-card p-3 shadow-lg sm:p-4">
       <h3 className="mb-3 flex items-center gap-2 text-base font-bold text-foreground">
@@ -117,21 +112,7 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
 
       <hr className="my-4 border-border" />
 
-      <PriceBreakdown
-        totals={totals}
-        showFreeDelivery={showFreeDelivery}
-        freeShipping={couponFreeShipping}
-        freeDelivery={couponFreeShipping}
-      />
-
-      {showFreeDelivery && !couponFreeShipping && (
-        <div className="mt-3 rounded-xl border border-success/40 bg-success/10 p-3">
-          <p className="flex items-center gap-2 text-xs text-success">
-            <CheckCircle size={14} />
-            Free delivery on orders above ৳5,000
-          </p>
-        </div>
-      )}
+      <PriceBreakdown totals={totals} />
     </div>
   );
 };

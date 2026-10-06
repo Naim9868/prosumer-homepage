@@ -9,14 +9,12 @@ import { cn } from "@/lib/utils";
 interface DeliveryFormProps {
   deliveryType: DeliveryType;
   address: string;
-  area: string;
   city: string;
   division: string;
   notes: string;
   errors: Partial<Record<keyof CheckoutFormData, string>>;
   onDeliveryTypeChange: (type: DeliveryType) => void;
   onAddressChange: (value: string) => void;
-  onAreaChange: (value: string) => void;
   onCityChange: (value: string) => void;
   onDivisionChange: (value: string) => void;
   onNotesChange: (value: string) => void;
@@ -25,14 +23,12 @@ interface DeliveryFormProps {
 export const DeliveryForm: React.FC<DeliveryFormProps> = ({
   deliveryType,
   address,
-  area,
   city,
   division,
   notes,
   errors,
   onDeliveryTypeChange,
   onAddressChange,
-  onAreaChange,
   onCityChange,
   onDivisionChange,
   onNotesChange,
@@ -41,7 +37,7 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({
 
   const inputClass = (hasError?: string) =>
     cn(
-      "w-full rounded-lg border bg-background-elevated px-3 py-2 text-sm text-foreground outline-none transition focus:ring-2 focus:ring-primary focus:border-transparent",
+      "w-full rounded-md border bg-background-elevated px-3 py-2 text-sm text-foreground outline-none transition focus:ring-2 focus:ring-primary focus:border-transparent",
       hasError ? "border-destructive" : "border-border"
     );
 
@@ -51,59 +47,21 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({
         <Truck className="h-3.5 w-3.5 text-primary" /> Delivery Information
       </h3>
 
-      <div className="flex flex-col gap-2 sm:flex-row">
-        {deliveryTypes.map((type) => (
-          <label
-            key={type}
-            className={cn(
-              "flex flex-1 cursor-pointer items-center gap-2 rounded-lg border-2 px-3 py-2 transition",
-              deliveryType === type
-                ? "border-primary bg-primary/10"
-                : "border-border hover:border-primary/50"
-            )}
-          >
-            <input
-              type="radio"
-              name="deliveryType"
-              value={type}
-              checked={deliveryType === type}
-              onChange={(e) => onDeliveryTypeChange(e.target.value as DeliveryType)}
-              className="text-primary"
-            />
-            <span className="text-xs font-medium text-foreground sm:text-sm">{DELIVERY_LABELS[type]}</span>
-          </label>
-        ))}
+      <div>
+        <label className="text-xs font-medium text-foreground">Full Address *</label>
+        <input
+          type="text"
+          value={address}
+          onChange={(e) => onAddressChange(e.target.value)}
+          className={inputClass(errors.address)}
+          placeholder="House/Flat No., Road/Street, Area, Thana/Upazila, District, Postal Code"
+        />
+        {errors.address && <p className="mt-0.5 text-xs text-destructive">{errors.address}</p>}
       </div>
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
         <div>
-          <label className="text-xs font-medium text-foreground">Address *</label>
-          <input
-            type="text"
-            value={address}
-            onChange={(e) => onAddressChange(e.target.value)}
-            className={inputClass(errors.address)}
-            placeholder="House #, Street"
-          />
-          {errors.address && <p className="mt-0.5 text-xs text-destructive">{errors.address}</p>}
-        </div>
-
-        <div>
-          <label className="text-xs font-medium text-foreground">Area *</label>
-          <input
-            type="text"
-            value={area}
-            onChange={(e) => onAreaChange(e.target.value)}
-            className={inputClass(errors.area)}
-            placeholder="Mirpur, Gulshan"
-          />
-          {errors.area && <p className="mt-0.5 text-xs text-destructive">{errors.area}</p>}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
-        <div>
-          <label className="text-xs font-medium text-foreground">City *</label>
+          <label className="text-xs font-medium text-foreground">City</label>
           <input
             type="text"
             value={city}
@@ -136,6 +94,31 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({
           placeholder="Any special instructions..."
         />
       </div>
+
+      <div className="flex flex-col gap-2 sm:flex-row">
+        {deliveryTypes.map((type) => (
+          <label
+            key={type}
+            className={cn(
+              "flex flex-1 cursor-pointer items-center gap-2 rounded-md border-2 px-3 py-2 transition",
+              deliveryType === type
+                ? "border-primary bg-primary/10"
+                : "border-border hover:border-primary/50"
+            )}
+          >
+            <input
+              type="radio"
+              name="deliveryType"
+              value={type}
+              checked={deliveryType === type}
+              onChange={(e) => onDeliveryTypeChange(e.target.value as DeliveryType)}
+              className="text-primary"
+            />
+            <span className="text-xs font-medium text-foreground sm:text-sm">{DELIVERY_LABELS[type]}</span>
+          </label>
+        ))}
+      </div>
+
     </div>
   );
 };

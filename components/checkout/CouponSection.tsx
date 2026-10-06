@@ -89,7 +89,7 @@ export const CouponSection: React.FC<CouponSectionProps> = ({
               onChange={(e) => onCouponInputChange(e.target.value.toUpperCase())}
               placeholder="Enter coupon code"
               autoFocus
-              className="w-full flex-1 rounded-lg border border-border bg-background-elevated px-2.5 py-1.5 text-xs text-foreground outline-none transition focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full flex-1 rounded-md border border-border bg-background-elevated px-2.5 py-1.5 text-xs text-foreground outline-none transition focus:ring-2 focus:ring-primary focus:border-transparent"
             />
             <button
               type="button"

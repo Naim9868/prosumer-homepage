@@ -106,6 +106,7 @@ export async function POST(req: NextRequest) {
     }
 
     const validatedItems: ValidatedItem[] = [];
+    let originalTotal = 0;
     let subtotal = 0;
     let totalDiscount = 0;
     const productIds: string[] = [];
@@ -199,6 +200,7 @@ export async function POST(req: NextRequest) {
 
       subtotal += itemTotal;
       totalDiscount += discount;
+      originalTotal += originalPrice * quantity;
       productIds.push(String(product._id));
       lineTotals.push({ productId: String(product._id), lineTotal: itemTotal });
 
@@ -285,17 +287,18 @@ export async function POST(req: NextRequest) {
     }
 
     const deliveryCharge = deliveryType === "INSIDE_DHAKA" ? 60 : 120;
-    const finalDeliveryCharge = subtotal >= 5000 ? 0 : deliveryCharge;
-    const finalTotal = subtotal - totalDiscount + finalDeliveryCharge;
+    const finalTotal = subtotal + deliveryCharge;
 
     return NextResponse.json({
       success: true,
       data: {
         items: validatedItems,
         summary: {
+          originalTotal,
           subtotal,
           totalDiscount,
-          deliveryCharge: finalDeliveryCharge,
+          couponDiscount: 0,
+          deliveryCharge,
           total: finalTotal,
           currency: "BDT",
         },

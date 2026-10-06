@@ -20,6 +20,8 @@ export const CartItem: React.FC<CartItemProps> = memo(
     const [isExpanded, setIsExpanded] = useState(false);
     const itemImage = getItemImage(item);
     const itemTotal = getTotalPrice(item);
+    const saleLineTotal = item.price.sale * item.quantity;
+    const hasDiscount = item.price.original > item.price.sale;
     const maxQuantity = getMaxQuantity(item);
     const inventoryStatus = getInventoryStatus(item);
 
@@ -52,9 +54,19 @@ export const CartItem: React.FC<CartItemProps> = memo(
           <div className="min-w-0 flex-1">
             <h4 className="line-clamp-2 text-xs font-medium text-foreground sm:text-sm">{item.name}</h4>
             {item.brand && <p className="text-[11px] text-foreground-muted">{item.brand}</p>}
-            <div className="mt-0.5 flex items-center justify-between">
-              <span className="text-xs font-bold text-primary sm:text-sm">{formatCurrency(itemTotal)}</span>
-              <span className="text-[10px] text-foreground-muted sm:text-xs">৳{item.price.sale} × {item.quantity}</span>
+            <div className="mt-0.5 flex items-center justify-between gap-2">
+              <span className="text-[10px] text-foreground-muted sm:text-xs">
+                ৳{item.price.original} × {item.quantity}
+              </span>
+             <span className="flex items-baseline gap-1.5 text-xs font-bold text-primary sm:text-sm">
+  {hasDiscount ? formatCurrency(saleLineTotal) : formatCurrency(itemTotal)}
+
+  {hasDiscount && (
+    <span className="text-[10px] font-normal text-foreground-muted line-through">
+      {formatCurrency(itemTotal)}
+    </span>
+  )}
+</span>
             </div>
           </div>
         </div>

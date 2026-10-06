@@ -40,7 +40,6 @@ export interface CheckoutFormData {
   phone: string;
   email: string;
   address: string;
-  area: string;
   city: string;
   division: string;
   notes: string;
@@ -49,6 +48,7 @@ export interface CheckoutFormData {
 }
 
 export interface CheckoutTotals {
+  originalTotal: number;
   subtotal: number;
   totalDiscount: number;
   couponDiscount: number;
@@ -92,7 +92,7 @@ export interface ShippingAddress {
   phone: string;
   email: string;
   address: string;
-  area: string;
+  area?: string;
   city: string;
   division: string;
 }
@@ -164,7 +164,6 @@ export interface ValidationErrors {
   phone?: string;
   email?: string;
   address?: string;
-  area?: string;
   city?: string;
   division?: string;
 }

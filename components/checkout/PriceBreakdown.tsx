@@ -4,28 +4,17 @@ import React from "react";
 import { Truck } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import type { CheckoutTotals } from "@/types/checkout";
-import { MIN_ORDER_FOR_FREE_DELIVERY } from "@/constants/checkout-constant";
 
 interface PriceBreakdownProps {
   totals: CheckoutTotals;
-  showFreeDelivery?: boolean;
-  freeShipping?: boolean;
-  freeDelivery?: boolean;
 }
 
-export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({
-  totals,
-  showFreeDelivery = false,
-  freeShipping = false,
-  freeDelivery = false,
-}) => {
-  const isFreeDelivery = freeShipping || freeDelivery || (showFreeDelivery && totals.subtotal >= MIN_ORDER_FOR_FREE_DELIVERY);
-
+export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({ totals }) => {
   return (
     <div className="space-y-1.5 text-xs sm:text-sm">
       <div className="flex justify-between">
-        <span className="text-foreground-muted">Subtotal</span>
-        <span className="text-foreground">{formatCurrency(totals.subtotal)}</span>
+        <span className="text-foreground-muted">Original Price</span>
+        <span className="text-foreground">{formatCurrency(totals.originalTotal)}</span>
       </div>
 
       {totals.totalDiscount > 0 && (
@@ -43,32 +32,17 @@ export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({
       )}
 
       <div className="flex justify-between">
+        <span className="text-foreground-muted">Subtotal</span>
+        <span className="text-foreground">{formatCurrency(totals.subtotal)}</span>
+      </div>
+
+      <div className="flex justify-between">
         <span className="flex items-center gap-1 text-foreground-muted">
           <Truck className="h-3 w-3 text-primary" />
           Delivery
         </span>
-        <span className="text-foreground">
-          {isFreeDelivery ? <span className="text-success">Free</span> : formatCurrency(totals.deliveryCharge)}
-        </span>
+        <span className="text-foreground">{formatCurrency(totals.deliveryCharge)}</span>
       </div>
-
-      {freeDelivery && !freeShipping && (
-        <div className="rounded-md border border-success/40 bg-success/10 p-1.5">
-          <p className="flex items-center gap-1.5 text-[11px] text-success">
-            <Truck size={10} />
-            Free delivery applied!
-          </p>
-        </div>
-      )}
-
-      {freeShipping && (
-        <div className="rounded-md border border-success/40 bg-success/10 p-1.5">
-          <p className="flex items-center gap-1.5 text-[11px] text-success">
-            <Truck size={10} />
-            Free shipping via coupon!
-          </p>
-        </div>
-      )}
 
       <hr className="border-border" />
 

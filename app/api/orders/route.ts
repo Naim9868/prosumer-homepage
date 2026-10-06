@@ -133,7 +133,6 @@ export async function POST(req: NextRequest) {
 
     // Validate coupon if provided
     let coupon: { couponId: unknown; code?: string; type?: string; value?: number; discountAmount: number } | undefined;
-    let freeShipping = false;
     if (body.couponCode) {
       const foundCoupon = await CouponModel.findOne({ code: body.couponCode.toUpperCase(), active: true })
         .lean()
@@ -144,9 +143,7 @@ export async function POST(req: NextRequest) {
 
       const couponDoc = foundCoupon as unknown as CouponLeanDoc;
       let discountAmount = 0;
-      if (couponDoc.type === "FREE_SHIPPING") {
-        freeShipping = true;
-      } else if (couponDoc.type === "FIXED") {
+      if (couponDoc.type === "FIXED") {
         discountAmount = Math.min(Number(couponDoc.value) || 0, subtotal);
       } else if (couponDoc.type === "PERCENTAGE") {
         discountAmount = (subtotal * Number(couponDoc.value)) / 100;
@@ -168,9 +165,8 @@ export async function POST(req: NextRequest) {
     }
 
     const deliveryCharge = body.deliveryType === "INSIDE_DHAKA" ? 60 : 120;
-    const finalDeliveryCharge = freeShipping || subtotal >= 5000 ? 0 : deliveryCharge;
     const couponDiscount = body.coupon?.discountAmount ?? coupon?.discountAmount ?? body.pricing?.couponDiscount ?? 0;
-    const total = Math.max(0, subtotal - itemDiscount - couponDiscount + finalDeliveryCharge);
+    const total = Math.max(0, subtotal - couponDiscount + deliveryCharge);
 
     const orderId = generateOrderId();
     const order = await OrderModel.create({
@@ -184,7 +180,7 @@ export async function POST(req: NextRequest) {
         itemDiscount,
         couponDiscount,
         campaignDiscount: 0,
-        deliveryCharge: finalDeliveryCharge,
+        deliveryCharge,
         tax: 0,
         total,
         currency: "BDT",

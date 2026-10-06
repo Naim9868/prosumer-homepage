@@ -2,7 +2,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import type { CheckoutFormData, OrderItem, CheckoutTotals, GuestInfoType, Coupon } from "@/types/checkout";
 import { DEFAULT_FORM_DATA, QUANTITY_MAX_DEFAULT } from "@/constants/checkout-constant";
-import { calculateDeliveryCharge, normalizeOrderInput, clampQuantity } from "@/utils/checkout-utils";
+import { calculateDeliveryCharge, normalizeOrderInput, clampQuantity, computeCheckoutTotals } from "@/utils/checkout-utils";
 import { useCartValidation } from "./useCartValidation";
 import { useCoupon } from "./useCoupon";
 import { useOrder } from "./useOrder";
@@ -149,33 +149,25 @@ export const useCheckout = ({ items: propItems, userId, guestInfo, onSuccess }: 
   }
 
   const totals = useMemo((): CheckoutTotals => {
-    const base = validatedTotals || (() => {
-      const subtotal = localItems.reduce((sum, item) => sum + item.price.sale * item.quantity, 0);
-      const deliveryCharge = calculateDeliveryCharge(formData.deliveryType);
-      return {
-        subtotal,
-        totalDiscount: 0,
-        couponDiscount: 0,
-        deliveryCharge,
-        total: subtotal + deliveryCharge,
-      };
-    })();
+    const localOriginalTotal = localItems.reduce((sum, item) => sum + item.price.original * item.quantity, 0);
+    const localTotalDiscount = localItems.reduce(
+      (sum, item) => sum + Math.max(0, item.price.original - item.price.sale) * item.quantity,
+      0
+    );
 
-    let finalDelivery = base.deliveryCharge;
-    if (couponFreeShipping) {
-      finalDelivery = 0;
-    }
+    const originalTotal = validatedTotals
+      ? (validatedTotals.originalTotal ?? validatedTotals.subtotal + (validatedTotals.totalDiscount || 0))
+      : localOriginalTotal;
 
-    const finalTotal = base.subtotal - (base.totalDiscount || 0) - couponDiscountAmount + finalDelivery;
+    const totalDiscount = validatedTotals ? validatedTotals.totalDiscount || 0 : localTotalDiscount;
 
-    return {
-      subtotal: base.subtotal,
-      totalDiscount: base.totalDiscount || 0,
+    return computeCheckoutTotals({
+      originalTotal,
+      totalDiscount,
       couponDiscount: couponDiscountAmount,
-      deliveryCharge: finalDelivery,
-      total: finalTotal,
-    };
-  }, [localItems, formData.deliveryType, validatedTotals, couponDiscountAmount, couponFreeShipping]);
+      deliveryCharge: calculateDeliveryCharge(formData.deliveryType),
+    });
+  }, [localItems, formData.deliveryType, validatedTotals, couponDiscountAmount]);
 
   const updateField = useCallback(
     <K extends keyof CheckoutFormData>(field: K, value: CheckoutFormData[K]) => {
@@ -247,8 +239,6 @@ export const useCheckout = ({ items: propItems, userId, guestInfo, onSuccess }: 
       e.email = "Invalid email";
     }
     if (!formData.address.trim()) e.address = "Address is required";
-    if (!formData.area.trim()) e.area = "Area is required";
-    if (!formData.city.trim()) e.city = "City is required";
 
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -290,12 +280,15 @@ export const useCheckout = ({ items: propItems, userId, guestInfo, onSuccess }: 
 
       const orderItems = validationResult.data.items.length > 0 ? validationResult.data.items : localItems;
 
-      const orderTotals = {
-        ...totals,
-        subtotal: validationResult.data.summary?.subtotal ?? totals.subtotal,
-        totalDiscount: validationResult.data.summary?.totalDiscount ?? totals.totalDiscount,
-        deliveryCharge: validationResult.data.summary?.deliveryCharge ?? totals.deliveryCharge,
-      };
+      const freshSummary = validationResult.data.summary;
+      const orderTotals = computeCheckoutTotals({
+        originalTotal:
+          freshSummary?.originalTotal ??
+          (freshSummary?.subtotal ?? totals.subtotal) + (freshSummary?.totalDiscount || 0),
+        totalDiscount: freshSummary?.totalDiscount ?? totals.totalDiscount,
+        couponDiscount: couponDiscountAmount,
+        deliveryCharge: calculateDeliveryCharge(formData.deliveryType),
+      });
 
       const orderCoupon = couponCode
         ? {

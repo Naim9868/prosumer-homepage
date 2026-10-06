@@ -264,8 +264,26 @@ export async function getProducts(filters: IProductFilters = {}): Promise<IProdu
 }
 
 export async function getProductBySlug(slug: string): Promise<IProduct | null> {
-  const result = await getProducts({ query: slug, limit: 20 });
-  return result.products.find((p) => p.slug === slug) || null;
+  await connectDB();
+
+  const raw = (await ProductModel.findOne({
+    slug,
+    deletedAt: null,
+    status: { $ne: "archived" },
+  })
+    .lean()
+    .exec()) as unknown as ProductDoc | null;
+
+  if (!raw) return null;
+
+  const [rawCats, rawBrands] = await Promise.all([
+    CategoryModel.find({ status: "active" }).lean().exec(),
+    BrandModel.find({ isActive: true }).lean().exec(),
+  ]);
+  const categoryMap = new Map((rawCats as unknown as CategoryDoc[]).map((c) => [String(c._id), c]));
+  const brandMap = new Map((rawBrands as unknown as BrandDoc[]).map((b) => [String(b._id), b]));
+
+  return serializeProduct(raw, categoryMap, brandMap);
 }
 
 export async function getProductsByIds(ids: string[]): Promise<IProduct[]> {

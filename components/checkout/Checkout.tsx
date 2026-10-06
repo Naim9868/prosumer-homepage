@@ -97,7 +97,6 @@ export const Checkout: React.FC<OrderFormProps> = ({
     isApplyingCoupon,
     couponMessage,
     appliedCoupon,
-    couponFreeShipping,
     updateField,
     updateQuantity,
     updateVariant,
@@ -195,17 +194,36 @@ export const Checkout: React.FC<OrderFormProps> = ({
     return <SuccessScreen orderId={orderId} onClose={handleClose} isModal={isModal} />;
   }
 
+  const SubmitSection = (
+    <div className="rounded-[var(--radius-lg)] bg-card p-3 shadow-lg sm:p-4">
+      <ValidationAlert error={validationError} type="error" />
+      {orderError && <ValidationAlert error={orderError} type="error" />}
+
+      <SubmitButton
+        loading={loading}
+        isValidating={isValidating}
+        disabled={checkoutItems.length === 0 || !!validationError}
+        total={totals.total}
+        onClick={submitOrder}
+      />
+
+      <TrustBadges />
+    </div>
+  );
+
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
-      <div className="order-2 flex-1 lg:order-1">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            submitOrder();
-          }}
-          className="space-y-4 rounded-[var(--radius-lg)] bg-card p-3 shadow-lg sm:p-4"
-        >
-          <h2 className="flex items-center gap-2 text-lg font-bold sm:text-xl">
+    <form
+      id="checkout-form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        submitOrder();
+      }}
+      className="flex flex-col lg:flex-row gap-4 lg:gap-6"
+    >
+      {/* Left column: Form fields + Submit (desktop) */}
+      <div className="flex-1 flex flex-col gap-4 order-1">
+        <div className="rounded-[var(--radius-lg)] bg-card p-3 shadow-lg sm:p-4">
+          <h2 className="flex items-center gap-2 text-lg font-bold sm:text-xl mb-4">
             <ShoppingBag className="h-4 w-4 text-primary sm:h-5 sm:w-5" />
             <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               Place Your Order
@@ -222,47 +240,38 @@ export const Checkout: React.FC<OrderFormProps> = ({
             onEmailChange={(value) => updateField("email", value)}
           />
 
-          <hr className="border-border" />
+          <hr className="border-border my-3" />
 
           <DeliveryForm
             deliveryType={formData.deliveryType}
             address={formData.address}
-            area={formData.area}
             city={formData.city}
             division={formData.division}
             notes={formData.notes}
             errors={errors}
             onDeliveryTypeChange={(type) => updateField("deliveryType", type)}
             onAddressChange={(value) => updateField("address", value)}
-            onAreaChange={(value) => updateField("area", value)}
             onCityChange={(value) => updateField("city", value)}
             onDivisionChange={(value) => updateField("division", value)}
             onNotesChange={(value) => updateField("notes", value)}
           />
 
-          <hr className="border-border" />
+          <hr className="border-border my-3" />
 
           <PaymentForm
             paymentMethod={formData.paymentMethod}
             onPaymentMethodChange={(method) => updateField("paymentMethod", method)}
           />
+        </div>
 
-          <ValidationAlert error={validationError} type="error" />
-          {orderError && <ValidationAlert error={orderError} type="error" />}
-
-          <SubmitButton
-            loading={loading}
-            isValidating={isValidating}
-            disabled={checkoutItems.length === 0 || !!validationError}
-            total={totals.total}
-            onClick={submitOrder}
-          />
-
-          <TrustBadges />
-        </form>
+        {/* Submit section - shown on desktop */}
+        <div className="hidden lg:block">
+          {SubmitSection}
+        </div>
       </div>
 
-      <div className="order-1 lg:order-2 lg:w-96 xl:w-[400px]">
+      {/* Right column: Order Summary */}
+      <div className="lg:w-96 xl:w-[400px] flex-shrink-0 order-2">
         <OrderSummary
           items={checkoutItems}
           totals={totals}
@@ -273,7 +282,6 @@ export const Checkout: React.FC<OrderFormProps> = ({
           isApplyingCoupon={isApplyingCoupon}
           couponMessage={couponMessage}
           appliedCoupon={appliedCoupon}
-          couponFreeShipping={couponFreeShipping}
           availableCoupons={availableCoupons}
           onQuantityChange={handleQuantityChange}
           onVariantChange={handleVariantChange}
@@ -283,6 +291,11 @@ export const Checkout: React.FC<OrderFormProps> = ({
           onRemoveCoupon={removeCoupon}
         />
       </div>
-    </div>
+
+      {/* Submit section - shown on mobile (after OrderSummary) */}
+      <div className="w-full lg:hidden order-3">
+        {SubmitSection}
+      </div>
+    </form>
   );
 };

@@ -38,7 +38,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
             value={name}
             onChange={(e) => onNameChange(e.target.value)}
             className={cn(
-              "w-full rounded-lg border bg-background-elevated px-3 py-2 text-sm text-foreground outline-none transition focus:ring-2 focus:ring-primary focus:border-transparent",
+              "w-full rounded-md border bg-background-elevated px-3 py-2 text-sm text-foreground outline-none transition focus:ring-2 focus:ring-primary focus:border-transparent",
               errors.name ? "border-destructive" : "border-border"
             )}
             placeholder="John Doe"
@@ -53,7 +53,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
             value={phone}
             onChange={(e) => onPhoneChange(e.target.value)}
             className={cn(
-              "w-full rounded-lg border bg-background-elevated px-3 py-2 text-sm text-foreground outline-none transition focus:ring-2 focus:ring-primary focus:border-transparent",
+              "w-full rounded-md border bg-background-elevated px-3 py-2 text-sm text-foreground outline-none transition focus:ring-2 focus:ring-primary focus:border-transparent",
               errors.phone ? "border-destructive" : "border-border"
             )}
             placeholder="017XXXXXXXX"
@@ -69,7 +69,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
           value={email}
           onChange={(e) => onEmailChange(e.target.value)}
           className={cn(
-            "w-full rounded-lg border bg-background-elevated px-3 py-2 text-sm text-foreground outline-none transition focus:ring-2 focus:ring-primary focus:border-transparent",
+            "w-full rounded-md border bg-background-elevated px-3 py-2 text-sm text-foreground outline-none transition focus:ring-2 focus:ring-primary focus:border-transparent",
             errors.email ? "border-destructive" : "border-border"
           )}
           placeholder="john@example.com"

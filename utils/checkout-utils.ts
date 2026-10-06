@@ -9,6 +9,30 @@ export const calculateDeliveryCharge = (deliveryType: DeliveryType): number => {
   return DELIVERY_CHARGES[deliveryType] || 0;
 };
 
+export const computeCheckoutTotals = ({
+  originalTotal,
+  totalDiscount,
+  couponDiscount,
+  deliveryCharge,
+}: {
+  originalTotal: number;
+  totalDiscount: number;
+  couponDiscount: number;
+  deliveryCharge: number;
+}): CheckoutTotals => {
+  const subtotal = Math.max(0, originalTotal - totalDiscount - couponDiscount);
+  const total = subtotal + deliveryCharge;
+
+  return {
+    originalTotal,
+    subtotal,
+    totalDiscount,
+    couponDiscount,
+    deliveryCharge,
+    total,
+  };
+};
+
 export const calculateTotal = (
   subtotal: number,
   deliveryCharge: number,
@@ -40,7 +64,6 @@ export const normalizeOrderInput = (
     phone: formData.phone,
     email: formData.email,
     address: formData.address,
-    area: formData.area,
     city: formData.city,
     division: formData.division,
   };
@@ -108,7 +131,7 @@ export const getInventoryStatus = (item: OrderItem): "in-stock" | "low-stock" | 
 };
 
 export const getTotalPrice = (item: OrderItem): number => {
-  return item.price.sale * item.quantity;
+  return item.price.original * item.quantity;
 };
 
 export const formatCurrency = (

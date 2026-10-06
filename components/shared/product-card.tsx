@@ -346,7 +346,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
           </div>
 
           <Link href={`/products/${slug}`} onClick={(e) => e.stopPropagation()} className="block group/title">
-            <h3 className="text-product-title line-clamp-2 font-heading text-[13px] text-foreground transition-colors group-hover/title:text-primary md:text-sm">
+            <h3 className="text-product-title weight-500 md:weight-700 line-clamp-2 font-heading text-[13px] text-foreground transition-colors group-hover/title:text-primary md:text-sm">
               {name}
             </h3>
           </Link>

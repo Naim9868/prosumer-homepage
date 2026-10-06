@@ -13,14 +13,11 @@ export const DELIVERY_LABELS: Record<DeliveryType, string> = {
 export const PHONE_REGEX = /^01[3-9]\d{8}$/;
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export const MIN_ORDER_FOR_FREE_DELIVERY = 5000;
-
 export const DEFAULT_FORM_DATA: CheckoutFormData = {
   name: "",
   phone: "",
   email: "",
   address: "",
-  area: "",
   city: "",
   division: "",
   notes: "",
