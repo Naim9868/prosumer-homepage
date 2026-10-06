@@ -35,6 +35,7 @@ export function Navbar({ settings, categories }: { settings?: PageNavbarSettings
   const [shopDropdownOpen, setShopDropdownOpen] = useState(false);
   const lastScrollY = useRef(0);
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
 
   const { theme, toggleTheme } = useTheme();
   const { openCartModal } = useCartModalContext();
@@ -67,6 +68,17 @@ export function Navbar({ settings, categories }: { settings?: PageNavbarSettings
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      if (headerRef.current && !headerRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [menuOpen]);
 
   const handleDropdownEnter = () => {
     if (dropdownTimeoutRef.current) {
@@ -136,6 +148,7 @@ export function Navbar({ settings, categories }: { settings?: PageNavbarSettings
 
   return (
     <header
+      ref={headerRef}
       style={headerStyle}
       suppressHydrationWarning
       className={cn(
@@ -422,6 +435,24 @@ export function Navbar({ settings, categories }: { settings?: PageNavbarSettings
                       <span className="rounded-full bg-[var(--navbar-accent)] px-2 py-0.5 text-xs text-[var(--navbar-accent-foreground)]">{cartCount}</span>
                     )}
                   </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="text-meta flex w-full items-center justify-between rounded-md px-2 py-2.5 text-[15px] text-[var(--navbar-text-muted)] hover:bg-[var(--navbar-hover-bg)] hover:text-[var(--navbar-hover)]"
+                >
+                  <span className="flex items-center gap-2">
+                    {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                    {theme === "dark" ? "Light Mode" : "Dark Mode"}
+                  </span>
+                  <span className="flex h-5 w-9 items-center rounded-full bg-[var(--navbar-hover-bg)] p-0.5">
+                    <span
+                      className={cn(
+                        "h-4 w-4 rounded-full bg-[var(--navbar-text)] transition-transform duration-200",
+                        theme === "dark" ? "translate-x-4" : "translate-x-0"
+                      )}
+                    />
+                  </span>
                 </button>
                 <div className="flex items-center gap-2 px-2 py-2.5 text-[14px] text-[var(--navbar-text-muted)]">
                   <Phone className="h-4 w-4" />

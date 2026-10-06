@@ -23,13 +23,13 @@ function isDesktop(): boolean {
 }
 
 /**
- * Mobile/tablet always starts and stays on the light theme.
- * Desktop follows the stored override when present, otherwise the device preference.
+ * The stored override wins on every device.
+ * Without one: mobile/tablet stays light, desktop follows the device preference.
  */
 function getSnapshot(): Theme {
-  if (!isDesktop()) return "light";
   const stored = window.localStorage.getItem(THEME_KEY) as Theme | null;
   if (stored === "light" || stored === "dark") return stored;
+  if (!isDesktop()) return "light";
   return getSystemTheme();
 }
 
