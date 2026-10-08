@@ -33,6 +33,25 @@ Rules enforced in code:
 - No token, email, phone, password or address is ever pushed into the dataLayer
   (`pushDataLayer` blocks forbidden keys in development).
 
+### Snippet installation (app side)
+
+`components/analytics/GoogleTagManager.tsx` renders Google's official install
+snippet verbatim (container id injected after a `GTM-XXXXXXX` validation) using
+`next/script` with `strategy="beforeInteractive"` in the root layout:
+
+- The snippet is **server-rendered into the initial HTML** (top of `<body>`,
+  immediately after the `noscript` iframe), so crawlers and Tag Assistant see
+  it without executing any app code.
+- It executes **before React hydration** via Next's `appBootstrap`
+  (`self.__next_s` queue), so `window.dataLayer` exists before any of the
+  events in section 2 are pushed.
+- `next/script` de-duplicates by `id="plbd-gtm"`, so it can never initialise
+  twice. Do **not** paste GTM's snippet manually — it would double-load.
+
+`afterInteractive` must **not** be used for GTM: it injects nothing into the
+server HTML (only a `<link rel="preload">`), which makes Tag Assistant report
+"GTM not found".
+
 ---
 
 ## 2. dataLayer event contract (emitted by the app)
@@ -325,6 +344,11 @@ reuses the same `event_id`, and stops after 5 attempts.
 
 ## 7. Verification checklist
 
+0. `view-source:` the deployed page → the GTM snippet
+   (`w[l]=w[l]||[]` / `gtm.js?id=`) must appear as a `<script>` in the initial
+   HTML, and `https://www.googletagmanager.com/ns.html?id=GTM-...` as the
+   `noscript` iframe. Container must be **published** (unpublished containers
+   serve an empty config → Tag Assistant reports "0 google tags found").
 1. GTM Preview: navigate SPA routes → exactly one `page_view` per navigation,
    one on initial load from the base tag.
 2. Open a product page → exactly one `view_item` per page load.
