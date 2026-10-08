@@ -140,6 +140,14 @@ export interface OrderInput {
   deliveryType: DeliveryType;
   paymentMethod: PaymentMethod;
   notes: Array<{ text: string }>;
+  /**
+   * Optional Meta browser attribution (`_fbc` / `_fbp` cookies) forwarded to the
+   * server for Conversions API user matching. Never pushed into the dataLayer.
+   */
+  analytics?: {
+    fbc?: string;
+    fbp?: string;
+  };
 }
 
 export interface OrderResponse {

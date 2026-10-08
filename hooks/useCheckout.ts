@@ -7,6 +7,8 @@ import { useCartValidation } from "./useCartValidation";
 import { useCoupon } from "./useCoupon";
 import { useOrder } from "./useOrder";
 import { validateCart } from "@/services/checkout.service";
+import { trackPurchase } from "@/lib/analytics/events";
+import { readMetaBrowserAttribution } from "@/lib/analytics/meta-attribution";
 
 interface UseCheckoutProps {
   items: OrderItem[];
@@ -301,7 +303,17 @@ export const useCheckout = ({ items: propItems, userId, guestInfo, onSuccess }: 
 
       const orderInput = normalizeOrderInput(orderItems, formData, orderTotals, userId, couponCode, orderCoupon);
 
+      const attribution = readMetaBrowserAttribution();
+      if (attribution) {
+        orderInput.analytics = attribution;
+      }
+
       const newOrderId = await submitOrderHook(orderInput);
+
+      // Fires only after the server returned a confirmed order id, and is
+      // guarded per orderId (sessionStorage) so reloads cannot repeat it.
+      // `event_id` here matches the server-side Conversions API event id.
+      trackPurchase({ orderId: newOrderId, items: orderItems, total: orderTotals.total });
 
       if (onSuccess) {
         onSuccess(newOrderId);

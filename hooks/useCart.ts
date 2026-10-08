@@ -6,6 +6,7 @@ import type { OrderItem } from "@/types/checkout";
 import type { IProductVariant } from "@/types/product";
 import type { CartProductInput } from "@/lib/cart-item";
 import { buildCartItem } from "@/lib/cart-item";
+import { trackAddToCart } from "@/lib/analytics/events";
 
 export function useCart() {
   const { storedValue: cartItems, setValue: setCartItems, isLoaded } = useLocalStorage<OrderItem[]>("plbd-cart", []);
@@ -29,6 +30,12 @@ export function useCart() {
         });
       } else {
         setCartItems((prev) => [...prev, newItem]);
+      }
+
+      // Fire only after the cart mutation succeeded, and only for the units
+      // that were actually added (quantity is preserved by buildCartItem).
+      if (quantity > 0) {
+        trackAddToCart([newItem]);
       }
 
       return Promise.resolve(true);

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ShoppingBag } from "lucide-react";
 import { useCartContext } from "@/app/context/CartContext";
 import { useGuestInfo } from "@/app/context/GuestInfoContext";
@@ -16,6 +16,7 @@ import { TrustBadges } from "./TrustBadges";
 import { ValidationAlert } from "./ValidationAlert";
 import { getAvailableCoupons } from "@/services/coupon.service";
 import type { Coupon, OrderItem } from "@/types/checkout";
+import { trackInitiateCheckout } from "@/lib/analytics/events";
 
 interface OrderFormProps {
   items?: OrderItem[];
@@ -125,6 +126,17 @@ export const Checkout: React.FC<OrderFormProps> = ({
       .then((coupons) => setAvailableCoupons(coupons))
       .catch(() => setAvailableCoupons([]));
   }, [totals.subtotal, userId]);
+
+  // Meta InitiateCheckout / GA4 begin_checkout.
+  // Fires at most once per checkout visit, and only with real cart lines,
+  // so re-renders, coupon updates and quantity edits never repeat it.
+  const beginCheckoutFiredRef = useRef(false);
+  useEffect(() => {
+    if (beginCheckoutFiredRef.current || orderComplete) return;
+    if (checkoutItems.length === 0) return;
+    beginCheckoutFiredRef.current = true;
+    trackInitiateCheckout(checkoutItems, totals.total);
+  }, [orderComplete, checkoutItems, totals.total]);
 
   const applyCoupon = async () => {
     const productIds: string[] = [];

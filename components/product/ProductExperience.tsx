@@ -6,7 +6,7 @@
 // inventory, purchase actions) lives below this component so a variant
 // change never triggers a full page reload or refetch.
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Product } from "@/types/product";
 import {
   getDefaultVariant,
@@ -29,6 +29,7 @@ import { useCartContext } from "@/app/context/CartContext";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import { useGuestInfo } from "@/app/context/GuestInfoContext";
 import GuestInfoModal from "@/components/GuestInfoModal";
+import { trackViewContent } from "@/lib/analytics/events";
 
 export function ProductExperience({ product }: { product: Product }) {
   const mode = getVariantMode(product);
@@ -49,6 +50,12 @@ export function ProductExperience({ product }: { product: Product }) {
   );
   const price = resolvePriceDisplay(product, selectedVariant);
   const stock = resolveStockStatus(product, selectedVariant);
+
+  // Meta ViewContent / GA4 view_item — deduplicated inside trackViewContent so
+  // StrictMode re-renders and variant changes can never produce duplicates.
+  useEffect(() => {
+    trackViewContent({ product, variant: selectedVariant });
+  }, [product, selectedVariant]);
 
   const findVariant = useCallback(
     (sku?: string) => {

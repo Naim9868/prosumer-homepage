@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { after } from "next/server";
 import { connectDB } from "@/lib/dbConnect";
 import { OrderModel } from "@/models/Order";
 import { CouponModel } from "@/models/Coupon";
 import { ProductModel } from "@/models/Product";
 import { Types } from "mongoose";
 import type { OrderInput } from "@/types/checkout";
+import { buildPurchaseEventId } from "@/lib/meta/capi";
+import { dispatchPurchaseCapi } from "@/lib/meta/purchase-capi";
 
 interface VariantDoc {
   sku?: string;
@@ -40,6 +43,30 @@ function generateOrderId(): string {
   const d = String(date.getDate()).padStart(2, "0");
   const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
   return `PL${y}${m}${d}-${rand}`;
+}
+
+const MAX_ATTRIBUTION_LENGTH = 1024;
+
+/** Rejects anything that is not a short printable-ASCII Meta attribution value. */
+function sanitizeAttribution(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  if (trimmed.length === 0 || trimmed.length > MAX_ATTRIBUTION_LENGTH) return undefined;
+  for (let i = 0; i < trimmed.length; i += 1) {
+    const code = trimmed.charCodeAt(i);
+    if (code < 0x20 || code > 0x7e) return undefined;
+  }
+  return trimmed;
+}
+
+/** Best-effort client IP for Conversions API matching. */
+function resolveClientIp(req: NextRequest): string | undefined {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) {
+    const first = forwarded.split(",")[0]?.trim();
+    if (first) return sanitizeAttribution(first);
+  }
+  return sanitizeAttribution(req.headers.get("x-real-ip"));
 }
 
 export async function POST(req: NextRequest) {
@@ -169,6 +196,24 @@ export async function POST(req: NextRequest) {
     const total = Math.max(0, subtotal - couponDiscount + deliveryCharge);
 
     const orderId = generateOrderId();
+
+    const clientIp = resolveClientIp(req);
+    const userAgent = sanitizeAttribution(req.headers.get("user-agent"));
+    const attributionFbc = sanitizeAttribution(body.analytics?.fbc);
+    const attributionFbp = sanitizeAttribution(body.analytics?.fbp);
+
+    const requestMeta: Record<string, unknown> = {};
+    if (clientIp) requestMeta.ip = clientIp;
+    if (userAgent) requestMeta.userAgent = userAgent;
+
+    const analyticsMeta: Record<string, unknown> = {
+      eventId: buildPurchaseEventId(orderId),
+      capiStatus: "pending",
+      capiAttempts: 0,
+    };
+    if (attributionFbc) analyticsMeta.fbc = attributionFbc;
+    if (attributionFbp) analyticsMeta.fbp = attributionFbp;
+
     const order = await OrderModel.create({
       orderId,
       guestEmail: body.guestEmail,
@@ -200,7 +245,13 @@ export async function POST(req: NextRequest) {
       notes: body.notes?.map((n) => ({ text: n.text })) || [],
       paymentMethod: body.paymentMethod || "COD",
       paymentStatus: "PENDING",
+      meta: requestMeta,
+      analytics: { meta: analyticsMeta },
     });
+
+    // Meta Conversions API is scheduled AFTER the order is committed and runs
+    // outside the response path, so a CAPI failure can never fail the order.
+    after(() => dispatchPurchaseCapi(orderId));
 
     return NextResponse.json({
       success: true,

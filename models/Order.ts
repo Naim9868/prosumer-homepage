@@ -119,6 +119,27 @@ const OrderSchema = new Schema(
       platform: String,
     },
 
+    /**
+     * Server-side analytics bookkeeping (Meta Conversions API).
+     * Never contains the CAPI access token or any customer PII beyond what
+     * the order already stores.
+     */
+    analytics: {
+      meta: {
+        eventId: { type: String, index: true },
+        capiStatus: {
+          type: String,
+          enum: ["pending", "success", "failed"],
+          default: "pending",
+        },
+        capiAttempts: { type: Number, default: 0 },
+        lastCapiAttemptAt: Date,
+        capiError: String,
+        fbc: String,
+        fbp: String,
+      },
+    },
+
     notifications: {
       sms: { type: Boolean, default: false },
       email: { type: Boolean, default: false },
