@@ -35,7 +35,7 @@ export function ProductExperience({ product }: { product: Product }) {
   const mode = getVariantMode(product);
   const [selectedVariant, setSelectedVariant] = useState(() => getDefaultVariant(product));
   const [selection, setSelection] = useState(() =>
-    selectedVariant ? variantToSelection(selectedVariant) : {}
+    selectedVariant ? variantToSelection(selectedVariant, product.variants) : {}
   );
   const [showGuestModal, setShowGuestModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<"cart" | "buy" | null>(null);
@@ -136,7 +136,7 @@ export function ProductExperience({ product }: { product: Product }) {
               selectedSku={selectedVariant?.sku}
               onSelect={(variant) => {
                 setSelectedVariant(variant);
-                setSelection(variantToSelection(variant));
+                setSelection(variantToSelection(variant, product.variants));
               }}
             />
           ) : (

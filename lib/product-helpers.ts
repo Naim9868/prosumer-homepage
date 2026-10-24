@@ -37,6 +37,10 @@ export function getDefaultVariant(product: Product): ProductVariant | undefined 
 /**
  * Builds the dynamic attribute-option map for the variant selector, e.g.
  * { color: ["black", "white"], storage: ["128gb", "256gb"] }, in first-seen order.
+ * 
+ * Handles the case where each variant has a single attribute but keys differ
+ * (e.g. "10 in 1" lens kit where each lens uses a different key like
+ * "type", "lensType", "model"). Groups them under a single dimension.
  */
 export function getVariantAttributeOptions(
   variants: ProductVariant[]
@@ -54,11 +58,26 @@ export function getVariantAttributeOptions(
     }
   }
 
-  return order.map((key) => ({
+  const result = order.map((key) => ({
     key,
     label: map.get(key)!.label,
     values: Array.from(map.get(key)!.values),
   }));
+
+  // If all variants have exactly 1 attribute but with different keys,
+  // merge them into a single dimension for "Choose Your Setup" style selector
+  const variantsWithSingleAttr = variants.filter(v => (v.attributes?.length ?? 0) === 1);
+  if (variantsWithSingleAttr.length === variants.length && variants.length > 1 && result.length > 1) {
+    const allValues = result.flatMap(r => r.values);
+    const firstLabel = result[0].label;
+    return [{
+      key: result[0].key,
+      label: firstLabel,
+      values: allValues,
+    }];
+  }
+
+  return result;
 }
 
 /** Finds the variant matching a full set of selected attribute values, if any. */
@@ -66,6 +85,18 @@ export function findVariantBySelection(
   variants: ProductVariant[],
   selection: Record<string, string>
 ): ProductVariant | undefined {
+  // Check if this is a "single attribute per variant with different keys" pattern
+  const variantsWithSingleAttr = variants.filter(v => (v.attributes?.length ?? 0) === 1);
+  const isSingleAttrPerVariant = variantsWithSingleAttr.length === variants.length && variants.length > 1;
+  
+  if (isSingleAttrPerVariant && Object.keys(selection).length === 1) {
+    // For single-attribute-per-variant products, match by value only (key may differ)
+    const selectedValue = Object.values(selection)[0];
+    return variants.find((variant) => 
+      variant.attributes?.some(a => a.value === selectedValue)
+    );
+  }
+
   return variants.find((variant) => {
     const attrs = variant.attributes ?? [];
     return Object.entries(selection).every(([key, value]) =>
@@ -75,9 +106,23 @@ export function findVariantBySelection(
 }
 
 /** Given a variant, returns its selection as a plain { key: value } map. */
-export function variantToSelection(variant: ProductVariant): Record<string, string> {
+export function variantToSelection(variant: ProductVariant, allVariants?: ProductVariant[]): Record<string, string> {
   const out: Record<string, string> = {};
   for (const attr of variant.attributes ?? []) out[attr.key] = attr.value;
+  
+  // If this is a single-attribute-per-variant product with different keys,
+  // normalize to use the first variant's attribute key for consistency
+  if (allVariants) {
+    const variantsWithSingleAttr = allVariants.filter(v => (v.attributes?.length ?? 0) === 1);
+    const isSingleAttrPerVariant = variantsWithSingleAttr.length === allVariants.length && allVariants.length > 1;
+    if (isSingleAttrPerVariant && variant.attributes?.length === 1) {
+      const firstKey = allVariants[0].attributes?.[0]?.key;
+      if (firstKey && variant.attributes[0].key !== firstKey) {
+        return { [firstKey]: variant.attributes[0].value };
+      }
+    }
+  }
+  
   return out;
 }
 
@@ -91,6 +136,15 @@ export function isAttributeValueAvailable(
   key: string,
   value: string
 ): boolean {
+  // Check if this is a "single attribute per variant with different keys" pattern
+  const variantsWithSingleAttr = variants.filter(v => (v.attributes?.length ?? 0) === 1);
+  const isSingleAttrPerVariant = variantsWithSingleAttr.length === variants.length && variants.length > 1;
+  
+  if (isSingleAttrPerVariant) {
+    // For single-attribute-per-variant products, any value that exists in any variant is available
+    return variants.some(v => v.attributes?.some(a => a.value === value));
+  }
+
   const trial = { ...currentSelection, [key]: value };
   return variants.some((variant) => {
     const attrs = variant.attributes ?? [];
@@ -369,9 +423,25 @@ export function buildComparisonRows(product: Product) {
  * "mount" = 1, "color" + "storage" = 2). Drives whether the selector shows
  * one row of full-variant cards (shopapexel's "Choose Your Setup") or a
  * per-attribute swatch UI (Amazon-style) for multi-dimension products.
+ * 
+ * Handles the case where each variant has a single attribute but keys differ
+ * (e.g. "10 in 1" lens kit where each lens uses a different key like
+ * "type", "lensType", "model"). Treats this as a single dimension.
  */
 export function getVariantDimensionCount(variants: ProductVariant[]): number {
-  return getVariantAttributeOptions(variants).length;
+  const options = getVariantAttributeOptions(variants);
+  
+  if (options.length <= 1) return options.length;
+  
+  // Check if this is a "single attribute per variant with different keys" pattern
+  // e.g. 10 variants, each with 1 attribute, but keys are "type", "lensType", "model", etc.
+  const variantsWithSingleAttr = variants.filter(v => (v.attributes?.length ?? 0) === 1);
+  if (variantsWithSingleAttr.length === variants.length && variants.length > 1) {
+    // All variants have exactly 1 attribute -> treat as single dimension
+    return 1;
+  }
+  
+  return options.length;
 }
 
 /** A short display label for a single-dimension variant card, e.g. "37mm Mount". */
