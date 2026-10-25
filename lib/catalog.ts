@@ -73,7 +73,17 @@ interface ProductDoc {
   ratingCount?: number;
   featured?: boolean;
   badges?: { label?: string }[];
-  variants?: { price?: number; compareAtPrice?: number; inventory?: number; status?: string }[];
+  variants?: {
+    sku?: string;
+    variantKey?: string;
+    attributes?: { key: string; value: string }[];
+    price?: number;
+    compareAtPrice?: number;
+    inventory?: number;
+    images?: string[];
+    isDefault?: boolean;
+    status?: string;
+  }[];
   status?: string;
   deletedAt?: Date | null;
   createdAt?: Date;
@@ -133,6 +143,19 @@ function toCatalogProduct(
 
   const images = (doc.images ?? []).map((img) => img.url).filter((url): url is string => !!url);
 
+  // Include variant details with attributes for proper variant display
+  const catalogVariants = variants.map((v) => ({
+    sku: v.sku || "",
+    variantKey: v.variantKey || "",
+    attributes: Array.isArray(v.attributes) ? v.attributes : [],
+    price: typeof v.price === "number" ? v.price : 0,
+    compareAtPrice: typeof v.compareAtPrice === "number" ? v.compareAtPrice : undefined,
+    inventory: typeof v.inventory === "number" ? v.inventory : 0,
+    images: Array.isArray(v.images) ? v.images : [],
+    isDefault: !!v.isDefault,
+    status: v.status || "in_stock",
+  }));
+
   return {
     id: String(doc._id),
     name: doc.name,
@@ -154,6 +177,7 @@ function toCatalogProduct(
     gradient: PRODUCT_GRADIENTS[hashString(categoryId || doc.name) % PRODUCT_GRADIENTS.length],
     featured: !!doc.featured,
     createdAt: doc.createdAt instanceof Date ? doc.createdAt.toISOString() : new Date().toISOString(),
+    variants: catalogVariants,
   };
 }
 

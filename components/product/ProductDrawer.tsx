@@ -21,6 +21,14 @@ import { formatCurrency } from "@/lib/utils";
 import { ApertureMark } from "@/components/shared/layout-primitives";
 import { ProductSpecifications } from "./sections/ProductSpecifications";
 import { ShareButton } from "./ui/ShareButton";
+import {
+  getVariantDimensionCount,
+  getVariantAttributeOptions,
+  findVariantBySelection,
+  isAttributeValueAvailable,
+  variantToSelection,
+  getDefaultVariant,
+} from "@/lib/product-helpers";
 
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   Truck, Shield, RotateCcw, Package, Clock, Star, Award, Zap, CheckCircle,
@@ -85,22 +93,9 @@ export default function ProductDrawer() {
   const displayProduct =
     fullProduct && product && fullProduct.slug === product.slug ? fullProduct : product;
 
-  const productVariants = product?.variants;
-  const attributeTypes = useMemo(() => {
-    if (!productVariants?.length) return [];
-    const map = new Map<string, Set<string>>();
-    productVariants.forEach((v: { attributes?: { key: string; value: string }[] }) => {
-      v.attributes?.forEach((a: { key: string; value: string }) => {
-        if (!map.has(a.key)) map.set(a.key, new Set());
-        map.get(a.key)!.add(a.value);
-      });
-    });
-    return Array.from(map.entries()).map(([key, values]) => ({
-      key,
-      label: key.charAt(0).toUpperCase() + key.slice(1),
-      values: Array.from(values),
-    }));
-  }, [productVariants]);
+  const productVariants = product?.variants ?? [];
+  const dimensionCount = getVariantDimensionCount(productVariants);
+  const attributeOptions = getVariantAttributeOptions(productVariants);
 
   const currentPrice = selectedVariant?.price || product?.lowestPrice || 0;
   const compareAtPriceDefault = useMemo(() => {
@@ -159,21 +154,18 @@ export default function ProductDrawer() {
     if (drawerProduct) {
       setSelectedImage(0);
       setQuantity(1);
-      setSelectedAttributes({});
       setShowFullDescription(false);
       setPendingAction(null);
       setIsAddingToCart(false);
       setFullProduct(null);
 
-      const def = drawerProduct.variants?.find((v) => v.isDefault) || drawerProduct.variants?.[0];
+      const def = getDefaultVariant(drawerProduct);
       if (def) {
-        const attrs: Record<string, string> = {};
-        def.attributes?.forEach((a: { key: string; value: string }) => {
-          attrs[a.key] = a.value;
-        });
-        setSelectedAttributes(attrs);
+        const sel = variantToSelection(def, drawerProduct.variants);
+        setSelectedAttributes(sel);
         setSelectedVariant(def);
       } else {
+        setSelectedAttributes({});
         setSelectedVariant(undefined);
       }
     }
@@ -181,7 +173,7 @@ export default function ProductDrawer() {
 
   const matchedVariant = useMemo(() => {
     if (!product?.variants?.length || !Object.keys(selectedAttributes).length) return undefined;
-    return product.variants.find((v: { attributes?: { key: string; value: string }[]; variantKey?: string }) => v.attributes?.every((a: { key: string; value: string }) => selectedAttributes[a.key] === a.value));
+    return findVariantBySelection(product.variants, selectedAttributes);
   }, [product, selectedAttributes]);
 
   if (matchedVariant && matchedVariant.variantKey !== selectedVariant?.variantKey) {
@@ -475,34 +467,74 @@ export default function ProductDrawer() {
                   </motion.div>
 
                   {/* Variants */}
-                  {attributeTypes.length > 0 && (
+                  {attributeOptions.length > 0 && (
                     <motion.div variants={stagger} initial="hidden" animate="show" custom={1} className="flex flex-col gap-3">
-                      {attributeTypes.map((attr) => (
-                        <div key={attr.key} className="flex flex-col gap-2.5">
-                          <label className="text-eyebrow text-[10px] text-foreground-muted">
-                            Select {attr.label}
-                          </label>
-                          <div className="flex flex-wrap gap-2">
-                            {attr.values.map((val) => {
-                              const isSelected = selectedAttributes[attr.key] === val;
-                              return (
-                                <button
-                                  type="button"
-                                  key={val}
-                                  onClick={() => setSelectedAttributes((p) => ({ ...p, [attr.key]: val }))}
-                                  className={`rounded-full border px-4 py-2 text-[13px] font-medium transition-all duration-200 ${
-                                    isSelected
-                                      ? "border-primary bg-primary text-primary-foreground shadow-[0_2px_10px_rgba(176,141,70,0.28)]"
-                                      : "border-border text-foreground hover:border-primary/50 hover:bg-primary/5"
-                                  }`}
-                                >
-                                  {val}
-                                </button>
-                              );
-                            })}
-                          </div>
+                      {dimensionCount === 1 && attributeOptions.length === 1 ? (
+                        // Single dimension (e.g., "10 in 1" lens kit) - show as variant cards
+                        <div className="flex flex-wrap gap-2">
+                          {productVariants.map((variant: IProductVariant) => {
+                            const isSelected = selectedVariant?.variantKey === variant.variantKey;
+                            const outOfStock = (variant.inventory ?? 0) - (variant.reserved ?? 0) <= 0;
+                            const label = variant.attributes?.map(a => a.value).join(" / ") || variant.sku;
+                            return (
+                              <button
+                                key={variant.sku}
+                                type="button"
+                                disabled={outOfStock}
+                                onClick={() => {
+                                  const sel = variantToSelection(variant, productVariants);
+                                  setSelectedAttributes(sel);
+                                  setSelectedVariant(variant);
+                                  setSelectedImage(0);
+                                  setQuantity(1);
+                                }}
+                                className={`flex items-center gap-2 rounded-xl border p-2 text-left transition ${
+                                  isSelected
+                                    ? "border-primary bg-primary/10"
+                                    : "border-border hover:border-primary/50"
+                                } ${outOfStock ? "cursor-not-allowed opacity-40" : ""}`}
+                              >
+                                <span className="text-sm font-medium text-foreground">{label}</span>
+                                {outOfStock && <span className="text-xs text-foreground-muted">Out of stock</span>}
+                              </button>
+                            );
+                          })}
                         </div>
-                      ))}
+                      ) : (
+                        // Multi-dimension - show per-attribute swatches
+                        <>
+                          {attributeOptions.map((attr) => (
+                          <div key={attr.key} className="flex flex-col gap-2.5">
+                            <label className="text-eyebrow text-[10px] text-foreground-muted">
+                              Select {attr.label}
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                              {attr.values.map((val) => {
+                                const isSelected = selectedAttributes[attr.key] === val;
+                                const available = isAttributeValueAvailable(productVariants, selectedAttributes, attr.key, val);
+                                return (
+                                  <button
+                                    type="button"
+                                    key={val}
+                                    disabled={!available}
+                                    onClick={() => setSelectedAttributes((p) => ({ ...p, [attr.key]: val }))}
+                                    className={`rounded-full border px-4 py-2 text-[13px] font-medium transition-all duration-200 ${
+                                      isSelected
+                                        ? "border-primary bg-primary text-primary-foreground shadow-[0_2px_10px_rgba(176,141,70,0.28)]"
+                                        : available
+                                        ? "border-border text-foreground hover:border-primary/50 hover:bg-primary/5"
+                                        : "cursor-not-allowed border-border/50 text-foreground/40 line-through"
+                                    }`}
+                                  >
+                                    {val}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                        </>
+                      )}
                     </motion.div>
                   )}
 

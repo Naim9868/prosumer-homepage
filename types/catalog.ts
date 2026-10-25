@@ -29,6 +29,17 @@ export interface CatalogProduct {
   gradient: string;
   featured: boolean;
   createdAt: string;
+  variants?: {
+    sku: string;
+    variantKey: string;
+    attributes: { key: string; value: string }[];
+    price: number;
+    compareAtPrice?: number;
+    inventory: number;
+    images?: string[];
+    isDefault?: boolean;
+    status?: string;
+  }[];
 }
 
 export interface CatalogCategory {

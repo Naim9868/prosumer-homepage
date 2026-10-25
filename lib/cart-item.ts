@@ -3,6 +3,65 @@ import type { CatalogProduct } from "@/types/catalog";
 import type { IProduct, IProductVariant, ImageGroupType } from "@/types/product";
 
 export function catalogToIProduct(product: CatalogProduct): IProduct {
+  // Use variants from catalog if available (including attributes)
+  if (product.variants && product.variants.length > 0) {
+    const variants = product.variants.map((v) => ({
+      sku: v.sku || product.id,
+      variantKey: v.variantKey || "default",
+      attributes: v.attributes || [],
+      price: v.price,
+      compareAtPrice: v.compareAtPrice,
+      inventory: v.inventory,
+      reserved: 0,
+      images: v.images?.length ? v.images : (product.images?.length ? product.images : [product.image]),
+      isDefault: v.isDefault ?? false,
+      status: v.status || "in_stock",
+    }));
+
+    const totalInventory = variants.reduce((sum, v) => sum + v.inventory, 0);
+    const defaultVariant = variants.find(v => v.isDefault) || variants[0];
+    const prices = variants.map(v => v.price);
+    const lowestPrice = Math.min(...prices);
+    const highestPrice = Math.max(...prices);
+
+    return {
+      _id: product.id,
+      name: product.name,
+      slug: product.slug,
+      description: "",
+      shortDescription: "",
+      brandId: product.brandId || product.categoryId,
+      brand: product.brand
+        ? { _id: product.brandId || "", name: product.brand, slug: product.brandSlug || "" }
+        : null,
+      categoryId: product.categoryId,
+      category: { _id: product.categoryId, name: product.category, slug: product.categorySlug },
+      variants,
+      imageGroups: [
+        {
+          type: "product" as ImageGroupType,
+          title: "default",
+          images: (product.images?.length ? product.images : [product.image]).filter(Boolean).map((url) => ({ url })),
+        },
+      ],
+      thumbnail: product.image,
+      tags: [],
+      badges: product.badge ? [{ label: product.badge }] : [],
+      featured: product.featured,
+      inventorySummary: { available: totalInventory, reserved: 0, incoming: 0, lowStockThreshold: 5 },
+      lowestPrice,
+      highestPrice: highestPrice > lowestPrice ? highestPrice : undefined,
+      totalInventory,
+      ratingAverage: product.rating,
+      ratingCount: product.reviewCount,
+      status: totalInventory > 0 ? "active" : "draft",
+      deletedAt: null,
+      createdAt: product.createdAt,
+      updatedAt: product.createdAt,
+    };
+  }
+
+  // Fallback for products without variants in catalog
   const inventory = product.stock === "in-stock" ? 99 : product.stock === "low-stock" ? 5 : 0;
   const price = product.price || 0;
   return {
